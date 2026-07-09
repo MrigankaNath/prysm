@@ -26,7 +26,11 @@ app.get("/api/content/:id", (req, res) => {
 
 app.get("/api/feed/daily", (req, res) => {
   const { topic, count } = req.query;
-  const limit = parseInt(count) || 3;
+  let limit = parseInt(count);
+
+  if (!Number.isInteger(limit) || limit <= 0) {
+    limit = 3;
+  }
 
   let results = topic
     ? contentItems.filter((item) => item.topic === topic)
