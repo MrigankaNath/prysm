@@ -1,5 +1,6 @@
 const express = require("express");
 const contentItems = require("./data/contentItems");
+
 const app = express();
 
 app.get("/api/health", (req, res) => {
@@ -21,6 +22,23 @@ app.get("/api/content/:id", (req, res) => {
     return res.status(404).json({ error: "Content not found" });
   }
   res.json(item);
+});
+
+app.get("/api/feed/daily", (req, res) => {
+  const { topic, count } = req.query;
+  const limit = parseInt(count) || 3;
+
+  let results = topic
+    ? contentItems.filter((item) => item.topic === topic)
+    : contentItems;
+
+  results = [...results].sort(
+    (a, b) => new Date(b.dateAdded) - new Date(a.dateAdded),
+  );
+
+  results = results.slice(0, limit);
+
+  res.json(results);
 });
 
 const PORT = process.env.PORT || 3000;
