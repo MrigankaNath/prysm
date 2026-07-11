@@ -1,6 +1,7 @@
 const express = require("express");
 const contentItems = require("./data/contentItems");
 const bundles = require("./data/bundles");
+const depthOrder = ["beginner", "intermediate", "advanced"];
 
 const app = express();
 
@@ -70,6 +71,36 @@ app.get("/api/bundles/:id", (req, res) => {
     topic: bundle.topic,
     description: bundle.description,
     items,
+  });
+});
+
+app.get("/api/content/:id/next", (req, res) => {
+  const id = parseInt(req.params.id);
+  const current = contentItems.find((item) => item.id === id);
+
+  if (!current) {
+    return res.status(404).json({ error: "Content not found" });
+  }
+
+  const currentDepthIndex = depthOrder.indexOf(current.depthLevel);
+  const nextDepth = depthOrder[currentDepthIndex + 1];
+
+  if (!nextDepth) {
+    return res.json({
+      current: current.title,
+      message: "You've reached the most advanced level for this topic.",
+      next: [],
+    });
+  }
+
+  const next = contentItems.filter(
+    (item) => item.topic === current.topic && item.depthLevel === nextDepth,
+  );
+
+  res.json({
+    current: current.title,
+    nextDepth,
+    next,
   });
 });
 
