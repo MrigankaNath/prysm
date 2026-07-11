@@ -1,5 +1,6 @@
 const express = require("express");
 const contentItems = require("./data/contentItems");
+const bundles = require("./data/bundles");
 
 const app = express();
 
@@ -43,6 +44,33 @@ app.get("/api/feed/daily", (req, res) => {
   results = results.slice(0, limit);
 
   res.json(results);
+});
+
+app.get("/api/bundles", (req, res) => {
+  const { topic } = req.query;
+  const results = topic ? bundles.filter((b) => b.topic === topic) : bundles;
+  res.json(results);
+});
+
+app.get("/api/bundles/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+  const bundle = bundles.find((b) => b.id === id);
+
+  if (!bundle) {
+    return res.status(404).json({ error: "Bundle not found" });
+  }
+
+  const items = bundle.contentIds
+    .map((contentId) => contentItems.find((item) => item.id === contentId))
+    .filter(Boolean);
+
+  res.json({
+    id: bundle.id,
+    title: bundle.title,
+    topic: bundle.topic,
+    description: bundle.description,
+    items,
+  });
 });
 
 const PORT = process.env.PORT || 3000;
