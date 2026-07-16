@@ -1,20 +1,34 @@
 const express = require("express");
 const contentItems = require("./data/contentItems");
 const bundles = require("./data/bundles");
-const depthOrder = ["beginner", "intermediate", "advanced"];
+const pool = require("./db");
 
 const app = express();
+
+const depthOrder = ["beginner", "intermediate", "advanced"];
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-app.get("/api/feed", (req, res) => {
+app.get("/api/feed", async (req, res) => {
   const { topic } = req.query;
-  const results = topic
-    ? contentItems.filter((item) => item.topic === topic)
-    : contentItems;
-  res.json(results);
+
+  try {
+    let result;
+    if (topic) {
+      result = await pool.query(
+        "SELECT * FROM content_items WHERE topic = $1",
+        [topic],
+      );
+    } else {
+      result = await pool.query("SELECT * FROM content_items");
+    }
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong fetching the feed" });
+  }
 });
 
 app.get("/api/content/:id", (req, res) => {
