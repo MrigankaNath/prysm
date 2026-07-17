@@ -31,16 +31,31 @@ app.get("/api/feed", async (req, res) => {
   }
 });
 
-app.get("/api/content/:id", (req, res) => {
+app.get("/api/content/:id", async (req, res) => {
   const id = parseInt(req.params.id);
-  const item = contentItems.find((i) => i.id === id);
-  if (!item) {
-    return res.status(404).json({ error: "Content not found" });
+
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: "Invalid content id" });
   }
-  res.json(item);
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM content_items WHERE id = $1",
+      [id],
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Content not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong fetching content" });
+  }
 });
 
-app.get("/api/feed/daily", (req, res) => {
+app.get("/api/feed/daily", async (req, res) => {
   const { topic, count } = req.query;
   let limit = parseInt(count);
 
@@ -48,17 +63,26 @@ app.get("/api/feed/daily", (req, res) => {
     limit = 3;
   }
 
-  let results = topic
-    ? contentItems.filter((item) => item.topic === topic)
-    : contentItems;
-
-  results = [...results].sort(
-    (a, b) => new Date(b.dateAdded) - new Date(a.dateAdded),
-  );
-
-  results = results.slice(0, limit);
-
-  res.json(results);
+  try {
+    let result;
+    if (topic) {
+      result = await pool.query(
+        "SELECT * FROM content_items WHERE topic = $1 ORDER BY date_added DESC LIMIT $2",
+        [topic, limit],
+      );
+    } else {
+      result = await pool.query(
+        "SELECT * FROM content_items ORDER BY date_added DESC LIMIT $1",
+        [limit],
+      );
+    }
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ error: "Something went wrong fetching the daily feed" });
+  }
 });
 
 app.get("/api/bundles", (req, res) => {
