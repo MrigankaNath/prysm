@@ -1,5 +1,4 @@
 const express = require("express");
-const contentItems = require("./data/contentItems");
 const pool = require("./db");
 
 const app = express();
@@ -143,34 +142,51 @@ app.get("/api/bundles/:id", async (req, res) => {
   }
 });
 
-app.get("/api/content/:id/next", (req, res) => {
+app.get("/api/content/:id/next", async (req, res) => {
   const id = parseInt(req.params.id);
-  const current = contentItems.find((item) => item.id === id);
 
-  if (!current) {
-    return res.status(404).json({ error: "Content not found" });
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: "Invalid content id" });
   }
 
-  const currentDepthIndex = depthOrder.indexOf(current.depthLevel);
-  const nextDepth = depthOrder[currentDepthIndex + 1];
+  try {
+    const currentResult = await pool.query(
+      "SELECT * FROM content_items WHERE id = $1",
+      [id],
+    );
 
-  if (!nextDepth) {
-    return res.json({
+    if (currentResult.rows.length === 0) {
+      return res.status(404).json({ error: "Content not found" });
+    }
+
+    const current = currentResult.rows[0];
+    const currentDepthIndex = depthOrder.indexOf(current.depth_level);
+    const nextDepth = depthOrder[currentDepthIndex + 1];
+
+    if (!nextDepth) {
+      return res.json({
+        current: current.title,
+        message: "You've reached the most advanced level for this topic.",
+        next: [],
+      });
+    }
+
+    const nextResult = await pool.query(
+      "SELECT * FROM content_items WHERE topic = $1 AND depth_level = $2",
+      [current.topic, nextDepth],
+    );
+
+    res.json({
       current: current.title,
-      message: "You've reached the most advanced level for this topic.",
-      next: [],
+      nextDepth,
+      next: nextResult.rows,
     });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ error: "Something went wrong finding the next step" });
   }
-
-  const next = contentItems.filter(
-    (item) => item.topic === current.topic && item.depthLevel === nextDepth,
-  );
-
-  res.json({
-    current: current.title,
-    nextDepth,
-    next,
-  });
 });
 
 const PORT = process.env.PORT || 3000;
