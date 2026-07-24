@@ -1,6 +1,5 @@
 const express = require("express");
 const contentItems = require("./data/contentItems");
-const bundles = require("./data/bundles");
 const pool = require("./db");
 
 const app = express();
@@ -85,31 +84,63 @@ app.get("/api/feed/daily", async (req, res) => {
   }
 });
 
-app.get("/api/bundles", (req, res) => {
+app.get("/api/bundles", async (req, res) => {
   const { topic } = req.query;
-  const results = topic ? bundles.filter((b) => b.topic === topic) : bundles;
-  res.json(results);
+
+  try {
+    let result;
+    if (topic) {
+      result = await pool.query("SELECT * FROM bundles WHERE topic = $1", [
+        topic,
+      ]);
+    } else {
+      result = await pool.query("SELECT * FROM bundles");
+    }
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong fetching bundles" });
+  }
 });
 
-app.get("/api/bundles/:id", (req, res) => {
+app.get("/api/bundles/:id", async (req, res) => {
   const id = parseInt(req.params.id);
-  const bundle = bundles.find((b) => b.id === id);
 
-  if (!bundle) {
-    return res.status(404).json({ error: "Bundle not found" });
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ error: "Invalid bundle id" });
   }
 
-  const items = bundle.contentIds
-    .map((contentId) => contentItems.find((item) => item.id === contentId))
-    .filter(Boolean);
+  try {
+    const bundleResult = await pool.query(
+      "SELECT * FROM bundles WHERE id = $1",
+      [id],
+    );
 
-  res.json({
-    id: bundle.id,
-    title: bundle.title,
-    topic: bundle.topic,
-    description: bundle.description,
-    items,
-  });
+    if (bundleResult.rows.length === 0) {
+      return res.status(404).json({ error: "Bundle not found" });
+    }
+
+    const itemsResult = await pool.query(
+      `SELECT content_items.*
+       FROM bundle_items
+       JOIN content_items ON bundle_items.content_item_id = content_items.id
+       WHERE bundle_items.bundle_id = $1
+       ORDER BY bundle_items.position`,
+      [id],
+    );
+
+    const bundle = bundleResult.rows[0];
+    res.json({
+      id: bundle.id,
+      title: bundle.title,
+      topic: bundle.topic,
+      description: bundle.description,
+      items: itemsResult.rows,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong fetching the bundle" });
+  }
 });
 
 app.get("/api/content/:id/next", (req, res) => {

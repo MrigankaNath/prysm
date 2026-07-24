@@ -9,3 +9,17 @@ CREATE TABLE content_items (
   description TEXT,
   source_name TEXT
 );
+
+CREATE TABLE bundles (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  topic TEXT NOT NULL,
+  description TEXT
+);
+
+CREATE TABLE bundle_items (
+  id SERIAL PRIMARY KEY,
+  bundle_id INTEGER NOT NULL REFERENCES bundles(id),
+  content_item_id INTEGER NOT NULL REFERENCES content_items(id),
+  position INTEGER NOT NULL
+);
