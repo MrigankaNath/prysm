@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import Feed from "./pages/Feed";
 import Prisms from "./pages/Prisms";
+import PrismDetail from "./pages/PrismDetail";
 import Spectrum from "./pages/Spectrum";
 import Wavelength from "./pages/Wavelength";
 
@@ -18,6 +19,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Feed />} />
         <Route path="/prisms" element={<Prisms />} />
+        <Route path="/prisms/:id" element={<PrismDetail />} />
         <Route path="/spectrum" element={<Spectrum />} />
         <Route path="/wavelength" element={<Wavelength />} />
       </Routes>
