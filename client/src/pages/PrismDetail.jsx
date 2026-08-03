@@ -11,16 +11,19 @@ function PrismDetail() {
       .then((data) => setBundle(data));
   }, [id]);
 
-  if (!bundle) return <p>Loading...</p>;
+  if (!bundle) return <p className="page">Loading...</p>;
 
   return (
-    <div>
+    <div className="page">
       <h2>{bundle.title}</h2>
       <p>{bundle.description}</p>
-      <ol>
+      <ol className="card-list">
         {bundle.items.map((item) => (
           <li key={item.id}>
-            {item.title} ({item.depth_level})
+            <a className="card" href={item.url} target="_blank" rel="noopener noreferrer">
+              <div className="card-title">{item.title}</div>
+              <div className="card-meta">{item.depth_level} · {item.type}</div>
+            </a>
           </li>
         ))}
       </ol>

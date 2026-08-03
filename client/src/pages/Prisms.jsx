@@ -11,13 +11,15 @@ function Prisms() {
   }, []);
 
   return (
-    <div>
+    <div className="page">
       <h2>Prisms</h2>
-      <ul>
+      <ul className="card-list">
         {bundles.map((bundle) => (
           <li key={bundle.id}>
-            <Link to={`/prisms/${bundle.id}`}>{bundle.title}</Link> —{" "}
-            {bundle.topic}
+            <Link className="card" to={`/prisms/${bundle.id}`}>
+              <div className="card-title">{bundle.title}</div>
+              <div className="card-meta">{bundle.topic}</div>
+            </Link>
           </li>
         ))}
       </ul>

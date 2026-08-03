@@ -10,12 +10,17 @@ function Spectrum() {
   }, []);
 
   return (
-    <div>
+    <div className="page">
       <h2>Spectrum</h2>
-      <ul>
+      <ul className="card-list">
         {items.map((item) => (
           <li key={item.id}>
-            {item.title} — {item.topic} ({item.depth_level})
+            <a className="card" href={item.url} target="_blank" rel="noopener noreferrer">
+              <div className="card-title">{item.title}</div>
+              <div className="card-meta">
+                {item.topic} · {item.depth_level} · {item.type}
+              </div>
+            </a>
           </li>
         ))}
       </ul>
