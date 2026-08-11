@@ -2,6 +2,7 @@ const express = require("express");
 
 const cors = require("cors");
 const pool = require("./db");
+const { requireAuth } = require("./db/supabase");
 
 const app = express();
 app.use(cors());
@@ -10,6 +11,10 @@ const depthOrder = ["beginner", "intermediate", "advanced"];
 
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
+});
+
+app.get("/api/me", requireAuth, (req, res) => {
+  res.json({ id: req.userId, email: req.userEmail });
 });
 
 app.get("/api/feed", async (req, res) => {
