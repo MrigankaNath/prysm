@@ -6,6 +6,7 @@ const { requireAuth } = require("./db/supabase");
 
 const app = express();
 app.use(cors());
+app.use(express.json());
 
 const depthOrder = ["beginner", "intermediate", "advanced"];
 
@@ -15,6 +16,53 @@ app.get("/api/health", (req, res) => {
 
 app.get("/api/me", requireAuth, (req, res) => {
   res.json({ id: req.userId, email: req.userEmail });
+});
+
+app.get("/api/interests", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT topic, created_at FROM user_interests WHERE user_id = $1 ORDER BY created_at",
+      [req.userId],
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong fetching interests" });
+  }
+});
+
+app.post("/api/interests", requireAuth, async (req, res) => {
+  const topic = typeof req.body.topic === "string" ? req.body.topic.trim() : "";
+
+  if (!topic) {
+    return res.status(400).json({ error: "topic is required" });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO user_interests (user_id, topic) VALUES ($1, $2)
+       ON CONFLICT (user_id, topic) DO NOTHING
+       RETURNING topic, created_at`,
+      [req.userId, topic],
+    );
+    res.status(201).json(result.rows[0] || { topic });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong following that topic" });
+  }
+});
+
+app.delete("/api/interests/:topic", requireAuth, async (req, res) => {
+  try {
+    await pool.query(
+      "DELETE FROM user_interests WHERE user_id = $1 AND topic = $2",
+      [req.userId, req.params.topic],
+    );
+    res.status(204).end();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong unfollowing that topic" });
+  }
 });
 
 app.get("/api/feed", async (req, res) => {
