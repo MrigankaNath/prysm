@@ -306,6 +306,48 @@ app.get("/api/bundles", async (req, res) => {
   }
 });
 
+app.get("/api/bundles/recommended", requireAuth, async (req, res) => {
+  try {
+    const interestsResult = await pool.query(
+      "SELECT topic FROM user_interests WHERE user_id = $1",
+      [req.userId],
+    );
+    const interestTopics = interestsResult.rows.map((row) => row.topic);
+
+    if (interestTopics.length === 0) {
+      return res.json([]);
+    }
+
+    const result = await pool.query(
+      `SELECT
+         bundles.id,
+         bundles.title,
+         bundles.topic,
+         bundles.description,
+         COUNT(bundle_items.id) FILTER (
+           WHERE NOT EXISTS (
+             SELECT 1 FROM user_content_history
+             WHERE user_content_history.user_id = $1
+             AND user_content_history.content_item_id = bundle_items.content_item_id
+           )
+         ) AS unconsumed_count
+       FROM bundles
+       JOIN bundle_items ON bundle_items.bundle_id = bundles.id
+       WHERE bundles.topic = ANY($2::text[])
+       GROUP BY bundles.id
+       ORDER BY unconsumed_count DESC`,
+      [req.userId, interestTopics],
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ error: "Something went wrong fetching recommended bundles" });
+  }
+});
+
 app.get("/api/bundles/:id", async (req, res) => {
   const id = parseInt(req.params.id);
 
