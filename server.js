@@ -1,4 +1,5 @@
 const express = require("express");
+const rateLimit = require("express-rate-limit");
 
 const cors = require("cors");
 const pool = require("./db");
@@ -7,6 +8,13 @@ const { requireAuth, optionalAuth } = require("./db/supabase");
 const app = express();
 app.use(cors({ origin: process.env.CLIENT_ORIGIN || "http://localhost:5173" }));
 app.use(express.json());
+
+const writeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const depthOrder = ["beginner", "intermediate", "advanced"];
 
@@ -31,7 +39,7 @@ app.get("/api/interests", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/interests", requireAuth, async (req, res) => {
+app.post("/api/interests", writeLimiter, requireAuth, async (req, res) => {
   const topic = typeof req.body.topic === "string" ? req.body.topic.trim() : "";
 
   if (!topic) {
@@ -52,7 +60,7 @@ app.post("/api/interests", requireAuth, async (req, res) => {
   }
 });
 
-app.delete("/api/interests/:topic", requireAuth, async (req, res) => {
+app.delete("/api/interests/:topic", writeLimiter, requireAuth, async (req, res) => {
   try {
     await pool.query(
       "DELETE FROM user_interests WHERE user_id = $1 AND topic = $2",
@@ -82,7 +90,7 @@ app.get("/api/history", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/history", requireAuth, async (req, res) => {
+app.post("/api/history", writeLimiter, requireAuth, async (req, res) => {
   const contentItemId = parseInt(req.body.content_item_id);
 
   if (!Number.isInteger(contentItemId)) {
