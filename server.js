@@ -5,7 +5,7 @@ const pool = require("./db");
 const { requireAuth, optionalAuth } = require("./db/supabase");
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: process.env.CLIENT_ORIGIN || "http://localhost:5173" }));
 app.use(express.json());
 
 const depthOrder = ["beginner", "intermediate", "advanced"];
