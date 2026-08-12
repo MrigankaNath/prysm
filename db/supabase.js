@@ -6,9 +6,13 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-async function requireAuth(req, res, next) {
+function extractToken(req) {
   const authHeader = req.headers.authorization || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  return authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+}
+
+async function requireAuth(req, res, next) {
+  const token = extractToken(req);
 
   if (!token) {
     return res.status(401).json({ error: "Missing bearer token" });
@@ -25,4 +29,18 @@ async function requireAuth(req, res, next) {
   next();
 }
 
-module.exports = { supabase, requireAuth };
+async function optionalAuth(req, res, next) {
+  const token = extractToken(req);
+
+  if (token) {
+    const { data } = await supabase.auth.getUser(token);
+    if (data?.user) {
+      req.userId = data.user.id;
+      req.userEmail = data.user.email;
+    }
+  }
+
+  next();
+}
+
+module.exports = { supabase, requireAuth, optionalAuth };

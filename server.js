@@ -2,7 +2,7 @@ const express = require("express");
 
 const cors = require("cors");
 const pool = require("./db");
-const { requireAuth } = require("./db/supabase");
+const { requireAuth, optionalAuth } = require("./db/supabase");
 
 const app = express();
 app.use(cors());
@@ -177,6 +177,94 @@ app.get("/api/feed/daily", async (req, res) => {
     res
       .status(500)
       .json({ error: "Something went wrong fetching the daily feed" });
+  }
+});
+
+app.get("/api/feed/personalized", optionalAuth, async (req, res) => {
+  let limit = parseInt(req.query.count);
+  if (!Number.isInteger(limit) || limit <= 0) {
+    limit = 3;
+  }
+
+  try {
+    if (!req.userId) {
+      const result = await pool.query(
+        "SELECT * FROM content_items ORDER BY date_added DESC LIMIT $1",
+        [limit],
+      );
+      return res.json(result.rows);
+    }
+
+    const interestsResult = await pool.query(
+      "SELECT topic FROM user_interests WHERE user_id = $1",
+      [req.userId],
+    );
+    const interestTopics = interestsResult.rows.map((row) => row.topic);
+
+    if (interestTopics.length === 0) {
+      const result = await pool.query(
+        "SELECT * FROM content_items ORDER BY date_added DESC LIMIT $1",
+        [limit],
+      );
+      return res.json(result.rows);
+    }
+
+    const lastDepthResult = await pool.query(
+      `SELECT DISTINCT ON (content_items.topic) content_items.topic, content_items.depth_level
+       FROM user_content_history
+       JOIN content_items ON user_content_history.content_item_id = content_items.id
+       WHERE user_content_history.user_id = $1
+       ORDER BY content_items.topic, user_content_history.consumed_at DESC`,
+      [req.userId],
+    );
+    const lastDepthByTopic = Object.fromEntries(
+      lastDepthResult.rows.map((row) => [row.topic, row.depth_level]),
+    );
+
+    const candidatesResult = await pool.query(
+      `SELECT content_items.*
+       FROM content_items
+       WHERE NOT EXISTS (
+         SELECT 1 FROM user_content_history
+         WHERE user_content_history.user_id = $1
+         AND user_content_history.content_item_id = content_items.id
+       )`,
+      [req.userId],
+    );
+
+    const scored = candidatesResult.rows.map((item) => {
+      let score = 0;
+
+      if (interestTopics.includes(item.topic)) {
+        score += 3;
+      }
+
+      const daysSinceAdded =
+        (Date.now() - new Date(item.date_added).getTime()) / 86400000;
+      if (daysSinceAdded <= 7) {
+        score += 1;
+      }
+
+      const lastDepth = lastDepthByTopic[item.topic];
+      const nextDepth = lastDepth
+        ? depthOrder[depthOrder.indexOf(lastDepth) + 1]
+        : null;
+      if (nextDepth && item.depth_level === nextDepth) {
+        score += 2;
+      }
+
+      return { ...item, score };
+    });
+
+    scored.sort(
+      (a, b) =>
+        b.score - a.score || new Date(b.date_added) - new Date(a.date_added),
+    );
+
+    res.json(scored.slice(0, limit).map(({ score, ...item }) => item));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong building your feed" });
   }
 });
 
