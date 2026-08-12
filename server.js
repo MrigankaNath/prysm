@@ -65,6 +65,47 @@ app.delete("/api/interests/:topic", requireAuth, async (req, res) => {
   }
 });
 
+app.get("/api/history", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT content_items.*, user_content_history.consumed_at
+       FROM user_content_history
+       JOIN content_items ON user_content_history.content_item_id = content_items.id
+       WHERE user_content_history.user_id = $1
+       ORDER BY user_content_history.consumed_at DESC`,
+      [req.userId],
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong fetching history" });
+  }
+});
+
+app.post("/api/history", requireAuth, async (req, res) => {
+  const contentItemId = parseInt(req.body.content_item_id);
+
+  if (!Number.isInteger(contentItemId)) {
+    return res.status(400).json({ error: "content_item_id is required" });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO user_content_history (user_id, content_item_id) VALUES ($1, $2)
+       ON CONFLICT (user_id, content_item_id) DO NOTHING
+       RETURNING content_item_id, consumed_at`,
+      [req.userId, contentItemId],
+    );
+    res.status(201).json(result.rows[0] || { content_item_id: contentItemId });
+  } catch (err) {
+    if (err.code === "23503") {
+      return res.status(404).json({ error: "Content not found" });
+    }
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong recording history" });
+  }
+});
+
 app.get("/api/feed", async (req, res) => {
   const { topic } = req.query;
 
