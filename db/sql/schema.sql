@@ -43,3 +43,19 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+CREATE TABLE user_interests (
+  id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  topic TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, topic)
+);
+
+CREATE TABLE user_content_history (
+  id SERIAL PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  content_item_id INTEGER NOT NULL REFERENCES content_items(id) ON DELETE CASCADE,
+  consumed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, content_item_id)
+);
