@@ -268,6 +268,25 @@ app.get("/api/feed/personalized", optionalAuth, async (req, res) => {
   }
 });
 
+app.get("/api/explore", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         topic,
+         COUNT(*) AS item_count,
+         ARRAY_AGG(DISTINCT type) AS types,
+         ARRAY_AGG(DISTINCT depth_level) AS depth_levels
+       FROM content_items
+       GROUP BY topic
+       ORDER BY topic`,
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong fetching topics" });
+  }
+});
+
 app.get("/api/bundles", async (req, res) => {
   const { topic } = req.query;
 
