@@ -4,6 +4,8 @@ const rateLimit = require("express-rate-limit");
 const cors = require("cors");
 const pool = require("./db");
 const { requireAuth, optionalAuth } = require("./db/supabase");
+const { getCached, setCached } = require("./db/topicCache");
+const { fetchHackerNews } = require("./sources/hackerNews");
 
 const clientOrigin = (process.env.CLIENT_ORIGIN || "http://localhost:5173").replace(
   /\/$/,
@@ -297,6 +299,29 @@ app.get("/api/explore", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Something went wrong fetching topics" });
+  }
+});
+
+app.get("/api/explore/:topic/live", async (req, res) => {
+  const topic = req.params.topic.trim().toLowerCase();
+
+  if (!topic) {
+    return res.status(400).json({ error: "topic is required" });
+  }
+
+  try {
+    let hackernews = await getCached(topic, "hackernews");
+    if (!hackernews) {
+      hackernews = await fetchHackerNews(topic);
+      await setCached(topic, "hackernews", hackernews);
+    }
+
+    res.json({ topic, sources: { hackernews } });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ error: "Something went wrong fetching live results" });
   }
 });
 

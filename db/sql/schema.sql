@@ -59,3 +59,14 @@ CREATE TABLE user_content_history (
   consumed_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (user_id, content_item_id)
 );
+
+-- Live discovery results, cached per topic+source so N users cost 1 API call, not N.
+CREATE TABLE topic_cache (
+  id SERIAL PRIMARY KEY,
+  topic TEXT NOT NULL,
+  source TEXT NOT NULL,
+  results JSONB NOT NULL,
+  fetched_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  UNIQUE (topic, source)
+);
