@@ -339,6 +339,42 @@ app.get("/api/explore/:topic/live", async (req, res) => {
   }
 });
 
+app.get("/api/search", async (req, res) => {
+  const q = (req.query.q || "").trim();
+
+  if (!q) {
+    return res.json({ topics: [], bundles: [], content: [] });
+  }
+
+  try {
+    const like = `%${q}%`;
+
+    const [topicsResult, bundlesResult, contentResult] = await Promise.all([
+      pool.query(
+        "SELECT DISTINCT topic FROM content_items WHERE topic ILIKE $1 ORDER BY topic LIMIT 5",
+        [like],
+      ),
+      pool.query(
+        "SELECT id, title, topic FROM bundles WHERE title ILIKE $1 ORDER BY title LIMIT 5",
+        [like],
+      ),
+      pool.query(
+        "SELECT id, title, topic, url FROM content_items WHERE title ILIKE $1 ORDER BY title LIMIT 5",
+        [like],
+      ),
+    ]);
+
+    res.json({
+      topics: topicsResult.rows.map((row) => row.topic),
+      bundles: bundlesResult.rows,
+      content: contentResult.rows,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong searching" });
+  }
+});
+
 app.get("/api/bundles", async (req, res) => {
   const { topic } = req.query;
 
