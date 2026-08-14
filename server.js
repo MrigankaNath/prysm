@@ -7,6 +7,7 @@ const { requireAuth, optionalAuth } = require("./db/supabase");
 const { getCached, setCached } = require("./db/topicCache");
 const { fetchHackerNews } = require("./sources/hackerNews");
 const { fetchWikipedia } = require("./sources/wikipedia");
+const { fetchArxiv } = require("./sources/arxiv");
 
 const clientOrigin = (process.env.CLIENT_ORIGIN || "http://localhost:5173").replace(
   /\/$/,
@@ -323,7 +324,13 @@ app.get("/api/explore/:topic/live", async (req, res) => {
       await setCached(topic, "wikipedia", wikipedia);
     }
 
-    res.json({ topic, sources: { hackernews, wikipedia } });
+    let arxiv = await getCached(topic, "arxiv");
+    if (!arxiv) {
+      arxiv = await fetchArxiv(topic);
+      await setCached(topic, "arxiv", arxiv);
+    }
+
+    res.json({ topic, sources: { hackernews, wikipedia, arxiv } });
   } catch (err) {
     console.error(err);
     res
