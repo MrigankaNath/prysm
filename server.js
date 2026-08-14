@@ -304,6 +304,26 @@ app.get("/api/explore", async (req, res) => {
   }
 });
 
+const LIVE_SOURCES = {
+  hackernews: fetchHackerNews,
+  wikipedia: fetchWikipedia,
+  arxiv: fetchArxiv,
+};
+
+async function loadLiveSource(topic, name, fetchFn) {
+  try {
+    const cached = await getCached(topic, name);
+    if (cached) return cached;
+
+    const results = await fetchFn(topic);
+    await setCached(topic, name, results);
+    return results;
+  } catch (err) {
+    console.error(`live discovery: ${name} failed for topic "${topic}"`, err);
+    return [];
+  }
+}
+
 app.get("/api/explore/:topic/live", async (req, res) => {
   const topic = req.params.topic.trim().toLowerCase();
 
@@ -312,25 +332,13 @@ app.get("/api/explore/:topic/live", async (req, res) => {
   }
 
   try {
-    let hackernews = await getCached(topic, "hackernews");
-    if (!hackernews) {
-      hackernews = await fetchHackerNews(topic);
-      await setCached(topic, "hackernews", hackernews);
-    }
+    const names = Object.keys(LIVE_SOURCES);
+    const results = await Promise.all(
+      names.map((name) => loadLiveSource(topic, name, LIVE_SOURCES[name])),
+    );
 
-    let wikipedia = await getCached(topic, "wikipedia");
-    if (!wikipedia) {
-      wikipedia = await fetchWikipedia(topic);
-      await setCached(topic, "wikipedia", wikipedia);
-    }
-
-    let arxiv = await getCached(topic, "arxiv");
-    if (!arxiv) {
-      arxiv = await fetchArxiv(topic);
-      await setCached(topic, "arxiv", arxiv);
-    }
-
-    res.json({ topic, sources: { hackernews, wikipedia, arxiv } });
+    const sources = Object.fromEntries(names.map((name, i) => [name, results[i]]));
+    res.json({ topic, sources });
   } catch (err) {
     console.error(err);
     res
