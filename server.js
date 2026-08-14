@@ -5,8 +5,13 @@ const cors = require("cors");
 const pool = require("./db");
 const { requireAuth, optionalAuth } = require("./db/supabase");
 
+const clientOrigin = (process.env.CLIENT_ORIGIN || "http://localhost:5173").replace(
+  /\/$/,
+  "",
+);
+
 const app = express();
-app.use(cors({ origin: process.env.CLIENT_ORIGIN || "http://localhost:5173" }));
+app.use(cors({ origin: clientOrigin }));
 app.use(express.json());
 
 const writeLimiter = rateLimit({
