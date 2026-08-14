@@ -7,6 +7,7 @@ import PrismDetail from "./pages/PrismDetail";
 import Spectrum from "./pages/Spectrum";
 import Wavelength from "./pages/Wavelength";
 import Auth from "./pages/Auth";
+import CommandPalette from "./components/CommandPalette";
 
 function App() {
   const [session, setSession] = useState(null);
@@ -31,7 +32,10 @@ function App() {
         <Link to="/prisms">Prisms</Link>
         <Link to="/spectrum">Spectrum</Link>
         <Link to="/wavelength">Wavelength</Link>
+        <span className="command-hint">⌘K to search</span>
       </nav>
+
+      <CommandPalette />
 
       <Routes>
         <Route path="/" element={<Feed />} />

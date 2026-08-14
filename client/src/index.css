@@ -66,3 +66,141 @@ nav a:hover {
   font-size: 0.85rem;
   color: #a1a1aa;
 }
+
+.command-hint {
+  font-size: 0.8rem;
+  color: #71717a;
+  border: 1px solid #27272a;
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+.topic-search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.topic-search input {
+  flex: 1;
+  background-color: #1a1a1f;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #e4e4e7;
+  font-size: 0.95rem;
+}
+
+.topic-search input:focus {
+  outline: none;
+  border-color: #3f3f46;
+}
+
+.topic-search button {
+  background-color: #1a1a1f;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: #e4e4e7;
+  cursor: pointer;
+}
+
+.topic-search button:hover {
+  border-color: #3f3f46;
+}
+
+.topic-search .clear-search {
+  color: #a1a1aa;
+}
+
+.search-results {
+  margin-bottom: 40px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #27272a;
+}
+
+.search-results h3 {
+  font-size: 0.9rem;
+  color: #a1a1aa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 20px 0 8px;
+}
+
+.command-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 15, 20, 0.7);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  z-index: 100;
+}
+
+.command-palette {
+  width: 100%;
+  max-width: 560px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background-color: #1a1a1f;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  padding: 8px;
+}
+
+.command-palette input {
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #27272a;
+  padding: 14px 12px;
+  font-size: 1.05rem;
+  color: #e4e4e7;
+}
+
+.command-palette input:focus {
+  outline: none;
+}
+
+.command-empty {
+  padding: 16px 12px;
+  color: #71717a;
+  font-size: 0.9rem;
+}
+
+.command-group-label {
+  font-size: 0.75rem;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 10px 12px 4px;
+}
+
+.command-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: #e4e4e7;
+  font-size: 0.95rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.command-item:hover {
+  background-color: #27272a;
+}
+
+.command-item-meta {
+  font-size: 0.8rem;
+  color: #71717a;
+}
