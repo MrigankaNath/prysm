@@ -1,5 +1,5 @@
 async function fetchWikipedia(topic) {
-  const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&format=json&srlimit=5&srprop=snippet|timestamp&srsearch=${encodeURIComponent(topic)}`;
+  const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&format=json&srlimit=1&srprop=snippet|timestamp&srsearch=${encodeURIComponent(topic)}`;
   const res = await fetch(url, {
     headers: { "User-Agent": "Prysm/1.0 (https://prysm-black.vercel.app)" },
   });
@@ -9,9 +9,11 @@ async function fetchWikipedia(topic) {
   }
 
   const data = await res.json();
-  const hits = data.query?.search || [];
+  const hit = data.query?.search?.[0];
 
-  return hits.map((hit) => ({
+  if (!hit) return null;
+
+  return {
     title: hit.title,
     url: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title.replace(/ /g, "_"))}`,
     source: "wikipedia",
@@ -19,7 +21,7 @@ async function fetchWikipedia(topic) {
     snippet: hit.snippet.replace(/<[^>]+>/g, ""),
     published_at: hit.timestamp,
     thumbnail: null,
-  }));
+  };
 }
 
 module.exports = { fetchWikipedia };

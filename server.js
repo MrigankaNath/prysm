@@ -304,23 +304,25 @@ app.get("/api/explore", async (req, res) => {
   }
 });
 
-const LIVE_SOURCES = {
-  hackernews: fetchHackerNews,
-  wikipedia: fetchWikipedia,
-  arxiv: fetchArxiv,
+// Keyed by category, not by which API produced it — the point is that users
+// see "what it is" (an article, a paper), never "where it came from."
+const LIVE_CATEGORIES = {
+  overview: { fetch: fetchWikipedia, empty: null },
+  discussions: { fetch: fetchHackerNews, empty: [] },
+  papers: { fetch: fetchArxiv, empty: [] },
 };
 
-async function loadLiveSource(topic, name, fetchFn) {
+async function loadLiveCategory(topic, category, fetchFn, emptyValue) {
   try {
-    const cached = await getCached(topic, name);
+    const cached = await getCached(topic, category);
     if (cached) return cached;
 
     const results = await fetchFn(topic);
-    await setCached(topic, name, results);
+    await setCached(topic, category, results);
     return results;
   } catch (err) {
-    console.error(`live discovery: ${name} failed for topic "${topic}"`, err);
-    return [];
+    console.error(`live discovery: ${category} failed for topic "${topic}"`, err);
+    return emptyValue;
   }
 }
 
@@ -332,13 +334,20 @@ app.get("/api/explore/:topic/live", async (req, res) => {
   }
 
   try {
-    const names = Object.keys(LIVE_SOURCES);
+    const names = Object.keys(LIVE_CATEGORIES);
     const results = await Promise.all(
-      names.map((name) => loadLiveSource(topic, name, LIVE_SOURCES[name])),
+      names.map((name) =>
+        loadLiveCategory(
+          topic,
+          name,
+          LIVE_CATEGORIES[name].fetch,
+          LIVE_CATEGORIES[name].empty,
+        ),
+      ),
     );
 
-    const sources = Object.fromEntries(names.map((name, i) => [name, results[i]]));
-    res.json({ topic, sources });
+    const categories = Object.fromEntries(names.map((name, i) => [name, results[i]]));
+    res.json({ topic, categories });
   } catch (err) {
     console.error(err);
     res
