@@ -9,6 +9,7 @@ const { fetchHackerNews } = require("./sources/hackerNews");
 const { fetchWikipedia } = require("./sources/wikipedia");
 const { fetchArxiv } = require("./sources/arxiv");
 const { fetchGithub } = require("./sources/github");
+const { fetchYoutube } = require("./sources/youtube");
 
 const clientOrigin = (process.env.CLIENT_ORIGIN || "http://localhost:5173").replace(
   /\/$/,
@@ -312,6 +313,7 @@ const LIVE_CATEGORIES = {
   discussions: { fetch: fetchHackerNews, empty: [] },
   papers: { fetch: fetchArxiv, empty: [] },
   code: { fetch: fetchGithub, empty: [] },
+  videos: { fetch: fetchYoutube, empty: [] },
 };
 
 async function loadLiveCategory(topic, category, fetchFn, emptyValue) {
