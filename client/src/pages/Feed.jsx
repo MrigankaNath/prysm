@@ -1,11 +1,28 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
-const SOURCE_LABELS = {
-  hackernews: "Hacker News",
-  wikipedia: "Wikipedia",
-  arxiv: "arXiv",
+const CATEGORY_LABELS = {
+  overview: "Overview",
+  articles: "Articles",
+  videos: "Videos",
+  code: "Code",
+  papers: "Research Papers",
+  discussions: "Discussions",
 };
+
+const CATEGORY_ORDER = ["overview", "articles", "videos", "code", "papers", "discussions"];
+
+function LiveCard({ item }) {
+  return (
+    <a className="card" href={item.url} target="_blank" rel="noopener noreferrer">
+      <div className="card-title">{item.title}</div>
+      <div className="card-meta">
+        {item.depth_level ? `${item.depth_level} · ` : ""}
+        {item.snippet}
+      </div>
+    </a>
+  );
+}
 
 function Feed() {
   const [feed, setFeed] = useState([]);
@@ -13,7 +30,7 @@ function Feed() {
   const searchTopic = searchParams.get("topic") || "";
   const [query, setQuery] = useState(searchTopic);
   const [curatedResults, setCuratedResults] = useState([]);
-  const [liveResults, setLiveResults] = useState(null);
+  const [liveCategories, setLiveCategories] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false);
 
   useEffect(() => {
@@ -27,12 +44,12 @@ function Feed() {
 
     if (!searchTopic) {
       setCuratedResults([]);
-      setLiveResults(null);
+      setLiveCategories(null);
       return;
     }
 
     setSearchLoading(true);
-    setLiveResults(null);
+    setLiveCategories(null);
 
     Promise.all([
       fetch(
@@ -44,7 +61,7 @@ function Feed() {
     ])
       .then(([curated, live]) => {
         setCuratedResults(curated);
-        setLiveResults(live.sources);
+        setLiveCategories(live.categories);
       })
       .finally(() => setSearchLoading(false));
   }, [searchTopic]);
@@ -61,7 +78,11 @@ function Feed() {
   };
 
   const hasLiveResults =
-    liveResults && Object.values(liveResults).some((items) => items.length > 0);
+    liveCategories &&
+    CATEGORY_ORDER.some((key) => {
+      const value = liveCategories[key];
+      return Array.isArray(value) ? value.length > 0 : Boolean(value);
+    });
 
   return (
     <div className="page">
@@ -109,30 +130,26 @@ function Feed() {
           )}
 
           {!searchLoading &&
-            liveResults &&
-            Object.entries(liveResults).map(
-              ([source, items]) =>
-                items.length > 0 && (
-                  <div key={source}>
-                    <h3>From {SOURCE_LABELS[source] || source}</h3>
-                    <ul className="card-list">
-                      {items.map((item, i) => (
-                        <li key={`${source}-${i}`}>
-                          <a
-                            className="card"
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <div className="card-title">{item.title}</div>
-                            <div className="card-meta">{item.snippet}</div>
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ),
-            )}
+            liveCategories &&
+            CATEGORY_ORDER.map((key) => {
+              const value = liveCategories[key];
+              if (!value || (Array.isArray(value) && value.length === 0)) return null;
+
+              const items = Array.isArray(value) ? value : [value];
+
+              return (
+                <div key={key}>
+                  <h3>{CATEGORY_LABELS[key] || key}</h3>
+                  <ul className="card-list">
+                    {items.map((item, i) => (
+                      <li key={`${key}-${i}`}>
+                        <LiveCard item={item} />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
 
           {!searchLoading && curatedResults.length === 0 && !hasLiveResults && (
             <p>No results found for this topic.</p>
