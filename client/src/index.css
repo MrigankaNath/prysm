@@ -127,28 +127,67 @@ nav a:hover {
   margin: 20px 0 8px;
 }
 
+@keyframes command-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes command-palette-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 .command-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 15, 20, 0.7);
-  backdrop-filter: blur(6px);
+  background: rgba(10, 10, 13, 0.75);
+  backdrop-filter: blur(10px);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding-top: 12vh;
   z-index: 100;
+  animation: command-overlay-in 0.15s ease-out;
 }
 
 .command-palette {
   width: 100%;
-  max-width: 560px;
+  max-width: 600px;
   max-height: 60vh;
-  overflow-y: auto;
-  background-color: #1a1a1f;
-  border: 1px solid #27272a;
-  border-radius: 12px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #17171b;
+  border: 1px solid #2a2a30;
+  border-radius: 16px;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
+  animation: command-palette-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.command-input-wrapper {
+  position: relative;
+  flex-shrink: 0;
+  border-bottom: 1px solid #27272a;
+}
+
+.command-input-icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #52525b;
+  pointer-events: none;
 }
 
 .command-palette input {
@@ -156,28 +195,43 @@ nav a:hover {
   box-sizing: border-box;
   background: transparent;
   border: none;
-  border-bottom: 1px solid #27272a;
-  padding: 14px 12px;
-  font-size: 1.05rem;
-  color: #e4e4e7;
+  padding: 18px 18px 18px 48px;
+  font-size: 1.1rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: #f4f4f5;
+}
+
+.command-palette input::placeholder {
+  color: #52525b;
 }
 
 .command-palette input:focus {
   outline: none;
 }
 
+.command-results {
+  overflow-y: auto;
+}
+
 .command-empty {
-  padding: 16px 12px;
-  color: #71717a;
+  padding: 24px 18px;
+  color: #52525b;
   font-size: 0.9rem;
+  text-align: center;
+}
+
+.command-group {
+  padding: 6px;
 }
 
 .command-group-label {
-  font-size: 0.75rem;
-  color: #71717a;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #52525b;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 10px 12px 4px;
+  letter-spacing: 0.08em;
+  padding: 10px 10px 6px;
 }
 
 .command-item {
@@ -188,19 +242,20 @@ nav a:hover {
   box-sizing: border-box;
   background: transparent;
   border: none;
-  border-radius: 6px;
-  padding: 10px 12px;
+  border-radius: 8px;
+  padding: 11px 12px;
   color: #e4e4e7;
   font-size: 0.95rem;
   text-align: left;
   cursor: pointer;
+  transition: background-color 0.1s ease;
 }
 
 .command-item:hover {
-  background-color: #27272a;
+  background-color: #26262c;
 }
 
 .command-item-meta {
   font-size: 0.8rem;
-  color: #71717a;
+  color: #52525b;
 }

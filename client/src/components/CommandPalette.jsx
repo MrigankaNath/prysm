@@ -70,65 +70,83 @@ function CommandPalette() {
   return (
     <div className="command-overlay" onClick={() => setOpen(false)}>
       <div className="command-palette" onClick={(e) => e.stopPropagation()}>
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Search topics, prisms, content..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        <div className="command-input-wrapper">
+          <svg
+            className="command-input-icon"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search for anything"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
 
-        {query.trim() && !hasResults && (
-          <div className="command-empty">No results</div>
-        )}
+        {query.trim() && (
+          <div className="command-results">
+            {!hasResults && <div className="command-empty">No results</div>}
 
-        {results.topics.length > 0 && (
-          <div className="command-group">
-            <div className="command-group-label">Topics</div>
-            {results.topics.map((topic) => (
-              <button
-                key={topic}
-                type="button"
-                className="command-item"
-                onClick={() => goToTopic(topic)}
-              >
-                {topic}
-              </button>
-            ))}
-          </div>
-        )}
+            {results.topics.length > 0 && (
+              <div className="command-group">
+                <div className="command-group-label">Topics</div>
+                {results.topics.map((topic) => (
+                  <button
+                    key={topic}
+                    type="button"
+                    className="command-item"
+                    onClick={() => goToTopic(topic)}
+                  >
+                    {topic}
+                  </button>
+                ))}
+              </div>
+            )}
 
-        {results.bundles.length > 0 && (
-          <div className="command-group">
-            <div className="command-group-label">Prisms</div>
-            {results.bundles.map((bundle) => (
-              <button
-                key={bundle.id}
-                type="button"
-                className="command-item"
-                onClick={() => goToBundle(bundle.id)}
-              >
-                {bundle.title}
-                <span className="command-item-meta">{bundle.topic}</span>
-              </button>
-            ))}
-          </div>
-        )}
+            {results.bundles.length > 0 && (
+              <div className="command-group">
+                <div className="command-group-label">Prisms</div>
+                {results.bundles.map((bundle) => (
+                  <button
+                    key={bundle.id}
+                    type="button"
+                    className="command-item"
+                    onClick={() => goToBundle(bundle.id)}
+                  >
+                    {bundle.title}
+                    <span className="command-item-meta">{bundle.topic}</span>
+                  </button>
+                ))}
+              </div>
+            )}
 
-        {results.content.length > 0 && (
-          <div className="command-group">
-            <div className="command-group-label">Content</div>
-            {results.content.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className="command-item"
-                onClick={() => openContent(item.url)}
-              >
-                {item.title}
-                <span className="command-item-meta">{item.topic}</span>
-              </button>
-            ))}
+            {results.content.length > 0 && (
+              <div className="command-group">
+                <div className="command-group-label">Content</div>
+                {results.content.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="command-item"
+                    onClick={() => openContent(item.url)}
+                  >
+                    {item.title}
+                    <span className="command-item-meta">{item.topic}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
