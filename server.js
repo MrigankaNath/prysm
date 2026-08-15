@@ -10,6 +10,7 @@ const { fetchWikipedia } = require("./sources/wikipedia");
 const { fetchArxiv } = require("./sources/arxiv");
 const { fetchGithub } = require("./sources/github");
 const { fetchYoutube } = require("./sources/youtube");
+const { fetchTavily } = require("./sources/tavily");
 
 const clientOrigin = (process.env.CLIENT_ORIGIN || "http://localhost:5173").replace(
   /\/$/,
@@ -314,6 +315,7 @@ const LIVE_CATEGORIES = {
   papers: { fetch: fetchArxiv, empty: [] },
   code: { fetch: fetchGithub, empty: [] },
   videos: { fetch: fetchYoutube, empty: [] },
+  articles: { fetch: fetchTavily, empty: [] },
 };
 
 async function loadLiveCategory(topic, category, fetchFn, emptyValue) {
