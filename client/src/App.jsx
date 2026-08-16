@@ -8,9 +8,11 @@ import Spectrum from "./pages/Spectrum";
 import Wavelength from "./pages/Wavelength";
 import Auth from "./pages/Auth";
 import CommandPalette from "./components/CommandPalette";
+import OnboardingModal from "./components/OnboardingModal";
 
 function App() {
   const [session, setSession] = useState(null);
+  const [interestsVersion, setInterestsVersion] = useState(0);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -36,10 +38,20 @@ function App() {
       </nav>
 
       <CommandPalette />
+      <OnboardingModal
+        session={session}
+        onInterestsChanged={() => setInterestsVersion((v) => v + 1)}
+      />
 
       <Routes>
-        <Route path="/" element={<Feed />} />
-        <Route path="/prisms" element={<Prisms />} />
+        <Route
+          path="/"
+          element={<Feed session={session} interestsVersion={interestsVersion} />}
+        />
+        <Route
+          path="/prisms"
+          element={<Prisms session={session} interestsVersion={interestsVersion} />}
+        />
         <Route path="/prisms/:id" element={<PrismDetail />} />
         <Route path="/spectrum" element={<Spectrum />} />
         <Route path="/wavelength" element={<Wavelength session={session} />} />

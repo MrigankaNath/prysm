@@ -259,3 +259,143 @@ nav a:hover {
   font-size: 0.8rem;
   color: #52525b;
 }
+
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 13, 0.75);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: command-overlay-in 0.15s ease-out;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.onboarding-modal {
+  width: 100%;
+  max-width: 520px;
+  background-color: #17171b;
+  border: 1px solid #2a2a30;
+  border-radius: 16px;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.03);
+  padding: 32px;
+  box-sizing: border-box;
+  animation: command-palette-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.onboarding-modal h2 {
+  margin: 0 0 6px;
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+}
+
+.onboarding-subtitle {
+  margin: 0 0 20px;
+  color: #a1a1aa;
+  font-size: 0.95rem;
+}
+
+.onboarding-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.onboarding-chip {
+  background-color: #1f1f24;
+  border: 1px solid #2a2a30;
+  border-radius: 999px;
+  padding: 8px 16px;
+  color: #e4e4e7;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition:
+    background-color 0.1s ease,
+    border-color 0.1s ease;
+}
+
+.onboarding-chip:hover {
+  border-color: #3f3f46;
+}
+
+.onboarding-chip.selected {
+  background-color: #e4e4e7;
+  border-color: #e4e4e7;
+  color: #0f0f14;
+  font-weight: 500;
+}
+
+.onboarding-custom {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.onboarding-custom input {
+  flex: 1;
+  background-color: #1a1a1f;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #e4e4e7;
+  font-size: 0.9rem;
+}
+
+.onboarding-custom input:focus {
+  outline: none;
+  border-color: #3f3f46;
+}
+
+.onboarding-custom button {
+  background-color: #1a1a1f;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 10px 16px;
+  color: #e4e4e7;
+  cursor: pointer;
+}
+
+.onboarding-custom button:hover {
+  border-color: #3f3f46;
+}
+
+.onboarding-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.onboarding-skip {
+  background: transparent;
+  border: none;
+  color: #71717a;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.onboarding-skip:hover {
+  color: #a1a1aa;
+}
+
+.onboarding-finish {
+  background-color: #e4e4e7;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 22px;
+  color: #0f0f14;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.onboarding-finish:disabled {
+  background-color: #3f3f46;
+  color: #71717a;
+  cursor: not-allowed;
+}

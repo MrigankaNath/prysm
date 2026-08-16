@@ -1,14 +1,32 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-function Prisms() {
+function Prisms({ session, interestsVersion }) {
   const [bundles, setBundles] = useState([]);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/bundles`)
-      .then((res) => res.json())
-      .then((data) => setBundles(data));
-  }, []);
+    const fetchGeneric = () =>
+      fetch(`${import.meta.env.VITE_API_URL}/api/bundles`)
+        .then((res) => res.json())
+        .then(setBundles);
+
+    if (!session) {
+      fetchGeneric();
+      return;
+    }
+
+    fetch(`${import.meta.env.VITE_API_URL}/api/bundles/recommended`, {
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    })
+      .then((res) => (res.ok ? res.json() : []))
+      .then((recommended) => {
+        if (recommended.length > 0) {
+          setBundles(recommended);
+        } else {
+          fetchGeneric();
+        }
+      });
+  }, [session, interestsVersion]);
 
   return (
     <div className="page">

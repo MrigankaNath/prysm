@@ -24,7 +24,7 @@ function LiveCard({ item }) {
   );
 }
 
-function Feed() {
+function Feed({ session, interestsVersion }) {
   const [feed, setFeed] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTopic = searchParams.get("topic") || "";
@@ -34,10 +34,12 @@ function Feed() {
   const [searchLoading, setSearchLoading] = useState(false);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/feed/daily`)
+    fetch(`${import.meta.env.VITE_API_URL}/api/feed/personalized`, {
+      headers: session ? { Authorization: `Bearer ${session.access_token}` } : {},
+    })
       .then((res) => res.json())
       .then((data) => setFeed(data));
-  }, []);
+  }, [session, interestsVersion]);
 
   useEffect(() => {
     setQuery(searchTopic);
