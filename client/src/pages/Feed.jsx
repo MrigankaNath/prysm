@@ -158,18 +158,22 @@ function Feed() {
       )}
 
       <h2>Today's Feed</h2>
-      <ul className="card-list">
-        {feed.map((item) => (
-          <li key={item.id}>
-            <a className="card" href={item.url} target="_blank" rel="noopener noreferrer">
-              <div className="card-title">{item.title}</div>
-              <div className="card-meta">
-                {item.topic} · {item.depth_level} · {item.type}
-              </div>
-            </a>
-          </li>
-        ))}
-      </ul>
+      {feed.length === 0 ? (
+        <p>No curated content yet — try searching a topic above.</p>
+      ) : (
+        <ul className="card-list">
+          {feed.map((item) => (
+            <li key={item.id}>
+              <a className="card" href={item.url} target="_blank" rel="noopener noreferrer">
+                <div className="card-title">{item.title}</div>
+                <div className="card-meta">
+                  {item.topic} · {item.depth_level} · {item.type}
+                </div>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
