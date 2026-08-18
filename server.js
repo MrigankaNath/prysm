@@ -6,11 +6,14 @@ const pool = require("./db");
 const { requireAuth, optionalAuth } = require("./db/supabase");
 const { getCached, setCached } = require("./db/topicCache");
 const { fetchHackerNews } = require("./sources/hackerNews");
-const { fetchWikipedia } = require("./sources/wikipedia");
+const { fetchOverview } = require("./sources/overview");
+const { fetchStackExchange } = require("./sources/stackExchange");
 const { fetchArxiv } = require("./sources/arxiv");
 const { fetchGithub } = require("./sources/github");
 const { fetchYoutube } = require("./sources/youtube");
 const { fetchTavily } = require("./sources/tavily");
+const { fetchPodcasts } = require("./sources/podcasts");
+const { fetchBooks } = require("./sources/books");
 
 const clientOrigin = (process.env.CLIENT_ORIGIN || "http://localhost:5173").replace(
   /\/$/,
@@ -310,12 +313,15 @@ app.get("/api/explore", async (req, res) => {
 // Keyed by category, not by which API produced it — the point is that users
 // see "what it is" (an article, a paper), never "where it came from."
 const LIVE_CATEGORIES = {
-  overview: { fetch: fetchWikipedia, empty: null },
+  overview: { fetch: fetchOverview, empty: null },
   discussions: { fetch: fetchHackerNews, empty: [] },
+  qa: { fetch: fetchStackExchange, empty: [] },
   papers: { fetch: fetchArxiv, empty: [] },
   code: { fetch: fetchGithub, empty: [] },
   videos: { fetch: fetchYoutube, empty: [] },
   articles: { fetch: fetchTavily, empty: [] },
+  podcasts: { fetch: fetchPodcasts, empty: [] },
+  books: { fetch: fetchBooks, empty: [] },
 };
 
 async function loadLiveCategory(topic, category, fetchFn, emptyValue) {
