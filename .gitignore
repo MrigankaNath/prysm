@@ -5,3 +5,5 @@ dist/
 PRD.md
 CLAUDE.md
 .claude/
+.claude-plugin/
+.mcp.json
