@@ -21,66 +21,97 @@ function isUnmaterialised(mesh) {
   return !material.name;
 }
 
-// Purely emissive: no lighting term at all, so the geometry itself is never
-// visible — only the light it emits. Hue is driven by object-space position
-// rather than UVs (the edges' UV layout is unknown), so the spectrum drifts
-// along each edge and wraps continuously around the corners.
-function makeEdgeGlowMaterial() {
+const GLOW_VERTEX_SHADER = `
+  varying vec3 vLocal;
+  varying vec3 vNormalW;
+  varying vec3 vToCam;
+
+  void main() {
+    vLocal = position;
+    vec4 worldPos = modelMatrix * vec4(position, 1.0);
+    vNormalW = normalize(mat3(modelMatrix) * normal);
+    vToCam = normalize(cameraPosition - worldPos.xyz);
+    gl_Position = projectionMatrix * viewMatrix * worldPos;
+  }
+`;
+
+const SPECTRUM_GLSL = `
+  vec3 spectrum(float h) {
+    vec3 k = mod(vec3(5.0, 3.0, 1.0) + h * 6.0, 6.0);
+    return clamp(min(k, 4.0 - k), 0.0, 1.0);
+  }
+  float along(vec3 p) {
+    return p.y * 0.42 + p.x * 0.26 + p.z * 0.18;
+  }
+`;
+
+// The inner shell, rendered as the lit body of a neon tube: fully opaque, so
+// nothing behind it shows through, and brightest where the surface faces the
+// camera (the middle of the rod) fading to saturated colour at the silhouette.
+// A fresnel/rim falloff would do the opposite — bright edges, hollow centre —
+// which is what made these read as transparent shells rather than solid rods.
+function makeEdgeCoreMaterial() {
   return new THREE.ShaderMaterial({
     uniforms: { uTime: { value: 0 } },
-    vertexShader: `
-      varying vec3 vLocal;
-      varying vec3 vNormalW;
-      varying vec3 vToCam;
-
-      void main() {
-        vLocal = position;
-        vec4 worldPos = modelMatrix * vec4(position, 1.0);
-        vNormalW = normalize(mat3(modelMatrix) * normal);
-        vToCam = normalize(cameraPosition - worldPos.xyz);
-        gl_Position = projectionMatrix * viewMatrix * worldPos;
-      }
-    `,
+    vertexShader: GLOW_VERTEX_SHADER,
     fragmentShader: `
       uniform float uTime;
       varying vec3 vLocal;
       varying vec3 vNormalW;
       varying vec3 vToCam;
-
-      vec3 spectrum(float h) {
-        vec3 k = mod(vec3(5.0, 3.0, 1.0) + h * 6.0, 6.0);
-        return clamp(min(k, 4.0 - k), 0.0, 1.0);
-      }
+      ${SPECTRUM_GLSL}
 
       void main() {
-        float along = vLocal.y * 0.42 + vLocal.x * 0.26 + vLocal.z * 0.18;
+        float a = along(vLocal);
+        vec3 hue = spectrum(fract(a + uTime * 0.05));
 
-        vec3 hue = spectrum(fract(along + uTime * 0.05));
+        float facing = abs(dot(normalize(vNormalW), normalize(vToCam)));
+
+        // White-hot down the centreline, pure colour toward the silhouette.
+        vec3 colour = mix(hue * 1.15, vec3(1.0), pow(facing, 1.5) * 0.85);
+
+        // The travelling comet blows the core out to white as it passes.
+        float sweep = smoothstep(0.88, 1.0, fract(a * 0.5 - uTime * 0.22));
+        colour += vec3(sweep) * 0.9;
+
+        gl_FragColor = vec4(colour, 1.0);
+      }
+    `,
+    toneMapped: false,
+    depthWrite: true,
+  });
+}
+
+// The outer shell is only spill: additive and strongest at grazing angles, so it
+// haloes the solid core instead of drawing a second visible surface.
+function makeEdgeHaloMaterial() {
+  return new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 } },
+    vertexShader: GLOW_VERTEX_SHADER,
+    fragmentShader: `
+      uniform float uTime;
+      varying vec3 vLocal;
+      varying vec3 vNormalW;
+      varying vec3 vToCam;
+      ${SPECTRUM_GLSL}
+
+      void main() {
+        float a = along(vLocal);
+        vec3 hue = spectrum(fract(a + uTime * 0.05));
 
         float facing = abs(dot(normalize(vNormalW), normalize(vToCam)));
         float rim = 1.0 - facing;
 
-        // Apparent thickness lives in this falloff, not the geometry. The flat
-        // term lights the whole shell evenly and is what made the edge read as a
-        // fat tube, so it's kept minimal and the exponent steep — the light
-        // collapses into a thin filament along the true edge.
-        float bloom = 0.03 + 0.40 * pow(rim, 3.4);
+        float halo = pow(rim, 2.4) * 0.55;
 
-        // Crisp core running down the centre of that thin band.
-        float filament = pow(rim, 8.0) * 0.32;
+        float sweep = smoothstep(0.88, 1.0, fract(a * 0.5 - uTime * 0.22));
+        halo += sweep * pow(rim, 1.5) * 0.5;
 
-        // The travelling comet, brighter now that it has a skinnier edge to run
-        // along, and biased to the visible band so it reads as a streak.
-        float sweep = smoothstep(0.90, 1.0, fract(along * 0.5 - uTime * 0.22));
-        float comet = sweep * (0.25 + 0.75 * pow(rim, 2.0)) * 0.95;
-
-        vec3 colour = hue * bloom + vec3(filament) + hue * comet * 0.6 + vec3(comet * 0.5);
-        gl_FragColor = vec4(colour, 1.0);
+        gl_FragColor = vec4(hue * halo, 1.0);
       }
     `,
     transparent: true,
-    // Additive means overlapping glows sum into a brighter joint at the corners
-    // rather than one clipping the next.
+    // Additive so overlapping haloes sum at the corners instead of clipping.
     blending: THREE.AdditiveBlending,
     depthWrite: false,
     side: THREE.DoubleSide,
@@ -114,20 +145,19 @@ function makeLightPoolTexture() {
 function PrismScene() {
   const { scene } = useGLTF("/models/hero-model.glb");
   const { size } = useThree();
-  const glowMaterial = useMemo(makeEdgeGlowMaterial, []);
+  const coreMaterial = useMemo(makeEdgeCoreMaterial, []);
+  const haloMaterial = useMemo(makeEdgeHaloMaterial, []);
   const lightPool = useMemo(makeLightPoolTexture, []);
 
   useMemo(() => {
-    let patched = 0;
+    const glowShells = [];
 
     scene.traverse((object) => {
       if (!object.isMesh) return;
 
-      // The 16 unmaterialised meshes are the glow shells.
+      // The 16 unmaterialised meshes are the glow shells — two per edge.
       if (isUnmaterialised(object)) {
-        object.material = glowMaterial;
-        object.renderOrder = 2;
-        patched += 1;
+        glowShells.push(object);
         return;
       }
 
@@ -152,13 +182,42 @@ function PrismScene() {
       }
     });
 
-    if (patched === 0) {
+    if (glowShells.length === 0) {
       console.warn("prism: no unmaterialised edge meshes found to light up");
+      return;
     }
-  }, [scene, glowMaterial]);
+
+    // Shells come in pairs per edge — a wide bloom and a thin filament (cross
+    // sections measure ~0.11 and ~0.036 in the model). Pair them up and let the
+    // thinner one be the solid neon core, the wider one its halo.
+    const withRadius = glowShells.map((mesh) => {
+      mesh.geometry.computeBoundingBox();
+      const extent = new THREE.Vector3();
+      mesh.geometry.boundingBox.getSize(extent);
+      // Ignore the long axis; the two short ones describe the rod's thickness.
+      const [thin, mid] = [extent.x, extent.y, extent.z].sort((a, b) => a - b);
+      return { mesh, thickness: thin * mid };
+    });
+
+    for (let i = 0; i < withRadius.length; i += 2) {
+      const pair = [withRadius[i], withRadius[i + 1]].filter(Boolean);
+      pair.sort((a, b) => a.thickness - b.thickness);
+
+      const [core, halo] = pair;
+      core.mesh.material = coreMaterial;
+      core.mesh.renderOrder = 3;
+
+      if (halo) {
+        halo.mesh.material = haloMaterial;
+        halo.mesh.renderOrder = 2;
+      }
+    }
+  }, [scene, coreMaterial, haloMaterial]);
 
   useFrame((state) => {
-    glowMaterial.uniforms.uTime.value = state.clock.elapsedTime;
+    const t = state.clock.elapsedTime;
+    coreMaterial.uniforms.uTime.value = t;
+    haloMaterial.uniforms.uTime.value = t;
   });
 
   const { scale, offset, bottomY } = useMemo(() => {
