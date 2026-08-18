@@ -1,5 +1,5 @@
 import { Suspense, useMemo } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, useGLTF, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -7,57 +7,100 @@ const CAMERA_DISTANCE = 4;
 const CAMERA_FOV = 45;
 const FIT_MARGIN = 1.18;
 
-// The exported GLB leaves the 16 `edge_glow` meshes with no material, so glTF
-// falls back to the default opaque grey — which is why the edges read as blunt,
-// colourless stubs that don't meet at the corners. Rebuild the intended look
-// here: a spectral ramp sampled along each edge's existing UVs, blended
-// additively so overlapping glows sum into a smooth joint instead of one
-// occluding the next.
-function makeSpectrumTexture() {
-  const canvas = document.createElement("canvas");
-  canvas.width = 256;
-  canvas.height = 1;
+// The GLB's 16 edge meshes ship with no material, so glTF falls back to the
+// default opaque grey — that grey is the "unfinished" look. Matching on the node
+// name missed almost all of them (glTF node names repeat and the loader doesn't
+// preserve them per-instance), so key off the defect itself: every real material
+// in this file is named, and only the fallback is nameless.
+function isUnmaterialised(mesh) {
+  const material = mesh.material;
+  if (!material || Array.isArray(material)) return false;
+  return !material.name;
+}
 
-  const ctx = canvas.getContext("2d");
-  const ramp = ctx.createLinearGradient(0, 0, canvas.width, 0);
-  const stops = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#06b6d4", "#3b82f6"];
-  stops.forEach((color, i) => ramp.addColorStop(i / (stops.length - 1), color));
+// Purely emissive: no lighting term at all, so the geometry itself is never
+// visible — only the light it emits. Hue is driven by object-space position
+// rather than UVs (the edges' UV layout is unknown), so the spectrum drifts
+// along each edge and wraps continuously around the corners.
+function makeEdgeGlowMaterial() {
+  return new THREE.ShaderMaterial({
+    uniforms: { uTime: { value: 0 } },
+    vertexShader: `
+      varying vec3 vLocal;
+      varying vec3 vNormalW;
+      varying vec3 vToCam;
 
-  ctx.fillStyle = ramp;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+      void main() {
+        vLocal = position;
+        vec4 worldPos = modelMatrix * vec4(position, 1.0);
+        vNormalW = normalize(mat3(modelMatrix) * normal);
+        vToCam = normalize(cameraPosition - worldPos.xyz);
+        gl_Position = projectionMatrix * viewMatrix * worldPos;
+      }
+    `,
+    fragmentShader: `
+      uniform float uTime;
+      varying vec3 vLocal;
+      varying vec3 vNormalW;
+      varying vec3 vToCam;
 
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
+      vec3 spectrum(float h) {
+        vec3 k = mod(vec3(5.0, 3.0, 1.0) + h * 6.0, 6.0);
+        return clamp(min(k, 4.0 - k), 0.0, 1.0);
+      }
+
+      void main() {
+        float along = vLocal.y * 0.42 + vLocal.x * 0.26 + vLocal.z * 0.18;
+
+        vec3 hue = spectrum(fract(along + uTime * 0.05));
+
+        // Grazing angles bloom brightest, so the edge fades out softly instead
+        // of ending on a hard silhouette.
+        float facing = abs(dot(normalize(vNormalW), normalize(vToCam)));
+        float bloom = 0.28 + 0.85 * pow(1.0 - facing, 1.7);
+
+        // Bright inner filament down the centre of the bloom.
+        float filament = pow(1.0 - facing, 5.0) * 0.7;
+
+        // A comet of light travelling the length of the edge.
+        float comet = smoothstep(0.86, 1.0, fract(along * 0.5 - uTime * 0.22)) * 0.6;
+
+        vec3 colour = hue * bloom + vec3(filament + comet);
+        gl_FragColor = vec4(colour, 1.0);
+      }
+    `,
+    transparent: true,
+    // Additive means overlapping glows sum into a brighter joint at the corners
+    // rather than one clipping the next.
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    toneMapped: false,
+  });
 }
 
 function PrismScene() {
   const { scene } = useGLTF("/models/hero-model.glb");
   const { size } = useThree();
+  const glowMaterial = useMemo(makeEdgeGlowMaterial, []);
 
   useMemo(() => {
-    const spectrum = makeSpectrumTexture();
-
+    let patched = 0;
     scene.traverse((object) => {
-      if (!object.isMesh || object.name !== "edge_glow") return;
-
-      object.material = new THREE.MeshBasicMaterial({
-        map: spectrum,
-        transparent: true,
-        blending: THREE.AdditiveBlending,
-        // Without this each glow writes depth and clips the next one at the
-        // corners; that hard cut is the "incomplete" look.
-        depthWrite: false,
-        side: THREE.DoubleSide,
-        toneMapped: false,
-        opacity: 0.85,
-      });
-      // Draw after the glass so the bloom sits on top rather than behind it.
-      object.renderOrder = 2;
+      if (object.isMesh && isUnmaterialised(object)) {
+        object.material = glowMaterial;
+        object.renderOrder = 2;
+        patched += 1;
+      }
     });
-  }, [scene]);
+    if (patched === 0) {
+      console.warn("prism: no unmaterialised edge meshes found to light up");
+    }
+  }, [scene, glowMaterial]);
+
+  useFrame((state) => {
+    glowMaterial.uniforms.uTime.value = state.clock.elapsedTime;
+  });
 
   const { scale, offset, bottomY } = useMemo(() => {
     const box = new THREE.Box3().setFromObject(scene);
