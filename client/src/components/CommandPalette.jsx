@@ -6,6 +6,7 @@ const EMPTY_RESULTS = { topics: [], bundles: [], content: [] };
 function CommandPalette({ open, setOpen }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(EMPTY_RESULTS);
+  const [searching, setSearching] = useState(false);
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -35,13 +36,16 @@ function CommandPalette({ open, setOpen }) {
   useEffect(() => {
     if (!query.trim()) {
       setResults(EMPTY_RESULTS);
+      setSearching(false);
       return;
     }
 
+    setSearching(true);
     const debounce = setTimeout(() => {
       fetch(`${import.meta.env.VITE_API_URL}/api/search?q=${encodeURIComponent(query)}`)
         .then((res) => res.json())
-        .then(setResults);
+        .then(setResults)
+        .finally(() => setSearching(false));
     }, 200);
 
     return () => clearTimeout(debounce);
@@ -51,7 +55,7 @@ function CommandPalette({ open, setOpen }) {
 
   const goToTopic = (topic) => {
     setOpen(false);
-    navigate(`/?topic=${encodeURIComponent(topic)}`);
+    navigate(`/explore/${encodeURIComponent(topic)}`);
   };
 
   const goToBundle = (id) => {
@@ -90,6 +94,14 @@ function CommandPalette({ open, setOpen }) {
             placeholder="Search for anything"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              // Enter goes straight to exploring the typed topic — previously it
+              // did nothing at all and you had to click the row.
+              if (e.key === "Enter" && query.trim()) {
+                e.preventDefault();
+                goToTopic(query.trim().toLowerCase());
+              }
+            }}
           />
         </div>
 
@@ -99,11 +111,15 @@ function CommandPalette({ open, setOpen }) {
               <div className="command-group-label">Explore</div>
               <button
                 type="button"
-                className="command-item"
+                className="command-item command-item-primary"
                 onClick={() => goToTopic(trimmedQuery.toLowerCase())}
               >
-                Explore &ldquo;{trimmedQuery}&rdquo;
-                <span className="command-item-meta">live results</span>
+                <span>
+                  Explore &ldquo;<strong>{trimmedQuery}</strong>&rdquo;
+                </span>
+                <span className="command-item-meta">
+                  {searching ? "searching…" : "press ↵"}
+                </span>
               </button>
             </div>
 

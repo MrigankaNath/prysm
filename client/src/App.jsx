@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, NavLink, useLocation } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import Feed from "./pages/Feed";
+import ExploreTopic from "./pages/ExploreTopic";
 import Prisms from "./pages/Prisms";
 import PrismDetail from "./pages/PrismDetail";
 import Spectrum from "./pages/Spectrum";
@@ -93,6 +94,7 @@ function AppRoutes({ session, interestsVersion, onOpenSearch }) {
           path="/prisms"
           element={<Prisms session={session} interestsVersion={interestsVersion} />}
         />
+        <Route path="/explore/:topic" element={<ExploreTopic />} />
         <Route path="/prisms/:id" element={<PrismDetail />} />
         <Route path="/spectrum" element={<Spectrum />} />
         <Route path="/wavelength" element={<Wavelength session={session} />} />

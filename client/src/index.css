@@ -214,6 +214,35 @@ nav {
   margin: 20px 0 8px;
 }
 
+.explore-head {
+  margin-bottom: 8px;
+}
+
+.explore-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #52525b;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.explore-title {
+  margin: 6px 0 0;
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-transform: capitalize;
+}
+
+.explore-loading {
+  color: #6f6f7a;
+}
+
+.command-item-primary strong {
+  font-weight: 600;
+  color: #fafafa;
+}
+
 .category-heading {
   display: flex;
   align-items: center;
