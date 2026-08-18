@@ -57,18 +57,24 @@ function makeEdgeGlowMaterial() {
 
         vec3 hue = spectrum(fract(along + uTime * 0.05));
 
-        // Grazing angles bloom brightest, so the edge fades out softly instead
-        // of ending on a hard silhouette.
         float facing = abs(dot(normalize(vNormalW), normalize(vToCam)));
-        float bloom = 0.16 + 0.5 * pow(1.0 - facing, 1.7);
+        float rim = 1.0 - facing;
 
-        // Bright inner filament down the centre of the bloom.
-        float filament = pow(1.0 - facing, 5.0) * 0.22;
+        // Apparent thickness lives in this falloff, not the geometry. The flat
+        // term lights the whole shell evenly and is what made the edge read as a
+        // fat tube, so it's kept minimal and the exponent steep — the light
+        // collapses into a thin filament along the true edge.
+        float bloom = 0.03 + 0.40 * pow(rim, 3.4);
 
-        // A comet of light travelling the length of the edge.
-        float comet = smoothstep(0.88, 1.0, fract(along * 0.5 - uTime * 0.22)) * 0.3;
+        // Crisp core running down the centre of that thin band.
+        float filament = pow(rim, 8.0) * 0.32;
 
-        vec3 colour = hue * bloom + vec3(filament + comet);
+        // The travelling comet, brighter now that it has a skinnier edge to run
+        // along, and biased to the visible band so it reads as a streak.
+        float sweep = smoothstep(0.90, 1.0, fract(along * 0.5 - uTime * 0.22));
+        float comet = sweep * (0.25 + 0.75 * pow(rim, 2.0)) * 0.95;
+
+        vec3 colour = hue * bloom + vec3(filament) + hue * comet * 0.6 + vec3(comet * 0.5);
         gl_FragColor = vec4(colour, 1.0);
       }
     `,
