@@ -5,10 +5,10 @@ import * as THREE from "three";
 
 const CAMERA_DISTANCE = 4;
 const CAMERA_FOV = 45;
-// The prism is the main event on the page, so this stays tight — but not flush
-// to the frame: the rods are grown slightly to close their corner joints, and
-// dragging the model around shouldn't ever push a rod tip off-canvas.
-const FIT_MARGIN = 1.14;
+// The prism is the main event on the page, so this stays tight. The soft halo
+// extends a little past the rods, so leave it some room to fall off rather than
+// clipping against the frame.
+const FIT_MARGIN = 1.1;
 
 // The GLB's 16 edge meshes ship with no material, so glTF falls back to the
 // default opaque grey — that grey is the "unfinished" look. Matching on the node
@@ -102,10 +102,15 @@ function makeEdgeHaloMaterial() {
         float facing = abs(dot(normalize(vNormalW), normalize(vToCam)));
         float rim = 1.0 - facing;
 
-        float halo = pow(rim, 2.4) * 0.55;
+        // pow() piles the light into a hard bright ring right at the silhouette,
+        // which reads as a crisp outline rather than glow. smoothstep spreads it
+        // across the whole shell with soft shoulders, so it behaves like light
+        // falling off through air — depth around the rod, no visible edge.
+        float soft = smoothstep(0.0, 0.9, rim);
+        float halo = mix(0.05, 0.32, soft);
 
         float sweep = smoothstep(0.88, 1.0, fract(a * 0.5 - uTime * 0.22));
-        halo += sweep * pow(rim, 1.5) * 0.5;
+        halo += sweep * soft * 0.3;
 
         gl_FragColor = vec4(hue * halo, 1.0);
       }
@@ -213,19 +218,11 @@ function PrismScene() {
       }
     }
 
-    // Each rod stops exactly at the pyramid's vertices, so neighbouring rods
-    // meet end-to-end and leave a dark notch at every corner. Grow each rod
-    // slightly *about its own centre* so the ends overlap and the joint closes.
-    // The geometry isn't centred on the origin, so scaling alone would shove the
-    // rod outward — offset the position by C·(1−s) to pin the centre in place.
-    const OVERLAP = 1.06;
+    // The rods are authored to terminate exactly at the pyramid's vertices, so
+    // they're left at their true length — stretching them to close the joint
+    // just pushes the tips out past the corner. The corner is instead closed in
+    // the shader, by keeping each rod lit right to its end cap.
     glowShells.forEach((mesh) => {
-      const centre = new THREE.Vector3();
-      mesh.geometry.boundingBox.getCenter(centre);
-
-      mesh.scale.setScalar(OVERLAP);
-      mesh.position.copy(centre.multiplyScalar(1 - OVERLAP));
-
       // Per-mesh frustum culling pops individual rods out of view when their
       // own bounds cross the frame edge during rotation — that's the "part
       // vanishes when I twist it" behaviour.
