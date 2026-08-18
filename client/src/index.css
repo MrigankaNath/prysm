@@ -650,9 +650,9 @@ nav {
 }
 
 .hero-model-viewport {
-  flex: 0 0 56%;
-  height: 96vh;
-  min-height: 480px;
+  flex: 0 0 62%;
+  height: 100vh;
+  min-height: 520px;
 }
 
 .prism-model-canvas {
@@ -694,7 +694,7 @@ nav {
   .hero-model-viewport {
     flex: 0 0 auto;
     width: 100%;
-    height: 60vh;
+    height: 68vh;
     min-height: 0;
   }
 

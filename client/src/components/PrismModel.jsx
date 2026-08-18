@@ -1,11 +1,14 @@
 import { Suspense, useMemo } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
-import { OrbitControls, useGLTF, ContactShadows } from "@react-three/drei";
+import { OrbitControls, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
 const CAMERA_DISTANCE = 4;
 const CAMERA_FOV = 45;
-const FIT_MARGIN = 1.18;
+// Tight: the prism is the main event on the page. The glow now falls off softly
+// at its extremities, so it can sit much closer to the frame than when the hard
+// edge geometry was still visible.
+const FIT_MARGIN = 1.04;
 
 // The GLB's 16 edge meshes ship with no material, so glTF falls back to the
 // default opaque grey — that grey is the "unfinished" look. Matching on the node
@@ -57,13 +60,13 @@ function makeEdgeGlowMaterial() {
         // Grazing angles bloom brightest, so the edge fades out softly instead
         // of ending on a hard silhouette.
         float facing = abs(dot(normalize(vNormalW), normalize(vToCam)));
-        float bloom = 0.28 + 0.85 * pow(1.0 - facing, 1.7);
+        float bloom = 0.16 + 0.5 * pow(1.0 - facing, 1.7);
 
         // Bright inner filament down the centre of the bloom.
-        float filament = pow(1.0 - facing, 5.0) * 0.7;
+        float filament = pow(1.0 - facing, 5.0) * 0.22;
 
         // A comet of light travelling the length of the edge.
-        float comet = smoothstep(0.86, 1.0, fract(along * 0.5 - uTime * 0.22)) * 0.6;
+        float comet = smoothstep(0.88, 1.0, fract(along * 0.5 - uTime * 0.22)) * 0.3;
 
         vec3 colour = hue * bloom + vec3(filament + comet);
         gl_FragColor = vec4(colour, 1.0);
@@ -79,20 +82,70 @@ function makeEdgeGlowMaterial() {
   });
 }
 
+// A contact shadow is darkness, and the page is already pure black — there is
+// nothing for it to darken, so it never showed. What actually grounds an object
+// on black is the opposite: light pooling on the surface beneath it.
+function makeLightPoolTexture() {
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext("2d");
+  const glow = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  glow.addColorStop(0, "rgba(255,255,255,0.30)");
+  glow.addColorStop(0.35, "rgba(190,180,255,0.13)");
+  glow.addColorStop(1, "rgba(0,0,0,0)");
+
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, size, size);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
 function PrismScene() {
   const { scene } = useGLTF("/models/hero-model.glb");
   const { size } = useThree();
   const glowMaterial = useMemo(makeEdgeGlowMaterial, []);
+  const lightPool = useMemo(makeLightPoolTexture, []);
 
   useMemo(() => {
     let patched = 0;
+
     scene.traverse((object) => {
-      if (object.isMesh && isUnmaterialised(object)) {
+      if (!object.isMesh) return;
+
+      // The 16 unmaterialised meshes are the glow shells.
+      if (isUnmaterialised(object)) {
         object.material = glowMaterial;
         object.renderOrder = 2;
         patched += 1;
+        return;
+      }
+
+      const material = object.material;
+      if (!material || Array.isArray(material)) return;
+
+      // `prism_edges` is solid geometry running down the middle of each glow —
+      // the skeleton showing through. The glow shells already describe the
+      // edges, so this only ever reads as a hard core inside soft light.
+      if (material.name === "prism_edges") {
+        object.visible = false;
+        return;
+      }
+
+      // The tiles carry no emissive, so sitting behind tinted glass they render
+      // almost black. Let them emit a fraction of their own colour so they read
+      // clearly without competing with the edges.
+      if (material.name.startsWith("tile_")) {
+        material.emissive = new THREE.Color(material.color);
+        material.emissiveIntensity = 0.85;
+        material.toneMapped = false;
       }
     });
+
     if (patched === 0) {
       console.warn("prism: no unmaterialised edge meshes found to light up");
     }
@@ -132,15 +185,20 @@ function PrismScene() {
         <primitive object={scene} />
       </group>
 
-      <ContactShadows
-        position={[0, bottomY - Math.abs(bottomY) * 0.18, 0]}
-        scale={Math.abs(bottomY) * 4.5 || 3}
-        opacity={0.5}
-        blur={2.6}
-        far={Math.abs(bottomY) * 2.5 || 2}
-        resolution={1024}
-        color="#000000"
-      />
+      <mesh
+        position={[0, bottomY - Math.abs(bottomY) * 0.06, 0]}
+        rotation={[-Math.PI / 2, 0, 0]}
+        renderOrder={1}
+      >
+        <planeGeometry args={[Math.abs(bottomY) * 5 || 3.4, Math.abs(bottomY) * 5 || 3.4]} />
+        <meshBasicMaterial
+          map={lightPool}
+          transparent
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
     </>
   );
 }
