@@ -5,12 +5,25 @@ const CATEGORY_LABELS = {
   overview: "Overview",
   articles: "Articles",
   videos: "Videos",
+  podcasts: "Podcasts",
+  books: "Books",
   code: "Code",
   papers: "Research Papers",
+  qa: "Q&A",
   discussions: "Discussions",
 };
 
-const CATEGORY_ORDER = ["overview", "articles", "videos", "code", "papers", "discussions"];
+const CATEGORY_ORDER = [
+  "overview",
+  "articles",
+  "videos",
+  "podcasts",
+  "books",
+  "code",
+  "papers",
+  "qa",
+  "discussions",
+];
 
 function LiveCard({ item }) {
   return (
@@ -28,7 +41,6 @@ function Feed({ session, interestsVersion }) {
   const [feed, setFeed] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const searchTopic = searchParams.get("topic") || "";
-  const [query, setQuery] = useState(searchTopic);
   const [curatedResults, setCuratedResults] = useState([]);
   const [liveCategories, setLiveCategories] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false);
@@ -42,8 +54,6 @@ function Feed({ session, interestsVersion }) {
   }, [session, interestsVersion]);
 
   useEffect(() => {
-    setQuery(searchTopic);
-
     if (!searchTopic) {
       setCuratedResults([]);
       setLiveCategories(null);
@@ -68,16 +78,7 @@ function Feed({ session, interestsVersion }) {
       .finally(() => setSearchLoading(false));
   }, [searchTopic]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const trimmed = query.trim().toLowerCase();
-    if (trimmed) setSearchParams({ topic: trimmed });
-  };
-
-  const clearSearch = () => {
-    setQuery("");
-    setSearchParams({});
-  };
+  const clearSearch = () => setSearchParams({});
 
   const hasLiveResults =
     liveCategories &&
@@ -88,24 +89,14 @@ function Feed({ session, interestsVersion }) {
 
   return (
     <div className="page">
-      <form className="topic-search" onSubmit={handleSearch}>
-        <input
-          type="text"
-          placeholder="Search a topic to explore..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-        <button type="submit">Search</button>
-        {searchTopic && (
-          <button type="button" className="clear-search" onClick={clearSearch}>
-            Clear
-          </button>
-        )}
-      </form>
-
       {searchTopic && (
         <section className="search-results">
-          <h2>Results for &quot;{searchTopic}&quot;</h2>
+          <div className="search-results-head">
+            <h2>Results for &quot;{searchTopic}&quot;</h2>
+            <button type="button" className="clear-search" onClick={clearSearch}>
+              Clear
+            </button>
+          </div>
           {searchLoading && <p>Loading...</p>}
 
           {!searchLoading && curatedResults.length > 0 && (

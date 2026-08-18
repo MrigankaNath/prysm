@@ -3,8 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 const EMPTY_RESULTS = { topics: [], bundles: [], content: [] };
 
-function CommandPalette() {
-  const [open, setOpen] = useState(false);
+function CommandPalette({ open, setOpen }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState(EMPTY_RESULTS);
   const inputRef = useRef(null);
@@ -12,6 +11,7 @@ function CommandPalette() {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // metaKey covers ⌘ on macOS, ctrlKey covers Ctrl on Windows/Linux.
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setOpen((prev) => !prev);
@@ -21,7 +21,7 @@ function CommandPalette() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [setOpen]);
 
   useEffect(() => {
     if (open) {
@@ -64,8 +64,7 @@ function CommandPalette() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const hasResults =
-    results.topics.length > 0 || results.bundles.length > 0 || results.content.length > 0;
+  const trimmedQuery = query.trim();
 
   return (
     <div className="command-overlay" onClick={() => setOpen(false)}>
@@ -94,9 +93,19 @@ function CommandPalette() {
           />
         </div>
 
-        {query.trim() && (
+        {trimmedQuery && (
           <div className="command-results">
-            {!hasResults && <div className="command-empty">No results</div>}
+            <div className="command-group">
+              <div className="command-group-label">Explore</div>
+              <button
+                type="button"
+                className="command-item"
+                onClick={() => goToTopic(trimmedQuery.toLowerCase())}
+              >
+                Explore &ldquo;{trimmedQuery}&rdquo;
+                <span className="command-item-meta">live results</span>
+              </button>
+            </div>
 
             {results.topics.length > 0 && (
               <div className="command-group">
