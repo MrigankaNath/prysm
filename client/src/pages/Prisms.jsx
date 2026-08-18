@@ -1,9 +1,5 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-// Lazy so three.js / R3F stay out of the main bundle — same reason the Hero page
-// is code-split. Only users who visit this page pay for the 3D dependencies.
-const PrismModel = lazy(() => import("../components/PrismModel"));
 
 function Prisms({ session, interestsVersion }) {
   const [bundles, setBundles] = useState([]);
@@ -35,11 +31,6 @@ function Prisms({ session, interestsVersion }) {
   return (
     <div className="page">
       <header className="prisms-header">
-        <div className="prisms-header-model" aria-hidden="true">
-          <Suspense fallback={null}>
-            <PrismModel />
-          </Suspense>
-        </div>
         <div className="prisms-header-copy">
           <h2>Prisms</h2>
           <p>

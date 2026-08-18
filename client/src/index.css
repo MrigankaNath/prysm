@@ -710,11 +710,6 @@ nav {
   margin-bottom: 32px;
 }
 
-.prisms-header-model {
-  flex: 0 0 auto;
-  width: 150px;
-  height: 150px;
-}
 
 .prisms-header-copy h2 {
   margin: 0 0 8px;
@@ -735,10 +730,6 @@ nav {
     gap: 12px;
   }
 
-  .prisms-header-model {
-    width: 130px;
-    height: 130px;
-  }
 }
 
 /* Animatable angle for the rainbow gradients; degrades to a static gradient
