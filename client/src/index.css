@@ -254,6 +254,10 @@ nav {
   width: 19px;
   height: 19px;
   flex-shrink: 0;
+  /* Layered drop-shadows pick up the icon's own gradient stroke, so each icon
+     haloes in its own colours rather than a flat single-colour bloom. */
+  filter: drop-shadow(0 0 3px rgba(139, 92, 246, 0.55))
+    drop-shadow(0 0 7px rgba(59, 130, 246, 0.3));
 }
 
 @keyframes command-overlay-in {

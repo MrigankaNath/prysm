@@ -5,10 +5,10 @@ import * as THREE from "three";
 
 const CAMERA_DISTANCE = 4;
 const CAMERA_FOV = 45;
-// Tight: the prism is the main event on the page. The glow now falls off softly
-// at its extremities, so it can sit much closer to the frame than when the hard
-// edge geometry was still visible.
-const FIT_MARGIN = 1.04;
+// The prism is the main event on the page, so this stays tight — but not flush
+// to the frame: the rods are grown slightly to close their corner joints, and
+// dragging the model around shouldn't ever push a rod tip off-canvas.
+const FIT_MARGIN = 1.14;
 
 // The GLB's 16 edge meshes ship with no material, so glTF falls back to the
 // default opaque grey — that grey is the "unfinished" look. Matching on the node
@@ -212,6 +212,25 @@ function PrismScene() {
         halo.mesh.renderOrder = 2;
       }
     }
+
+    // Each rod stops exactly at the pyramid's vertices, so neighbouring rods
+    // meet end-to-end and leave a dark notch at every corner. Grow each rod
+    // slightly *about its own centre* so the ends overlap and the joint closes.
+    // The geometry isn't centred on the origin, so scaling alone would shove the
+    // rod outward — offset the position by C·(1−s) to pin the centre in place.
+    const OVERLAP = 1.06;
+    glowShells.forEach((mesh) => {
+      const centre = new THREE.Vector3();
+      mesh.geometry.boundingBox.getCenter(centre);
+
+      mesh.scale.setScalar(OVERLAP);
+      mesh.position.copy(centre.multiplyScalar(1 - OVERLAP));
+
+      // Per-mesh frustum culling pops individual rods out of view when their
+      // own bounds cross the frame edge during rotation — that's the "part
+      // vanishes when I twist it" behaviour.
+      mesh.frustumCulled = false;
+    });
   }, [scene, coreMaterial, haloMaterial]);
 
   useFrame((state) => {
