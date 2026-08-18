@@ -1,14 +1,14 @@
 // Stack Exchange has no cross-site search — `site` is required — so we fan out
 // across a spread of sites and merge by score. This is what makes Q&A useful
 // for non-technical topics, where Hacker News has nothing to say.
-const SITES = [
-  "stackoverflow",
-  "philosophy",
-  "history",
-  "physics",
-  "literature",
-  "economics",
-];
+// Each site is a separate HTTP request and the keyless quota is 300/day, so
+// querying all of these per topic burned it in ~50 topics. Pick three that suit
+// the topic instead — chosen by the caller from cheap, keyless probe signals.
+const SITE_POOLS = {
+  technical: ["stackoverflow", "physics", "economics"],
+  humanities: ["philosophy", "history", "literature"],
+  mixed: ["stackoverflow", "philosophy", "physics"],
+};
 
 const ENTITIES = {
   "&quot;": '"',
@@ -54,9 +54,11 @@ async function searchSite(topic, site) {
     }));
 }
 
-async function fetchStackExchange(topic) {
+async function fetchStackExchange(topic, profile = "mixed") {
+  const sites = SITE_POOLS[profile] || SITE_POOLS.mixed;
+
   const perSite = await Promise.all(
-    SITES.map((site) => searchSite(topic, site).catch(() => [])),
+    sites.map((site) => searchSite(topic, site).catch(() => [])),
   );
 
   return perSite

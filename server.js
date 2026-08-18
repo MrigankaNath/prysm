@@ -366,18 +366,35 @@ function rankCategories(categories) {
   );
 }
 
-async function loadLiveCategory(topic, category, fetchFn, emptyValue) {
+async function loadLiveCategory(topic, category, fetchFn, emptyValue, ...args) {
   try {
     const cached = await getCached(topic, category);
     if (cached) return cached;
 
-    const results = await fetchFn(topic);
+    const results = await fetchFn(topic, ...args);
     await setCached(topic, category, results);
     return results;
   } catch (err) {
     console.error(`live discovery: ${category} failed for topic "${topic}"`, err);
     return emptyValue;
   }
+}
+
+// Fetched first because all five are free and keyless, so they cost nothing but
+// a little latency — and what they return tells us which of the metered sources
+// are actually worth calling.
+const PROBE_CATEGORIES = ["discussions", "papers", "books", "podcasts"];
+
+// A topic sitting in books with almost nothing on arXiv is a humanities topic:
+// GitHub will only return noise for it (a "stoicism" search yields 140-star
+// hobby repos), so we skip the call rather than fetch junk and rank it last.
+function profileTopic(probe) {
+  const papers = probe.papers?.length || 0;
+  const books = probe.books?.length || 0;
+
+  if (papers >= 3 && books <= 2) return "technical";
+  if (books >= 3 && papers <= 1) return "humanities";
+  return "mixed";
 }
 
 app.get("/api/explore/:topic/live", async (req, res) => {
@@ -387,21 +404,44 @@ app.get("/api/explore/:topic/live", async (req, res) => {
     return res.status(400).json({ error: "topic is required" });
   }
 
-  try {
-    const names = Object.keys(LIVE_CATEGORIES);
-    const results = await Promise.all(
-      names.map((name) =>
-        loadLiveCategory(
-          topic,
-          name,
-          LIVE_CATEGORIES[name].fetch,
-          LIVE_CATEGORIES[name].empty,
-        ),
-      ),
+  const load = (name, ...args) =>
+    loadLiveCategory(
+      topic,
+      name,
+      LIVE_CATEGORIES[name].fetch,
+      LIVE_CATEGORIES[name].empty,
+      ...args,
     );
 
-    const categories = Object.fromEntries(names.map((name, i) => [name, results[i]]));
-    res.json({ topic, categories, order: rankCategories(categories) });
+  try {
+    // Phase 1 — free, keyless sources. These double as the topic probe.
+    const probeResults = await Promise.all(PROBE_CATEGORIES.map((name) => load(name)));
+    const categories = Object.fromEntries(
+      PROBE_CATEGORIES.map((name, i) => [name, probeResults[i]]),
+    );
+
+    const profile = profileTopic(categories);
+
+    // Phase 2 — metered sources, plus the ones this topic actually warrants.
+    const second = [
+      ["overview"],
+      ["articles"],
+      ["videos"],
+      ["qa", profile],
+      ...(profile === "humanities" ? [] : [["code"]]),
+    ];
+
+    const secondResults = await Promise.all(second.map(([name, ...a]) => load(name, ...a)));
+    second.forEach(([name], i) => {
+      categories[name] = secondResults[i];
+    });
+
+    res.json({
+      topic,
+      categories,
+      order: rankCategories(categories),
+      profile,
+    });
   } catch (err) {
     console.error(err);
     res
