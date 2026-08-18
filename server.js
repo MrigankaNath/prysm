@@ -312,17 +312,59 @@ app.get("/api/explore", async (req, res) => {
 
 // Keyed by category, not by which API produced it — the point is that users
 // see "what it is" (an article, a paper), never "where it came from."
+// `expected` is a full result set for that category, used to measure how well a
+// topic is served there. `saturation` is the engagement level at which a
+// category counts as strong, on a log scale so a 40k-star repo doesn't drown
+// out everything else.
 const LIVE_CATEGORIES = {
-  overview: { fetch: fetchOverview, empty: null },
-  discussions: { fetch: fetchHackerNews, empty: [] },
-  qa: { fetch: fetchStackExchange, empty: [] },
-  papers: { fetch: fetchArxiv, empty: [] },
-  code: { fetch: fetchGithub, empty: [] },
-  videos: { fetch: fetchYoutube, empty: [] },
-  articles: { fetch: fetchTavily, empty: [] },
-  podcasts: { fetch: fetchPodcasts, empty: [] },
-  books: { fetch: fetchBooks, empty: [] },
+  overview: { fetch: fetchOverview, empty: null, expected: 1 },
+  discussions: { fetch: fetchHackerNews, empty: [], expected: 20, saturation: 1000 },
+  qa: { fetch: fetchStackExchange, empty: [], expected: 5, saturation: 1000 },
+  papers: { fetch: fetchArxiv, empty: [], expected: 5 },
+  code: { fetch: fetchGithub, empty: [], expected: 5, saturation: 50000 },
+  videos: { fetch: fetchYoutube, empty: [], expected: 5 },
+  articles: { fetch: fetchTavily, empty: [], expected: 9 },
+  podcasts: { fetch: fetchPodcasts, empty: [], expected: 5, saturation: 2000 },
+  books: { fetch: fetchBooks, empty: [], expected: 5 },
 };
+
+// Sources without an engagement metric (arXiv, YouTube search, Tavily, Open
+// Library) can't be scored on quality, so they sit at a fixed middling value:
+// a category with genuinely strong engagement should outrank them, a weak one
+// should fall below them.
+const UNSCORED_BASELINE = 0.6;
+
+// Not every topic is best served by the same medium: philosophy lives in
+// podcasts and books, a JS library lives in code and Q&A. Rank categories per
+// topic instead of showing one fixed order. Deterministic for now — the
+// embedding/quality model in the AI phase replaces this.
+function rankCategories(categories) {
+  const scored = Object.entries(categories)
+    .filter(([, value]) => (Array.isArray(value) ? value.length > 0 : Boolean(value)))
+    .map(([name, value]) => {
+      const config = LIVE_CATEGORIES[name];
+      const items = Array.isArray(value) ? value : [value];
+      const fill = Math.min(items.length / (config.expected || 1), 1);
+
+      let quality = UNSCORED_BASELINE;
+      if (config.saturation) {
+        const peak = Math.max(...items.map((item) => item.signal || 0));
+        // Log-scaled so quality lifts a category without one outlier dominating:
+        // 58k-star React repos score ~1, the 140-star repos a philosophy search
+        // turns up score ~0.45, which drops Code below the neutral categories.
+        quality = Math.min(Math.log10(peak + 1) / Math.log10(config.saturation), 1);
+      }
+
+      return { name, score: fill * quality };
+    })
+    .sort((a, b) => b.score - a.score)
+    .map(({ name }) => name);
+
+  // The overview is a primer, so it always leads regardless of score.
+  return ["overview", ...scored.filter((name) => name !== "overview")].filter(
+    (name) => name === "overview" ? Boolean(categories.overview) : true,
+  );
+}
 
 async function loadLiveCategory(topic, category, fetchFn, emptyValue) {
   try {
@@ -359,7 +401,7 @@ app.get("/api/explore/:topic/live", async (req, res) => {
     );
 
     const categories = Object.fromEntries(names.map((name, i) => [name, results[i]]));
-    res.json({ topic, categories });
+    res.json({ topic, categories, order: rankCategories(categories) });
   } catch (err) {
     console.error(err);
     res

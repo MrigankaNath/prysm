@@ -63,7 +63,7 @@ async function fetchStackExchange(topic) {
     .flat()
     .sort((a, b) => b.score - a.score)
     .slice(0, 5)
-    .map(({ score, ...item }) => item);
+    .map(({ score, ...item }) => ({ ...item, signal: score || 0 }));
 }
 
 module.exports = { fetchStackExchange };

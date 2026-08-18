@@ -19,6 +19,7 @@ async function fetchGithub(topic) {
     url: repo.html_url,
     source: "github",
     type: "code",
+    signal: repo.stargazers_count || 0,
     snippet: repo.description || `${repo.stargazers_count} stars`,
     published_at: repo.updated_at,
     thumbnail: repo.owner?.avatar_url || null,

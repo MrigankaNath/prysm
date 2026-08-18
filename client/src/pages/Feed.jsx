@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { CATEGORY_ICONS } from "../components/categoryIcons";
 
 const CATEGORY_LABELS = {
   overview: "Overview",
@@ -43,6 +44,7 @@ function Feed({ session, interestsVersion }) {
   const searchTopic = searchParams.get("topic") || "";
   const [curatedResults, setCuratedResults] = useState([]);
   const [liveCategories, setLiveCategories] = useState(null);
+  const [categoryOrder, setCategoryOrder] = useState(CATEGORY_ORDER);
   const [searchLoading, setSearchLoading] = useState(false);
 
   useEffect(() => {
@@ -74,6 +76,9 @@ function Feed({ session, interestsVersion }) {
       .then(([curated, live]) => {
         setCuratedResults(curated);
         setLiveCategories(live.categories);
+        // The server ranks categories per topic — podcasts lead a philosophy
+        // search, code leads a library search. Fall back to a fixed order.
+        setCategoryOrder(live.order?.length ? live.order : CATEGORY_ORDER);
       })
       .finally(() => setSearchLoading(false));
   }, [searchTopic]);
@@ -124,15 +129,19 @@ function Feed({ session, interestsVersion }) {
 
           {!searchLoading &&
             liveCategories &&
-            CATEGORY_ORDER.map((key) => {
+            categoryOrder.map((key) => {
               const value = liveCategories[key];
               if (!value || (Array.isArray(value) && value.length === 0)) return null;
 
               const items = Array.isArray(value) ? value : [value];
+              const Icon = CATEGORY_ICONS[key];
 
               return (
                 <div key={key}>
-                  <h3>{CATEGORY_LABELS[key] || key}</h3>
+                  <h3 className="category-heading">
+                    {Icon && <Icon className="category-icon" />}
+                    {CATEGORY_LABELS[key] || key}
+                  </h3>
                   <ul className="card-list">
                     {items.map((item, i) => (
                       <li key={`${key}-${i}`}>

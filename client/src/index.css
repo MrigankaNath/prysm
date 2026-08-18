@@ -214,6 +214,19 @@ nav {
   margin: 20px 0 8px;
 }
 
+.category-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 28px 0 10px;
+}
+
+.category-icon {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+}
+
 @keyframes command-overlay-in {
   from {
     opacity: 0;

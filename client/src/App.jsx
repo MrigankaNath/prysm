@@ -15,6 +15,7 @@ import {
   IconSpectrum,
   IconWavelength,
   IconSearch,
+  PrismGradientDefs,
 } from "./components/Icons";
 
 const Hero = lazy(() => import("./pages/Hero"));
@@ -120,6 +121,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <PrismGradientDefs />
       <CommandPalette open={paletteOpen} setOpen={setPaletteOpen} />
       <OnboardingModal
         session={session}

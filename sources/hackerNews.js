@@ -15,6 +15,7 @@ async function fetchHackerNews(topic) {
       url: hit.url || `https://news.ycombinator.com/item?id=${hit.objectID}`,
       source: "hackernews",
       type: "discussion",
+      signal: hit.points || 0,
       snippet: `${hit.points} points, ${hit.num_comments} comments`,
       published_at: hit.created_at,
       thumbnail: null,

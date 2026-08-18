@@ -22,6 +22,7 @@ async function fetchPodcasts(topic) {
       ]
         .filter(Boolean)
         .join(" · "),
+      signal: show.trackCount || 0,
       published_at: show.releaseDate || null,
       thumbnail: show.artworkUrl600 || show.artworkUrl100 || null,
     }));
