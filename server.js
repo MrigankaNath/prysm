@@ -1,9 +1,10 @@
 const express = require("express");
 const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
 
 const cors = require("cors");
 const pool = require("./db");
-const { requireAuth, optionalAuth } = require("./db/supabase");
+const { requireAuth } = require("./db/supabase");
 const { getCached, setCached } = require("./db/topicCache");
 const { fetchHackerNews } = require("./sources/hackerNews");
 const { fetchOverview } = require("./sources/overview");
@@ -21,8 +22,23 @@ const clientOrigin = (process.env.CLIENT_ORIGIN || "http://localhost:5173").repl
 );
 
 const app = express();
+
+// Render sits behind a proxy; without this express-rate-limit buckets every
+// request under the proxy IP and the limits below apply globally instead of
+// per-client.
+app.set("trust proxy", 1);
+
+/* helmet's default Cross-Origin-Resource-Policy is "same-origin", which is
+   wrong for this deployment: the client is served from Vercel and the API from
+   Render, so every response is cross-origin by design. CORS still restricts
+   who may read it. */
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  }),
+);
 app.use(cors({ origin: clientOrigin }));
-app.use(express.json());
+app.use(express.json({ limit: "10kb" }));
 
 const writeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -30,6 +46,46 @@ const writeLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+// Baseline ceiling for everything else. Generous enough that normal browsing
+// never sees it.
+const readLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+/* A cache miss on /api/explore/:topic/live costs 4 Tavily credits and 100
+   YouTube units. The free tiers are 1,000 credits/month and 10,000 units/day
+   — roughly 250 new topics a month and 100 searches a day. Unmetered, a
+   trivial script requesting unique topics drains both in minutes and takes
+   live discovery down for everyone. This is the tightest limit in the app on
+   purpose. */
+const liveLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many topic lookups — try again in a few minutes" },
+});
+
+app.use("/api/", readLimiter);
+
+/* Topics become primary-key material in topic_cache, so an unbounded string
+   is both a storage-growth problem on a 500MB free tier and a cache-pollution
+   vector. Anything a real topic needs fits well inside this. */
+const MAX_TOPIC_LENGTH = 80;
+
+function normaliseTopic(raw) {
+  const topic = String(raw || "")
+    .trim()
+    .toLowerCase();
+  if (!topic || topic.length > MAX_TOPIC_LENGTH) return null;
+  // Letters, numbers, spaces and the handful of separators real topics use.
+  if (!/^[\p{L}\p{N} .+#'&/-]+$/u.test(topic)) return null;
+  return topic;
+}
 
 const depthOrder = ["beginner", "intermediate", "advanced"];
 
@@ -129,7 +185,104 @@ app.post("/api/history", writeLimiter, requireAuth, async (req, res) => {
   }
 });
 
-app.get("/api/feed", async (req, res) => {
+/* Record a topic the user explored. Account-bound, so the feed follows the
+   person rather than the browser. */
+app.post("/api/topics", writeLimiter, requireAuth, async (req, res) => {
+  const topic = normaliseTopic(req.body.topic);
+  if (!topic) return res.status(400).json({ error: "Invalid topic" });
+
+  try {
+    await pool.query(
+      `INSERT INTO user_topics (user_id, topic) VALUES ($1, $2)
+       ON CONFLICT (user_id, topic)
+       DO UPDATE SET explored_at = now()`,
+      [req.userId, topic],
+    );
+    res.status(201).json({ topic });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong recording the topic" });
+  }
+});
+
+app.get("/api/topics", requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT topic, explored_at FROM user_topics WHERE user_id = $1 ORDER BY explored_at DESC LIMIT 60",
+      [req.userId],
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong fetching topics" });
+  }
+});
+
+/* The feed's discovery half: real results from the topics this user actually
+   searched, read straight out of topic_cache.
+ *
+ * This costs nothing — the cache was already populated by the searches
+ * themselves, so no external API is called here. Expired rows are skipped
+ * rather than refetched; the topic simply drops out until it's searched again.
+ */
+const DISCOVER_SKIP = new Set(["overview"]);
+
+app.get("/api/feed/discover", requireAuth, async (req, res) => {
+  try {
+    const topics = await pool.query(
+      "SELECT topic FROM user_topics WHERE user_id = $1 ORDER BY explored_at DESC LIMIT 8",
+      [req.userId],
+    );
+
+    if (topics.rows.length === 0) return res.json({ topics: [], items: [] });
+
+    const names = topics.rows.map((r) => r.topic);
+    const cached = await pool.query(
+      `SELECT topic, source, results FROM topic_cache
+        WHERE topic = ANY($1) AND expires_at > now()`,
+      [names],
+    );
+
+    // Group by topic so the interleave below can round-robin across them.
+    const byTopic = new Map(names.map((t) => [t, []]));
+    for (const row of cached.rows) {
+      if (DISCOVER_SKIP.has(row.source)) continue;
+      const list = Array.isArray(row.results) ? row.results : [];
+      for (const item of list) {
+        if (!item?.url || !item?.title) continue;
+        byTopic.get(row.topic)?.push({ ...item, topic: row.topic, category: row.source });
+      }
+    }
+
+    /* Round-robin across topics rather than concatenating: eight items from
+       your most recent search followed by eight from the one before reads as
+       two blocks, not a feed. */
+    /* Source order is already meaningful — each adapter ranks by relevance and
+       engagement — so it's kept. (An earlier version shuffled with
+       `sort(() => Math.random() - 0.5)`, which is both a biased shuffle and
+       reorders the feed on every refresh.) */
+    const buckets = names.map((t) => byTopic.get(t) || []);
+
+    const seen = new Set();
+    const items = [];
+    const depth = Math.max(...buckets.map((b) => b.length), 0);
+    for (let i = 0; i < depth && items.length < 40; i += 1) {
+      for (const bucket of buckets) {
+        const item = bucket[i];
+        if (!item || seen.has(item.url)) continue;
+        seen.add(item.url);
+        items.push(item);
+      }
+    }
+
+    res.json({ topics: names, items });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong building your feed" });
+  }
+});
+
+app.get("/api/feed", requireAuth, async (req, res) => {
   const { topic } = req.query;
 
   try {
@@ -149,7 +302,7 @@ app.get("/api/feed", async (req, res) => {
   }
 });
 
-app.get("/api/content/:id", async (req, res) => {
+app.get("/api/content/:id", requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
 
   if (!Number.isInteger(id)) {
@@ -173,7 +326,7 @@ app.get("/api/content/:id", async (req, res) => {
   }
 });
 
-app.get("/api/feed/daily", async (req, res) => {
+app.get("/api/feed/daily", requireAuth, async (req, res) => {
   const { topic, count } = req.query;
   let limit = parseInt(count);
 
@@ -203,7 +356,7 @@ app.get("/api/feed/daily", async (req, res) => {
   }
 });
 
-app.get("/api/feed/personalized", optionalAuth, async (req, res) => {
+app.get("/api/feed/personalized", requireAuth, async (req, res) => {
   let limit = parseInt(req.query.count);
   if (!Number.isInteger(limit) || limit <= 0) {
     limit = 3;
@@ -291,7 +444,7 @@ app.get("/api/feed/personalized", optionalAuth, async (req, res) => {
   }
 });
 
-app.get("/api/explore", async (req, res) => {
+app.get("/api/explore", requireAuth, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT
@@ -316,6 +469,35 @@ app.get("/api/explore", async (req, res) => {
 // topic is served there. `saturation` is the engagement level at which a
 // category counts as strong, on a log scale so a 40k-star repo doesn't drown
 // out everything else.
+/* Cache lifetime is per source, because these decay at wildly different rates
+   and a single global TTL has to be wrong for most of them.
+ *
+ * Storage is not the constraint — a fully cached topic is ~24 kB across all
+ * nine sources, so even 10,000 topics is ~240 MB against Supabase's 500 MB.
+ * The constraint is metered quota: Tavily costs 4 credits per topic refetch
+ * against 1,000/month, so a short TTL spends the budget re-fetching answers
+ * that did not change. It also matters for the feed, which reads this cache —
+ * at 24h a topic searched on Monday has vanished from the feed by Wednesday.
+ *
+ * The numbers below are "how long before this answer is meaningfully wrong":
+ *   - a definition, or a public-domain book, essentially never
+ *   - top-voted answers and podcast back catalogues, a fortnight
+ *   - articles, repos and videos, about a week
+ *   - Hacker News, days — new threads are the whole point of it            */
+const TTL_HOURS = {
+  overview: 24 * 30,
+  books: 24 * 30,
+  papers: 24 * 14,
+  qa: 24 * 14,
+  podcasts: 24 * 14,
+  code: 24 * 7,
+  articles: 24 * 7,
+  videos: 24 * 7,
+  discussions: 24 * 3,
+};
+
+const DEFAULT_TTL_HOURS = 24 * 7;
+
 const LIVE_CATEGORIES = {
   overview: { fetch: fetchOverview, empty: null, expected: 1 },
   discussions: { fetch: fetchHackerNews, empty: [], expected: 20, saturation: 1000 },
@@ -372,7 +554,19 @@ async function loadLiveCategory(topic, category, fetchFn, emptyValue, ...args) {
     if (cached) return cached;
 
     const results = await fetchFn(topic, ...args);
-    await setCached(topic, category, results);
+
+    /* Don't cache an empty result for a week — an adapter that failed, was
+       rate-limited, or filtered everything out would otherwise pin the topic
+       to "nothing here" long after the cause passed. Retry those in an hour. */
+    const isEmpty =
+      results == null || (Array.isArray(results) && results.length === 0);
+
+    await setCached(
+      topic,
+      category,
+      results,
+      isEmpty ? 1 : TTL_HOURS[category] || DEFAULT_TTL_HOURS,
+    );
     return results;
   } catch (err) {
     console.error(`live discovery: ${category} failed for topic "${topic}"`, err);
@@ -388,6 +582,74 @@ const PROBE_CATEGORIES = ["discussions", "papers", "books", "podcasts"];
 // A topic sitting in books with almost nothing on arXiv is a humanities topic:
 // GitHub will only return noise for it (a "stoicism" search yields 140-star
 // hobby repos), so we skip the call rather than fetch junk and rank it last.
+/* Repos are only useful when the topic is something you'd actually write or
+   read code for. "quantum computing" and "astrophysics" profile as technical,
+   but nobody exploring those wants a repo list — they want the explanation.
+   So Code is gated on the topic naming a language, tool, or software practice.
+
+   Matching is whole-word, not substring: "cli" inside "climate science" and
+   "java" inside "javascript" both false-positived when this used includes().
+   Extending either list is a one-line edit. */
+const CODE_WORDS = new Set([
+  // languages
+  "python", "javascript", "typescript", "js", "ts", "rust", "go", "golang",
+  "java", "kotlin", "swift", "ruby", "php", "scala", "haskell", "elixir",
+  "clojure", "lua", "c", "c++", "c#", "perl", "dart", "zig", "ocaml",
+  "erlang", "solidity", "sql", "bash", "shell",
+  // runtimes, frameworks, libraries
+  "react", "vue", "angular", "svelte", "nextjs", "next.js", "nuxt", "node",
+  "nodejs", "deno", "bun", "django", "flask", "rails", "laravel", "spring",
+  "express", "fastapi", "pytorch", "tensorflow", "numpy", "pandas", "jax",
+  "keras", "langchain", "tailwind", "webpack", "vite", "graphql", "prisma",
+  "postgres", "postgresql", "mysql", "sqlite", "redis", "mongodb",
+  // tools and practice
+  "git", "docker", "kubernetes", "k8s", "terraform", "ansible", "linux",
+  "regex", "api", "apis", "sdk", "cli", "compiler", "compilers",
+  "interpreter", "debugging", "devops", "microservices", "webassembly",
+  "wasm", "kernel", "database", "databases",
+  // the craft itself
+  "programming", "coding", "code", "software", "developer", "development",
+  "frontend", "backend", "fullstack", "algorithm", "algorithms", "hooks",
+  "refactoring", "scripting", "testing",
+]);
+
+/* Multi-word topics where the artifact people want really is a repo. */
+const CODE_PHRASES = [
+  "system design",
+  "data structure",
+  "design pattern",
+  "machine learning",
+  "deep learning",
+  "neural network",
+  "computer vision",
+  "web dev",
+  "open source",
+  "unit test",
+  "code review",
+  "operating system",
+  "distributed system",
+];
+
+function demandsCode(topic) {
+  const lower = topic.toLowerCase();
+  if (CODE_PHRASES.some((phrase) => lower.includes(phrase))) return true;
+
+  return lower
+    .split(/[\s,/]+/)
+    .some((token) => CODE_WORDS.has(token.replace(/^[^a-z0-9+#.]+|[^a-z0-9+#.]+$/g, "")));
+}
+
+/* Which Stack Exchange sites to query. Derived from the code signal rather
+   than the papers-vs-books profile: "string theory" is paper-heavy and so
+   profiles as technical, but its answers live on physics.stackexchange, not
+   Stack Overflow. */
+function qaPool(topic, profile) {
+  if (demandsCode(topic)) return "code";
+  if (profile === "humanities") return "humanities";
+  if (profile === "technical") return "science";
+  return "mixed";
+}
+
 function profileTopic(probe) {
   const papers = probe.papers?.length || 0;
   const books = probe.books?.length || 0;
@@ -397,11 +659,11 @@ function profileTopic(probe) {
   return "mixed";
 }
 
-app.get("/api/explore/:topic/live", async (req, res) => {
-  const topic = req.params.topic.trim().toLowerCase();
+app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) => {
+  const topic = normaliseTopic(req.params.topic);
 
   if (!topic) {
-    return res.status(400).json({ error: "topic is required" });
+    return res.status(400).json({ error: "Invalid topic" });
   }
 
   const load = (name, ...args) =>
@@ -427,8 +689,8 @@ app.get("/api/explore/:topic/live", async (req, res) => {
       ["overview"],
       ["articles"],
       ["videos"],
-      ["qa", profile],
-      ...(profile === "humanities" ? [] : [["code"]]),
+      ["qa", qaPool(topic, profile)],
+      ...(demandsCode(topic) ? [["code"]] : []),
     ];
 
     const secondResults = await Promise.all(second.map(([name, ...a]) => load(name, ...a)));
@@ -450,8 +712,8 @@ app.get("/api/explore/:topic/live", async (req, res) => {
   }
 });
 
-app.get("/api/search", async (req, res) => {
-  const q = (req.query.q || "").trim();
+app.get("/api/search", requireAuth, async (req, res) => {
+  const q = String(req.query.q || "").trim().slice(0, MAX_TOPIC_LENGTH);
 
   if (!q) {
     return res.json({ topics: [], bundles: [], content: [] });
@@ -486,7 +748,7 @@ app.get("/api/search", async (req, res) => {
   }
 });
 
-app.get("/api/bundles", async (req, res) => {
+app.get("/api/bundles", requireAuth, async (req, res) => {
   const { topic } = req.query;
 
   try {
@@ -547,7 +809,7 @@ app.get("/api/bundles/recommended", requireAuth, async (req, res) => {
   }
 });
 
-app.get("/api/bundles/:id", async (req, res) => {
+app.get("/api/bundles/:id", requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
 
   if (!Number.isInteger(id)) {
@@ -587,7 +849,7 @@ app.get("/api/bundles/:id", async (req, res) => {
   }
 });
 
-app.get("/api/content/:id/next", async (req, res) => {
+app.get("/api/content/:id/next", requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
 
   if (!Number.isInteger(id)) {
