@@ -85,6 +85,24 @@ export function PrismGradientDefs() {
           <stop offset="0.82" stopColor="#f59e0b" />
           <stop offset="1" stopColor="#10b981" />
         </linearGradient>
+
+        {/* The gradient above is sized in user units for 24x24 icons — anything
+            larger clamps to its final stop. This one is bound to the element's
+            own box, so it spans correctly at any size (the goal ring, etc.). */}
+        <linearGradient
+          id="prism-gradient-lg"
+          x1="0"
+          y1="0"
+          x2="1"
+          y2="1"
+          gradientUnits="objectBoundingBox"
+        >
+          <stop offset="0" stopColor="#3b82f6" />
+          <stop offset="0.3" stopColor="#8b5cf6" />
+          <stop offset="0.6" stopColor="#ec4899" />
+          <stop offset="0.82" stopColor="#f59e0b" />
+          <stop offset="1" stopColor="#10b981" />
+        </linearGradient>
       </defs>
     </svg>
   );
@@ -175,6 +193,181 @@ export function IconDiscussions(props) {
     <svg {...gradientBase} {...props}>
       <path d="M15.5 12.5a2 2 0 0 1-2 2H8L4.5 17V6a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2Z" />
       <path d="M18 8.5h.5a2 2 0 0 1 2 2V21l-3-2.5h-5" />
+    </svg>
+  );
+}
+
+/* --- UI + gamification icons ----------------------------------------------
+   Same 24x24 / 1.8-stroke house style as the nav icons above, drawn with
+   currentColor so they inherit whatever the surrounding element is coloured.
+   Each is a single self-contained component — swap the paths inside any one of
+   them for a designed asset later without touching a call site.
+-------------------------------------------------------------------------- */
+
+export function IconMenu(props) {
+  return (
+    <svg {...base} {...props}>
+      <line x1="4" y1="7" x2="20" y2="7" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <line x1="4" y1="17" x2="20" y2="17" />
+    </svg>
+  );
+}
+
+export function IconSettings(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="3.2" />
+      <path d="M19.4 14.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.11a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.11a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.56V3a2 2 0 1 1 4 0v.11a1.7 1.7 0 0 0 1 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.56 1H21a2 2 0 1 1 0 4h-.11a1.7 1.7 0 0 0-1.49 1.5Z" />
+    </svg>
+  );
+}
+
+
+
+export function IconLogout(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M14.5 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8.5" />
+      <path d="m17 15.5 3.5-3.5L17 8.5" />
+      <line x1="20" y1="12" x2="10" y2="12" />
+    </svg>
+  );
+}
+
+
+// The streak marker. Deliberately a bolt rather than a flame — it ties to the
+// light/prism motif the rest of the product runs on.
+
+
+
+export function IconTarget(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.6" />
+      <circle cx="12" cy="12" r="1" />
+    </svg>
+  );
+}
+
+export function IconBookmark(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M6.5 3.8h11a1 1 0 0 1 1 1v15.4l-6.5-4.3-6.5 4.3V4.8a1 1 0 0 1 1-1Z" />
+    </svg>
+  );
+}
+
+export function IconClock(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="8.6" />
+      <path d="M12 7.2V12l3.2 1.9" />
+    </svg>
+  );
+}
+
+
+export function IconCheck(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m5 12.8 4.4 4.2L19 7.4" />
+    </svg>
+  );
+}
+
+
+export function IconChevronRight(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m9.5 5.5 6.5 6.5-6.5 6.5" />
+    </svg>
+  );
+}
+
+
+
+
+/* Activity-type icons — currentColor twins of the gradient category icons, for
+   places where the surrounding chip already carries the colour. */
+
+
+
+
+
+export function IconPlay(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M8.5 5.5 18 12l-9.5 6.5Z" />
+    </svg>
+  );
+}
+
+
+export function IconCompass(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="8.6" />
+      <path d="m15.2 8.8-1.8 4.6-4.6 1.8 1.8-4.6z" />
+    </svg>
+  );
+}
+
+export function IconGrid(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.6" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.6" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.6" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="1.6" />
+    </svg>
+  );
+}
+
+export function IconChevronDown(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m6 9.5 6 6 6-6" />
+    </svg>
+  );
+}
+
+export function IconHistory(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1" />
+      <path d="M3.5 4.5V9H8" />
+      <path d="M12 7.6V12l3 1.8" />
+    </svg>
+  );
+}
+
+export function IconEye(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+export function IconEyeOff(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M9.9 5.8A8.6 8.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a15 15 0 0 1-3 3.7" />
+      <path d="M6.4 6.5A15.3 15.3 0 0 0 2.5 12S6 18.5 12 18.5c1.5 0 2.8-.3 4-.9" />
+      <line x1="4" y1="4" x2="20" y2="20" />
+    </svg>
+  );
+}
+
+export function IconAlert(props) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="8.6" />
+      <line x1="12" y1="7.8" x2="12" y2="12.6" />
+      <line x1="12" y1="16.2" x2="12" y2="16.2" />
     </svg>
   );
 }

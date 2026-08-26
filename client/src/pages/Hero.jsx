@@ -32,6 +32,9 @@ function Hero() {
               Log In
             </button>
           </div>
+          <p className="hero-proof">
+            9 sources · articles, papers, videos, code, podcasts, books
+          </p>
           <div className="hero-scroll-cue" aria-hidden="true" />
         </div>
       </section>
@@ -41,12 +44,48 @@ function Hero() {
           <PrismModel />
         </div>
         <div className="hero-model-copy">
-          <h2>Any topic, worth exploring</h2>
+          <h2>One search. Every kind of answer.</h2>
           <p>
-            Prysm blends hand-curated learning paths with live results pulled from
-            across the web — articles, papers, videos, code — sorted by what they
-            actually are, not where they came from.
+            A prism takes one beam and shows you every colour inside it. Prysm
+            does that to a topic — one search, split into articles, papers,
+            videos, code, podcasts and discussions, sorted by what each thing
+            actually is rather than which site it came from.
           </p>
+        </div>
+      </section>
+
+      <section className="hero-steps">
+        <h2 className="hero-steps-head">How it works</h2>
+        <div className="hero-step-grid">
+          {[
+            {
+              n: "01",
+              t: "Search anything",
+              d: "Any topic, however niche. Nine sources answer at once, and the results are cached per topic so it stays fast and free.",
+            },
+            {
+              n: "02",
+              t: "Read it by kind",
+              d: "Grouped as articles, videos, papers, code and more — ordered per topic, so code leads for React and podcasts lead for stoicism.",
+            },
+            {
+              n: "03",
+              t: "Keep what matters",
+              d: "Bookmark anything and it lands in Wavelength. Your feed rebuilds from what you save and search, not from what is trending.",
+            },
+          ].map((step) => (
+            <article key={step.n} className="hero-step">
+              <span className="hero-step-n">{step.n}</span>
+              <h3 className="hero-step-t">{step.t}</h3>
+              <p className="hero-step-d">{step.d}</p>
+            </article>
+          ))}
+        </div>
+
+        {/*  ILLUSTRATION SLOT — landing centrepiece, full-width ~1000x300.
+            The most valuable place for a custom piece on the whole site.  */}
+        <div className="illo-slot illo-slot-banner" aria-hidden="true">
+          <span className="illo-hint">wide illustration — landing centrepiece</span>
         </div>
       </section>
 
