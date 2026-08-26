@@ -1,5 +1,12 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, NavLink, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  NavLink,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { supabase } from "./supabaseClient";
 import Feed from "./pages/Feed";
 import ExploreTopic from "./pages/ExploreTopic";
@@ -7,9 +14,10 @@ import Prisms from "./pages/Prisms";
 import PrismDetail from "./pages/PrismDetail";
 import Spectrum from "./pages/Spectrum";
 import Wavelength from "./pages/Wavelength";
+import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import CommandPalette from "./components/CommandPalette";
-import OnboardingModal from "./components/OnboardingModal";
+import NavMenu from "./components/NavMenu";
 import {
   IconFeed,
   IconPrism,
@@ -35,7 +43,7 @@ const NAV_LINKS = [
 
 const navLinkClass = ({ isActive }) => (isActive ? "nav-link active" : "nav-link");
 
-function AppNav({ hidden, onOpenSearch }) {
+function AppNav({ hidden, onOpenSearch, session }) {
   if (hidden) return null;
 
   return (
@@ -64,25 +72,50 @@ function AppNav({ hidden, onOpenSearch }) {
           <IconWavelength className="nav-icon" />
           <span className="nav-label">Wavelength</span>
         </NavLink>
+
+        <NavMenu session={session} />
       </div>
     </nav>
   );
 }
 
-function AppRoutes({ session, interestsVersion, onOpenSearch }) {
+/* Everything except the landing page and /auth is behind the session.
+ *
+ * `authReady` matters more than it looks: supabase.auth.getSession() is async,
+ * so `session` is null for the first tick of every page load. Redirecting on
+ * that would bounce a signed-in user off /prisms every time they refreshed.
+ * Render nothing until the session is actually known.
+ *
+ * This is a client-side gate over a public API — /api/bundles and friends still
+ * answer unauthenticated requests. It controls the product surface, not the
+ * data; locking the data down is separate server work.
+ */
+function RequireSession({ session, authReady, children }) {
+  if (!authReady) return null;
+  if (!session) return <Navigate to="/" replace />;
+  return children;
+}
+
+function AppRoutes({ session, authReady, onOpenSearch }) {
   const location = useLocation();
   const showingHero = !session && location.pathname === "/";
 
+  const gated = (element) => (
+    <RequireSession session={session} authReady={authReady}>
+      {element}
+    </RequireSession>
+  );
+
   return (
     <>
-      <AppNav hidden={showingHero} onOpenSearch={onOpenSearch} />
+      <AppNav hidden={showingHero} onOpenSearch={onOpenSearch} session={session} />
 
       <Routes>
         <Route
           path="/"
           element={
             session ? (
-              <Feed session={session} interestsVersion={interestsVersion} />
+              <Feed session={session} />
             ) : (
               <Suspense fallback={null}>
                 <Hero />
@@ -90,15 +123,20 @@ function AppRoutes({ session, interestsVersion, onOpenSearch }) {
             )
           }
         />
+        <Route path="/prisms" element={gated(<Prisms session={session} />)} />
+        <Route path="/explore/:topic" element={gated(<ExploreTopic />)} />
+        <Route path="/prisms/:id" element={gated(<PrismDetail />)} />
+        <Route path="/spectrum" element={gated(<Spectrum />)} />
         <Route
-          path="/prisms"
-          element={<Prisms session={session} interestsVersion={interestsVersion} />}
+          path="/wavelength"
+          element={gated(<Wavelength session={session} />)}
         />
-        <Route path="/explore/:topic" element={<ExploreTopic />} />
-        <Route path="/prisms/:id" element={<PrismDetail />} />
-        <Route path="/spectrum" element={<Spectrum />} />
-        <Route path="/wavelength" element={<Wavelength session={session} />} />
+        <Route
+          path="/settings"
+          element={gated(<Settings session={session} />)}
+        />
         <Route path="/auth" element={<Auth />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   );
@@ -106,16 +144,18 @@ function AppRoutes({ session, interestsVersion, onOpenSearch }) {
 
 function App() {
   const [session, setSession] = useState(null);
-  const [interestsVersion, setInterestsVersion] = useState(0);
+  const [authReady, setAuthReady] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      setAuthReady(true);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      setAuthReady(true);
     });
 
     return () => listener.subscription.unsubscribe();
@@ -124,15 +164,10 @@ function App() {
   return (
     <BrowserRouter>
       <PrismGradientDefs />
-      <CommandPalette open={paletteOpen} setOpen={setPaletteOpen} />
-      <OnboardingModal
-        session={session}
-        onInterestsChanged={() => setInterestsVersion((v) => v + 1)}
-      />
-
+      {session && <CommandPalette open={paletteOpen} setOpen={setPaletteOpen} />}
       <AppRoutes
         session={session}
-        interestsVersion={interestsVersion}
+        authReady={authReady}
         onOpenSearch={() => setPaletteOpen(true)}
       />
     </BrowserRouter>
