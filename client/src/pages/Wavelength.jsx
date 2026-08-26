@@ -1,42 +1,150 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import {
+  getBookmarks,
+  getHistory,
+  getTopics,
+  removeBookmark,
+  subscribe,
+} from "../lib/library";
+import ResultCard from "../components/ResultCard";
+import { IconBookmark, IconHistory, IconTarget } from "../components/Icons";
 
-function Wavelength({ session }) {
-  const [me, setMe] = useState(null);
+const TABS = [
+  { id: "saved", label: "Saved", Icon: IconBookmark },
+  { id: "history", label: "History", Icon: IconHistory },
+  { id: "topics", label: "Topics", Icon: IconTarget },
+];
 
-  useEffect(() => {
-    if (!session) {
-      setMe(null);
-      return;
-    }
+function Wavelength() {
+  const [tab, setTab] = useState("saved");
+  const [library, setLibrary] = useState(() => ({
+    bookmarks: getBookmarks(),
+    history: getHistory(),
+    topics: getTopics(),
+  }));
 
-    fetch(`${import.meta.env.VITE_API_URL}/api/me`, {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    })
-      .then((res) => (res.ok ? res.json() : null))
-      .then(setMe);
-  }, [session]);
+  useEffect(
+    () =>
+      subscribe(() =>
+        setLibrary({
+          bookmarks: getBookmarks(),
+          history: getHistory(),
+          topics: getTopics(),
+        }),
+      ),
+    [],
+  );
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
+  const counts = {
+    saved: library.bookmarks.length,
+    history: library.history.length,
+    topics: library.topics.length,
   };
 
-  if (!session) {
-    return (
-      <div className="page">
-        <h2>Wavelength</h2>
-        <p>Log in to see your personal history and progress.</p>
-        <Link to="/auth">Log In</Link>
-      </div>
-    );
-  }
-
   return (
-    <div className="page">
-      <h2>Wavelength</h2>
-      <p>Logged in as {me?.email || session.user.email}</p>
-      <button onClick={handleLogout}>Log Out</button>
+    <div className="page page-wide wavelength">
+      <header className="wl-head">
+        <div>
+          <h1 className="wl-title">Wavelength</h1>
+          <p className="wl-subtitle">
+            What you&rsquo;ve saved, what you&rsquo;ve opened, and where
+            you&rsquo;ve been looking.
+          </p>
+        </div>
+
+        {/*  ILLUSTRATION SLOT — "your wavelength", ~200x140.
+            A personal/abstract mark next to the page title.  */}
+        <div className="illo-slot illo-slot-head" aria-hidden="true">
+          <span className="illo-hint">illustration</span>
+        </div>
+      </header>
+
+      <div className="wl-tabs">
+        {TABS.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            type="button"
+            className={`wl-tab${tab === id ? " active" : ""}`}
+            onClick={() => setTab(id)}
+          >
+            <Icon className="wl-tab-icon" />
+            {label}
+            <span className="wl-tab-count">{counts[id]}</span>
+          </button>
+        ))}
+      </div>
+
+      {tab === "saved" &&
+        (library.bookmarks.length === 0 ? (
+          <p className="wl-empty">
+            Nothing saved yet. Hit the bookmark on any result and it lands
+            here.{" "}
+            <Link to="/spectrum" className="inline-link">
+              Find something to read
+            </Link>
+            .
+          </p>
+        ) : (
+          <div className="cat-stack">
+            {library.bookmarks.map((item) => (
+              <div key={item.url} className="wl-saved-row">
+                <ResultCard
+                  item={item}
+                  topic={item.topic || ""}
+                  category={item.category || "articles"}
+                />
+                <button
+                  type="button"
+                  className="wl-remove"
+                  onClick={() => removeBookmark(item.url)}
+                  aria-label="Remove from saved"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        ))}
+
+      {tab === "history" &&
+        (library.history.length === 0 ? (
+          <p className="wl-empty">
+            Nothing opened yet — anything you click from a search shows up here.
+          </p>
+        ) : (
+          <div className="cat-stack">
+            {library.history.map((item) => (
+              <ResultCard
+                key={item.url}
+                item={item}
+                topic={item.topic || ""}
+                category={item.category || "articles"}
+              />
+            ))}
+          </div>
+        ))}
+
+      {tab === "topics" &&
+        (library.topics.length === 0 ? (
+          <p className="wl-empty">
+            No topics explored yet. Press{" "}
+            <kbd className="inline-kbd">⌘K</kbd> and search for anything.
+          </p>
+        ) : (
+          <div className="wl-topic-grid">
+            {library.topics.map(({ topic, total }) => (
+              <Link
+                key={topic}
+                to={`/explore/${encodeURIComponent(topic)}`}
+                className="wl-topic-tile"
+              >
+                <span className="wl-topic-name">{topic}</span>
+                <span className="wl-topic-meta">{total} results</span>
+              </Link>
+            ))}
+          </div>
+        ))}
     </div>
   );
 }

@@ -1,33 +1,158 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { getTopics, subscribe } from "../lib/library";
+import { IconCompass, IconHistory } from "../components/Icons";
+
+/* The browsable half of discovery. Hand-grouped so the page reads as a map
+   rather than a tag cloud — each cluster takes one band of the prism. */
+const CLUSTERS = [
+  {
+    id: "engineering",
+    label: "Engineering",
+    hue: "#3b82f6",
+    blurb: "How things get built, and why they break.",
+    topics: [
+      "systems design",
+      "rust",
+      "databases",
+      "distributed systems",
+      "compilers",
+      "react hooks",
+    ],
+  },
+  {
+    id: "intelligence",
+    label: "Machines that learn",
+    hue: "#8b5cf6",
+    blurb: "From the maths underneath to what actually ships.",
+    topics: [
+      "machine learning",
+      "transformers",
+      "reinforcement learning",
+      "computer vision",
+      "neural networks",
+      "information theory",
+    ],
+  },
+  {
+    id: "science",
+    label: "The physical world",
+    hue: "#ec4899",
+    blurb: "Matter, energy, and the very large and very small.",
+    topics: [
+      "quantum computing",
+      "astrophysics",
+      "genetics",
+      "climate science",
+      "neuroscience",
+      "materials science",
+    ],
+  },
+  {
+    id: "mind",
+    label: "Thinking clearly",
+    hue: "#f59e0b",
+    blurb: "Philosophy, reasoning, and how people decide.",
+    topics: [
+      "stoicism",
+      "behavioural economics",
+      "epistemology",
+      "game theory",
+      "cognitive bias",
+      "rhetoric",
+    ],
+  },
+  {
+    id: "world",
+    label: "People and money",
+    hue: "#10b981",
+    blurb: "History, markets, and how societies organise.",
+    topics: [
+      "monetary policy",
+      "urban planning",
+      "history of rome",
+      "supply chains",
+      "geopolitics",
+      "design history",
+    ],
+  },
+];
 
 function Spectrum() {
-  const [items, setItems] = useState([]);
+  const [recent, setRecent] = useState(() => getTopics().slice(0, 6));
 
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/api/feed`)
-      .then((res) => res.json())
-      .then((data) => setItems(data));
-  }, []);
+  useEffect(() => subscribe(() => setRecent(getTopics().slice(0, 6))), []);
 
   return (
-    <div className="page">
-      <h2>Spectrum</h2>
-      {items.length === 0 ? (
-        <p>No curated content yet.</p>
-      ) : (
-        <ul className="card-list">
-          {items.map((item) => (
-            <li key={item.id}>
-              <a className="card" href={item.url} target="_blank" rel="noopener noreferrer">
-                <div className="card-title">{item.title}</div>
-                <div className="card-meta">
-                  {item.topic} · {item.depth_level} · {item.type}
-                </div>
-              </a>
-            </li>
-          ))}
-        </ul>
+    <div className="page page-wide spectrum">
+      <header className="spec-hero">
+        <span className="spec-eyebrow">
+          <IconCompass className="spec-eyebrow-icon" />
+          Spectrum
+        </span>
+        <h1 className="spec-title">Everything worth looking into</h1>
+        <p className="spec-sub">
+          Pick a band and follow it. Every topic pulls live results from across
+          the web — articles, papers, videos, code and more, sorted by what they
+          actually are.
+        </p>
+
+        {/*  ILLUSTRATION SLOT — "spectrum banner", full-width ~1080x220.
+            The best place for a wide prism/light-split piece.  */}
+        <div className="illo-slot illo-slot-banner" aria-hidden="true">
+          <span className="illo-hint">wide illustration — prism / light split</span>
+        </div>
+      </header>
+
+      {recent.length > 0 && (
+        <section className="spec-recent">
+          <h3 className="spec-recent-head">
+            <IconHistory className="spec-recent-icon" />
+            Pick up where you left off
+          </h3>
+          <div className="spec-chip-row">
+            {recent.map(({ topic }) => (
+              <Link
+                key={topic}
+                to={`/explore/${encodeURIComponent(topic)}`}
+                className="spec-chip"
+              >
+                {topic}
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
+
+      <div className="spec-clusters">
+        {CLUSTERS.map((cluster, i) => (
+          <section
+            key={cluster.id}
+            className="spec-cluster"
+            style={{ "--hue": cluster.hue, "--stagger": `${i * 70}ms` }}
+          >
+            <div className="spec-cluster-head">
+              <span className="spec-cluster-bar" aria-hidden="true" />
+              <div>
+                <h3 className="spec-cluster-label">{cluster.label}</h3>
+                <p className="spec-cluster-blurb">{cluster.blurb}</p>
+              </div>
+            </div>
+
+            <div className="spec-topic-grid">
+              {cluster.topics.map((topic) => (
+                <Link
+                  key={topic}
+                  to={`/explore/${encodeURIComponent(topic)}`}
+                  className="spec-topic"
+                >
+                  {topic}
+                </Link>
+              ))}
+            </div>
+          </section>
+        ))}
+      </div>
     </div>
   );
 }
