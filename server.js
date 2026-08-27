@@ -493,7 +493,11 @@ app.get("/api/explore", requireAuth, async (req, res) => {
  *   - articles, repos and videos, about a week
  *   - Hacker News, days — new threads are the whole point of it            */
 const TTL_HOURS = {
-  overview: 24 * 30,
+  /* Matches articles, not because an overview goes stale in a week, but
+     because the two share one round of Tavily searches (sources/tavily.js).
+     Expiring at different times would have whichever lapsed first pay for the
+     bundle and discard the other half. */
+  overview: 24 * 7,
   books: 24 * 30,
   papers: 24 * 14,
   qa: 24 * 14,
