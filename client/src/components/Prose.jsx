@@ -21,7 +21,10 @@ const BANDS = [
   "--hl-cyan",
 ];
 
-const COLLAPSED_LINES = 7;
+/* Three, not seven. At display scale seven lines is most of the screen, and
+   the overview is a primer, not the article — the first line should say what
+   the topic is and the rest should be reachable, not unavoidable. */
+const COLLAPSED_LINES = 3;
 const MAX_MARKS = 9;
 /* Minimum characters between plates. Small enough that the opening carries a
    couple of marks straight away — the first line is what most people read —

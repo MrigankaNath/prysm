@@ -2927,7 +2927,11 @@ nav {
   max-width: 34ch;
   font-family: var(--font-display);
   font-size: clamp(1.5rem, 1.05rem + 1.8vw, 2.6rem);
-  line-height: 1.32;
+  /* 1.32 is tighter than Bricolage's own ascender-to-descender run, so the
+     clamp cropped the last line's descenders — the "half cut" letters. The
+     clamp box is exactly n x line-height, so the line box has to fit the
+     glyphs. */
+  line-height: 1.4;
   letter-spacing: -0.03em;
   text-wrap: pretty;
   display: -webkit-box;

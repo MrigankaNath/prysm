@@ -12,8 +12,16 @@ async function fetchOverview(topic) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       api_key: apiKey,
-      query: `What is ${topic}? Give a clear, well-sourced overview.`,
-      include_answer: "advanced",
+      /* Two sentences, definition first. The page sets this at display scale
+         and clamps it to three lines, so an answer that runs to a paragraph is
+         mostly hidden behind "Read more" — and the part that shows is a
+         fragment rather than a statement. */
+      query:
+        `What is ${topic}? Answer in at most two short sentences: ` +
+        `the first a plain one-line definition, the second why it matters.`,
+      /* "advanced" returns a multi-paragraph essay. Same credit cost either
+         way — search_depth is what's metered, not the answer length. */
+      include_answer: "basic",
       max_results: 3,
     }),
   });
