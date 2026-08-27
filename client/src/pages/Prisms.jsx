@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { apiJson } from "../lib/api";
 import { IconPrism, IconChevronRight } from "../components/Icons";
+import TopicIcon from "../components/TopicIcon";
 
 /* One band of the spectrum per Prism. */
 const BANDS = [
@@ -37,7 +38,13 @@ function PrismCard({ bundle, band, offset, active, onFocus, onOpen }) {
               Replace this span's contents; the gradient behind stays as
               backing so an empty slot still looks deliberate.  */}
           <span className="pdeck-illo">
-            <IconPrism />
+            {/* White rather than the topic's own band: the tile already sits
+                on a saturated gradient, so a second hue would fight it. */}
+            <TopicIcon
+              topic={bundle.topic}
+              color="#ffffff"
+              className="topic-icon-bare"
+            />
           </span>
         </span>
 

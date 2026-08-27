@@ -133,6 +133,12 @@ nav {
    no dead zones between breakpoints, and a large screen isn't left with a
    narrow column stranded in the middle. */
 .page {
+  /* width: 100% matters here. #root is a flex column, and `margin: 0 auto` is
+     a cross-axis auto margin, which disables the default stretch — without an
+     explicit width every page shrink-to-fits its content, so the same layout
+     came out a different measure on each route. */
+  width: 100%;
+  box-sizing: border-box;
   padding: clamp(20px, 4vw, 40px) clamp(18px, 4vw, 44px);
   max-width: 860px;
   margin: 0 auto;
@@ -3831,4 +3837,28 @@ nav {
 
 .spec-topic:hover .topic-icon {
   border-color: color-mix(in srgb, var(--hue) 55%, transparent);
+}
+
+/* --- topic icon inside the Prism deck's tile ---------------------------- */
+
+/* The glass tile is already the plate here, so the icon drops its own. */
+.topic-icon.topic-icon-bare {
+  width: auto;
+  height: auto;
+  border: none;
+  background: none;
+  border-radius: 0;
+}
+
+.topic-icon.topic-icon-bare img {
+  width: 34px;
+  height: 34px;
+}
+
+/* A brand mark keeps its own colours, and many are solid black — so the tile
+   itself goes light when it holds one, rather than the icon carrying a plate
+   inside a plate. */
+.pdeck-illo:has(.is-brand) {
+  background: rgba(250, 250, 250, 0.92);
+  border-color: rgba(255, 255, 255, 0.6);
 }

@@ -33,7 +33,7 @@ const CONCEPTS = [
   [["math", "mathematics", "theorem", "algebra", "calculus", "geometry", "topology", "proof", "equation", "bernoulli", "fourier", "linear"], "ph:math-operations-bold"],
   [["statistics", "probability", "regression", "bayesian", "stochastic"], "ph:chart-line-up-bold"],
   [["machine learning", "deep learning", "neural network", "ai", "artificial intelligence", "transformer", "llm", "reinforcement"], "ph:cpu-bold"],
-  [["programming", "code", "coding", "software", "developer", "api", "database", "algorithm", "compiler", "devops", "backend", "frontend", "framework"], "ph:code-bold"],
+  [["computer science", "systems design", "system design", "distributed systems", "operating system", "programming", "code", "coding", "software", "developer", "api", "database", "algorithm", "compiler", "devops", "backend", "frontend", "framework"], "ph:code-bold"],
   [["debug", "debugging", "testing", "bug"], "ph:bug-bold"],
   [["philosophy", "stoicism", "ethics", "epistemology", "metaphysics", "logic", "existentialism", "aristotle", "plato", "socrates", "kant"], "ph:bank-bold"],
   [["history", "ancient", "rome", "roman", "greece", "medieval", "empire", "war", "civilisation", "civilization", "archaeology"], "ph:scroll-bold"],
