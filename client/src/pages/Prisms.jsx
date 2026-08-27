@@ -14,8 +14,12 @@ const BANDS = [
   ["#06b6d4", "#67e8f9"],
 ];
 
-// Only the selected card and its immediate neighbours are ever on screen.
-const VISIBLE_REACH = 1;
+/* Two either side are mounted, though the CSS fades everything past one to
+   nothing. The buffer is the point: with only the visible three in the DOM, a
+   card entered on its final transform with no transition to run and simply
+   popped into place — worst going backwards, where the arriving card is the
+   one you are looking at. */
+const VISIBLE_REACH = 2;
 // How far you have to drag, as a fraction of one card step, before release
 // advances instead of springing back.
 const COMMIT = 0.22;
@@ -203,29 +207,34 @@ function Prisms({ session }) {
     };
   }, [index, count, clamp]);
 
-  /* Trackpad: accumulate horizontal delta and advance once per gesture rather
-     than once per event, which is what made the old version feel twitchy. */
+  /* Trackpad. Two things the first version got wrong: it ignored any swipe
+     whose vertical drift exceeded its horizontal travel — which is most real
+     two-finger swipes — and it hard-locked after one advance until the gesture
+     went idle, so a long swipe moved a single card. */
+  const STEP_DELTA = 42;
+
   useEffect(() => {
     const el = deckRef.current;
     if (!el) return;
     let acc = 0;
-    let locked = false;
     let idle;
 
     const onWheel = (e) => {
-      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+      // Horizontal intent, generously: a swipe that drifts is still a swipe.
+      if (Math.abs(e.deltaX) < 2 || Math.abs(e.deltaX) * 1.6 < Math.abs(e.deltaY)) {
+        return;
+      }
       e.preventDefault();
       clearTimeout(idle);
       idle = setTimeout(() => {
         acc = 0;
-        locked = false;
-      }, 140);
-      if (locked) return;
+      }, 160);
+
       acc += e.deltaX;
-      if (Math.abs(acc) > 55) {
+      // Subtract rather than reset, so a long swipe keeps advancing.
+      while (Math.abs(acc) >= STEP_DELTA) {
         go(acc > 0 ? 1 : -1);
-        acc = 0;
-        locked = true;
+        acc -= Math.sign(acc) * STEP_DELTA;
       }
     };
 
@@ -238,14 +247,6 @@ function Prisms({ session }) {
 
   return (
     <div className="prisms-stage">
-      <header className="pdeck-head">
-        <span className="prism-eyebrow">
-          <IconPrism className="prism-eyebrow-icon" />
-          Prisms
-        </span>
-        <h1 className="pdeck-h1">Paths through a subject</h1>
-      </header>
-
       {loading && (
         <div className="pdeck pdeck-skeleton" aria-hidden="true">
           <div className="pdeck-ghost" />
@@ -308,6 +309,11 @@ function Prisms({ session }) {
           </div>
 
           <div className="pdeck-foot">
+            <span className="prism-eyebrow pdeck-mark">
+              <IconPrism className="prism-eyebrow-icon" />
+              Prisms
+            </span>
+
             <div className="pdeck-dots">
               {all.map((bundle, i) => (
                 <button

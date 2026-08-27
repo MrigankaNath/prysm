@@ -3273,18 +3273,8 @@ nav {
   overflow: hidden;
 }
 
-.pdeck-head {
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.pdeck-h1 {
-  margin: 10px 0 0;
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 3vw, 2.15rem);
-  font-weight: 800;
-  letter-spacing: -0.035em;
-  color: #fafafa;
+.pdeck-mark {
+  margin-right: 4px;
 }
 
 /* --- the stage ---------------------------------------------------------- */
@@ -3321,16 +3311,16 @@ nav {
   transform:
     translateX(calc(var(--p) * var(--step)))
     scale(calc(1 - var(--dist) * 0.14));
-  opacity: calc(1 - var(--dist) * 0.55);
+  opacity: calc(1 - var(--dist) * 0.62);
   /* The fog: neighbours sit back out of focus rather than competing. */
   filter: blur(calc(var(--dist) * 3.5px)) saturate(calc(1 - var(--dist) * 0.45));
   z-index: calc(10 - var(--dist));
   will-change: transform, opacity, filter;
   backface-visibility: hidden;
   transition:
-    transform 0.72s cubic-bezier(0.32, 0.72, 0, 1),
-    opacity 0.72s cubic-bezier(0.32, 0.72, 0, 1),
-    filter 0.72s cubic-bezier(0.32, 0.72, 0, 1);
+    transform 0.58s cubic-bezier(0.25, 0.9, 0.2, 1),
+    opacity 0.42s ease-out,
+    filter 0.42s ease-out;
 }
 
 /* While a finger is down the card must track it exactly — any transition here
