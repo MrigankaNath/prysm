@@ -1753,14 +1753,13 @@ nav {
    came from, and what kind of thing it is.
    -------------------------------------------------------------------------- */
 
-/* align-items: start, not the default stretch. Only some categories carry a
-   thumbnail, so a stretched row gives every card the height of the tallest —
-   and a card whose interior is half empty reads as broken, where a shorter
-   card with space beneath it just reads as a staggered grid. */
+/* Cards are stretched to a common height per row (the grid default), and the
+   two variable-length blocks inside reserve a fixed number of line boxes — so
+   a one-line title and a three-line one produce the same card. Ragged heights
+   were the thing that made an otherwise calm grid look accidental. */
 .fcard-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
-  align-items: start;
   gap: 26px;
 }
 
@@ -1926,8 +1925,10 @@ nav {
 .fcard-link {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  /* Exactly two lines of space whether the title fills them or not. */
+  min-height: calc(2 * 1.32em);
   overflow: hidden;
   font-family: var(--font-display);
   font-size: 1.06rem;
@@ -1940,8 +1941,6 @@ nav {
 }
 
 .fcard.is-compact .fcard-link {
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
   font-size: 1rem;
 }
 
@@ -1950,11 +1949,14 @@ nav {
   color: var(--band-lit, #fafafa);
 }
 
+/* Rendered even when the item has no snippet, so the block below the title is
+   the same height on every card. */
 .fcard-snippet {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   line-clamp: 2;
+  min-height: calc(2 * 1.55em);
   overflow: hidden;
   margin: 0;
   color: var(--text-faint);

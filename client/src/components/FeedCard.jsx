@@ -72,9 +72,9 @@ function FeedCard({ item, topic, category, compact = false }) {
           {item.title}
         </a>
 
-        {!compact && item.snippet && (
-          <p className="fcard-snippet">{item.snippet}</p>
-        )}
+        {/* Rendered even when empty: the reserved two lines are what keep
+            every card in a row the same height. */}
+        {!compact && <p className="fcard-snippet">{item.snippet || ""}</p>}
 
         {(host || signal) && (
           <div className="fcard-foot">
