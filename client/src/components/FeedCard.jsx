@@ -1,6 +1,6 @@
 import { BookmarkButton } from "./ResultCard";
 import { recordVisit } from "../lib/library";
-import { hostOf, formatSignal } from "../lib/result";
+import { hostOf, formatSignal, venueChip } from "../lib/result";
 import { CATEGORY_ICONS, CATEGORY_LABELS } from "./categories";
 import { lighten, topicColor } from "../lib/topicIcon";
 import { IconPlay } from "./Icons";
@@ -28,6 +28,7 @@ function FeedCard({ item, topic, category, compact = false }) {
   const Icon = CATEGORY_ICONS[category] || CATEGORY_ICONS.articles;
   const host = hostOf(item.url);
   const signal = formatSignal(item);
+  const venue = venueChip(item);
   const showThumb = !compact && THUMBED.has(category) && item.thumbnail;
 
   return (
@@ -78,10 +79,15 @@ function FeedCard({ item, topic, category, compact = false }) {
             every card in a row the same height. */}
         {!compact && <p className="fcard-snippet">{item.snippet || ""}</p>}
 
-        {(host || signal) && (
+        {(host || signal || venue) && (
           <div className="fcard-foot">
             {host && <span>{host}</span>}
             {signal && <span className="fcard-signal">{signal}</span>}
+            {venue && (
+              <span className={`venue-chip${venue.reviewed ? " reviewed" : ""}`}>
+                {venue.reviewed ? "Peer reviewed" : "Preprint"}
+              </span>
+            )}
           </div>
         )}
       </div>

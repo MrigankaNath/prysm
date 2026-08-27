@@ -9,7 +9,7 @@ const { getCached, setCached } = require("./db/topicCache");
 const { fetchHackerNews } = require("./sources/hackerNews");
 const { fetchOverview } = require("./sources/overview");
 const { fetchStackExchange } = require("./sources/stackExchange");
-const { fetchArxiv } = require("./sources/arxiv");
+const { fetchPapers } = require("./sources/papers");
 const { fetchGithub } = require("./sources/github");
 const { fetchYoutube } = require("./sources/youtube");
 const { fetchTavily } = require("./sources/tavily");
@@ -510,7 +510,7 @@ const LIVE_CATEGORIES = {
   overview: { fetch: fetchOverview, empty: null, expected: 1 },
   discussions: { fetch: fetchHackerNews, empty: [], expected: 20, saturation: 1000 },
   qa: { fetch: fetchStackExchange, empty: [], expected: 5, saturation: 1000 },
-  papers: { fetch: fetchArxiv, empty: [], expected: 5 },
+  papers: { fetch: fetchPapers, empty: [], expected: 6 },
   code: { fetch: fetchGithub, empty: [], expected: 5, saturation: 50000 },
   videos: { fetch: fetchYoutube, empty: [], expected: 5 },
   articles: { fetch: fetchTavily, empty: [], expected: 9 },
@@ -681,8 +681,20 @@ function qaPool(topic, profile) {
   return "mixed";
 }
 
+/* Counts arXiv's contribution to the papers lane, not the lane itself.
+ *
+ * arXiv indexes physics, maths, CS and statistics and nothing else, which is
+ * exactly what makes its hit count a usable signal for "is this topic
+ * technical". OpenAlex, which now supplies the rest of the lane, covers every
+ * discipline — so counting the merged lane would find papers for stoicism and
+ * the French Revolution too, and classify everything as technical. The
+ * narrowness is the measurement. */
+function arxivCount(papers) {
+  return (papers || []).filter((item) => item.source === "arxiv").length;
+}
+
 function profileTopic(probe) {
-  const papers = probe.papers?.length || 0;
+  const papers = arxivCount(probe.papers);
   const books = probe.books?.length || 0;
 
   if (papers >= 3 && books <= 2) return "technical";

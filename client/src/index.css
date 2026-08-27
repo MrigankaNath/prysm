@@ -3255,6 +3255,32 @@ nav {
   color: #f9a8d4;
 }
 
+/* How a paper was published. Emerald for reviewed, amber for a preprint —
+   a caution, not a warning: most of the strongest work in ML is on arXiv
+   before it is anywhere else. A journal name can be long, so the chip
+   truncates rather than pushing the rest of the meta row onto a new line. */
+.venue-chip {
+  flex-shrink: 1;
+  min-width: 0;
+  max-width: 22ch;
+  overflow: hidden;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.13);
+  color: #fbbf24;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.venue-chip.reviewed {
+  background: rgba(16, 185, 129, 0.13);
+  color: #6ee7b7;
+}
+
 /* --- thumbnails: padded plate so the image never touches the type --- */
 
 .res-thumb-link {

@@ -6,7 +6,7 @@ import {
   subscribe,
 } from "../lib/library";
 import { IconBookmark, IconPlay } from "./Icons";
-import { hostOf, formatSignal } from "../lib/result";
+import { hostOf, formatSignal, venueChip } from "../lib/result";
 
 function useBookmarkState(url) {
   const [saved, setSaved] = useState(() => isBookmarked(url));
@@ -34,11 +34,17 @@ export function BookmarkButton({ item, topic, category }) {
 function Meta({ item }) {
   const host = hostOf(item.url);
   const signal = formatSignal(item);
+  const venue = venueChip(item);
 
   return (
     <div className="res-meta">
       {host && <span>{host}</span>}
       {signal && <span className="res-signal">{signal}</span>}
+      {venue && (
+        <span className={`venue-chip${venue.reviewed ? " reviewed" : ""}`}>
+          {venue.label}
+        </span>
+      )}
       {item.depth_level && (
         <span className={`res-depth depth-${item.depth_level}`}>
           {item.depth_level}

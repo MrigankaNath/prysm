@@ -155,6 +155,13 @@ where a shorter card with space beneath it reads as a staggered grid.
 Hover draws a band of spectral light across the row and drifts the text 5px —
 refraction, not a rule.
 
+**A paper says how it was published.** A chip in the meta row — emerald with
+the journal name when the work was peer reviewed, amber reading *Preprint* when
+it wasn't. Amber is a caution, not a warning: most of the strongest work in ML
+appears on arXiv before it appears anywhere else, so the point is to let the
+reader judge, not to bury it. A paper whose status the index doesn't record
+gets no chip rather than a guess.
+
 **Videos and podcasts are tiles**, because both ship a real image and a
 thumbnail reads better leading a card than sitting beside text. Thumbnails sit
 in a padded plate so the image never touches the type, and each category keeps
