@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import { clearLibrary, getStats } from "../lib/library";
+import { apiJson } from "../lib/api";
 
 const SECTIONS = [
   { id: "account", label: "Account" },
@@ -78,15 +79,64 @@ function AccountSection({ session }) {
   );
 }
 
+/* What the month has actually cost, in the only unit that costs anything: a
+   topic nobody had explored before. Re-opening a topic someone else has
+   already searched is free and uncounted, which is the part worth saying out
+   loud — otherwise the number looks far more restrictive than it is. */
+function UsageMeter() {
+  const [usage, setUsage] = useState(null);
+
+  useEffect(() => {
+    let live = true;
+    apiJson("/api/usage", null).then((data) => live && setUsage(data));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  if (!usage) return null;
+
+  const pct = Math.min(100, Math.round((usage.used / usage.limit) * 100));
+  const low = usage.remaining <= Math.max(2, usage.limit * 0.15);
+
+  return (
+    <>
+      <h2 className="set-heading">This month</h2>
+      <div className="set-email-row">
+        <span className="set-email">
+          {usage.used} of {usage.limit} new topics
+        </span>
+        <span className="set-note">{usage.remaining} left</span>
+      </div>
+      <div className="usage-meter">
+        <div className="usage-bar">
+          <div
+            className={`usage-fill${low ? " low" : ""}`}
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <p className="usage-note">
+          Only a topic <strong>nobody has explored yet</strong> counts — it has
+          to be searched from scratch. Re-opening anything already in Prysm is
+          free and unlimited, however often you do it. Resets on the 1st.
+        </p>
+      </div>
+      <div className="set-divider" />
+    </>
+  );
+}
+
 function PremiumSection() {
   return (
     <>
+      <UsageMeter />
+
       <h2 className="set-heading">Premium</h2>
       <div className="set-premium-card">
         <h3 className="set-premium-title">Unlock every Prism</h3>
         <p className="set-premium-copy">
-          Curated learning paths, unlimited live discovery, and depth calibration
-          tuned to what you already know.
+          Curated learning paths, 200 new topics a month instead of 20, and
+          depth calibration tuned to what you already know.
         </p>
         <button type="button" className="set-premium-cta">
           Explore Premium

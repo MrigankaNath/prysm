@@ -1763,6 +1763,98 @@ nav {
   color: #a78bfa;
 }
 
+/* --- quota notice --------------------------------------------------------
+   Amber, not red: nothing has gone wrong. The page below is full of results;
+   one part of it needed a search the account has run out of. */
+.quota-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(18px, 3vw, 34px);
+  margin-bottom: clamp(26px, 3.4vw, 40px);
+  padding: clamp(20px, 2.4vw, 28px) clamp(22px, 2.8vw, 30px);
+  border: 1.5px solid rgba(245, 158, 11, 0.32);
+  border-bottom-width: 4px;
+  border-bottom-color: rgba(245, 158, 11, 0.5);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      90% 160% at 4% 0%,
+      rgba(245, 158, 11, 0.1),
+      transparent 60%
+    ),
+    var(--surface);
+}
+
+.quota-notice-copy {
+  min-width: 0;
+}
+
+.quota-notice-title {
+  font-family: var(--font-display);
+  margin: 0 0 7px;
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: -0.024em;
+  color: #fbbf24;
+}
+
+.quota-notice-body {
+  margin: 0;
+  max-width: 62ch;
+  color: var(--text-faint);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.quota-notice-cta {
+  flex-shrink: 0;
+  background: #fbbf24;
+  box-shadow: 0 10px 26px -16px rgba(251, 191, 36, 0.95);
+}
+
+.quota-notice-cta:hover {
+  box-shadow: 0 18px 36px -16px rgba(251, 191, 36, 0.95);
+}
+
+@media (max-width: 700px) {
+  .quota-notice {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* --- usage meter ---------------------------------------------------------- */
+
+.usage-meter {
+  margin-top: 14px;
+}
+
+.usage-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #17171d;
+}
+
+.usage-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #60a5fa, #a78bfa);
+  transition: width 0.6s var(--ease-settle);
+}
+
+.usage-fill.low {
+  background: linear-gradient(90deg, #fbbf24, #f472b6);
+}
+
+.usage-note {
+  margin: 10px 0 0;
+  color: var(--text-faint);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
 /* --------------------------------------------------------------------------
    Result cards
 

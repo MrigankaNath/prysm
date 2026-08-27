@@ -6,6 +6,7 @@ const cors = require("cors");
 const pool = require("./db");
 const { requireAuth } = require("./db/supabase");
 const { getCached, setCached } = require("./db/topicCache");
+const { getQuota, consumeTopic } = require("./db/usage");
 const { fetchHackerNews } = require("./sources/hackerNews");
 const { fetchOverview } = require("./sources/overview");
 const { fetchStackExchange } = require("./sources/stackExchange");
@@ -56,12 +57,12 @@ const readLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-/* A cache miss on /api/explore/:topic/live costs 4 Tavily credits and 100
-   YouTube units. The free tiers are 1,000 credits/month and 10,000 units/day
-   — roughly 250 new topics a month and 100 searches a day. Unmetered, a
-   trivial script requesting unique topics drains both in minutes and takes
-   live discovery down for everyone. This is the tightest limit in the app on
-   purpose. */
+/* Burst protection only. A cache miss on /api/explore/:topic/live costs 3
+   Tavily credits and 100 YouTube units, so an unmetered script requesting
+   unique topics drains the month in minutes.
+   This is per-IP and per-window; the monthly per-account budget that decides
+   who can afford a *fresh* topic lives in db/usage.js, because the cost is in
+   cache misses and this limiter cannot tell one from a hit. */
 const liveLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   limit: 20,
@@ -95,6 +96,23 @@ app.get("/api/health", (req, res) => {
 
 app.get("/api/me", requireAuth, (req, res) => {
   res.json({ id: req.userId, email: req.userEmail });
+});
+
+app.get("/api/usage", requireAuth, async (req, res) => {
+  try {
+    const quota = await getQuota(req.userId);
+    res.json({
+      used: quota.used,
+      limit: quota.limit,
+      remaining: quota.remaining,
+      plan: quota.plan,
+      period: quota.period,
+      appExhausted: quota.appExhausted,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong reading usage" });
+  }
 });
 
 app.get("/api/interests", requireAuth, async (req, res) => {
@@ -614,6 +632,20 @@ async function loadLiveCategory(topic, category, fetchFn, emptyValue, ...args) {
 // are actually worth calling.
 const PROBE_CATEGORIES = ["discussions", "papers", "books", "podcasts"];
 
+/* The three that cost money: overview and articles share one round of Tavily
+   searches, videos is 100 YouTube units. Everything else is free and keyless,
+   which is why running out of quota withholds these and nothing else. */
+const METERED_CATEGORIES = ["overview", "articles", "videos"];
+
+/* Articles stands in for "has anyone paid for this topic yet". It shares a
+   fetch with the overview and expires on the same schedule, so if its row is
+   live the metered half of this topic is already bought and paid for — by
+   whoever explored it first, not necessarily this user. topic_cache is shared,
+   so most lookups after the first cost nothing and must not be charged. */
+async function isTopicWarm(topic) {
+  return Boolean(await getCached(topic, "articles"));
+}
+
 // A topic sitting in books with almost nothing on arXiv is a humanities topic:
 // GitHub will only return noise for it (a "stoicism" search yields 140-star
 // hobby repos), so we skip the call rather than fetch junk and rank it last.
@@ -723,6 +755,27 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
     );
 
   try {
+    /* A topic someone has already explored is served from a shared cache and
+       costs nothing, so it is never charged and never blocked. Only the first
+       person to ask for a topic spends anything. */
+    const warm = await isTopicWarm(topic);
+    const quota = await getQuota(req.userId);
+
+    let metered = true;
+    let withheld = null;
+
+    if (!warm) {
+      if (quota.appExhausted) {
+        metered = false;
+        withheld = "app";
+      } else if (quota.remaining <= 0) {
+        metered = false;
+        withheld = "plan";
+      } else {
+        await consumeTopic(req.userId);
+      }
+    }
+
     // Phase 1 — free, keyless sources. These double as the topic probe.
     const probeResults = await Promise.all(PROBE_CATEGORIES.map((name) => load(name)));
     const categories = Object.fromEntries(
@@ -731,11 +784,11 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
 
     const profile = profileTopic(categories);
 
-    // Phase 2 — metered sources, plus the ones this topic actually warrants.
+    /* Phase 2. Out of quota withholds only the three that cost money — the
+       free sources still run, so the page is a smaller version of itself
+       rather than an error. There is real content either way. */
     const second = [
-      ["overview"],
-      ["articles"],
-      ["videos"],
+      ...(metered ? METERED_CATEGORIES.map((name) => [name]) : []),
       ["qa", qaPool(topic, profile)],
       ...(demandsCode(topic) ? [["code"]] : []),
     ];
@@ -750,6 +803,14 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
       categories,
       order: rankCategories(categories),
       profile,
+      usage: {
+        used: quota.used + (warm || !metered ? 0 : 1),
+        limit: quota.limit,
+        plan: quota.plan,
+        // Free because someone already explored it, so nothing was charged.
+        cached: warm,
+        withheld,
+      },
     });
   } catch (err) {
     console.error(err);

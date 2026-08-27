@@ -9,7 +9,7 @@ import ResultCard from "../components/ResultCard";
 import Prose from "../components/Prose";
 import { recordTopic } from "../lib/library";
 import { apiFetch, apiJson } from "../lib/api";
-import { IconChevronDown, IconGrid } from "../components/Icons";
+import { IconChevronDown, IconGrid, IconChevronRight } from "../components/Icons";
 import TopicIcon from "../components/TopicIcon";
 import { lighten, topicColor } from "../lib/topicIcon";
 
@@ -133,6 +133,40 @@ function CategorySection({ category, items, topic, index }) {
   );
 }
 
+/* Shown when the paid half of a topic was withheld.
+ *
+ * The page is still full of results — every keyless source ran — so this
+ * explains what is missing and why rather than apologising. Two different
+ * situations, and only one of them is fixed by upgrading: a personal cap is
+ * the user's to lift, an app-wide one is nobody's. */
+function QuotaNotice({ usage }) {
+  if (!usage?.withheld) return null;
+  const appWide = usage.withheld === "app";
+
+  return (
+    <aside className="quota-notice">
+      <div className="quota-notice-copy">
+        <p className="quota-notice-title">
+          {appWide
+            ? "New topics are paused until next month"
+            : `You've explored ${usage.limit} new topics this month`}
+        </p>
+        <p className="quota-notice-body">
+          {appWide
+            ? "Prysm's shared search budget is spent. Everything already explored still opens in full, and new topics come back on the 1st."
+            : "The overview, curated articles and videos below need a fresh search. Everything else on this page is here, and any topic someone has already explored still opens in full."}
+        </p>
+      </div>
+      {!appWide && (
+        <Link to="/settings" className="btn-bounce quota-notice-cta">
+          See plans
+          <IconChevronRight />
+        </Link>
+      )}
+    </aside>
+  );
+}
+
 /* The answer, set as type rather than boxed in a card. It gets the top of the
    page to itself; the sources begin below the fold. */
 function Overview({ overview, topic }) {
@@ -159,6 +193,7 @@ function ExploreTopic() {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [active, setActive] = useState("all");
+  const [usage, setUsage] = useState(null);
 
   useEffect(() => {
     if (!topic) return;
@@ -180,6 +215,7 @@ function ExploreTopic() {
         setCurated(Array.isArray(curatedItems) ? curatedItems : []);
         setCategories(live.categories || null);
         setOrder(live.order?.length ? live.order : CATEGORY_ORDER);
+        setUsage(live.usage || null);
         // Remembered twice on purpose: locally so the topic list works
         // instantly and offline, and against the account so the feed follows
         // the person to another browser rather than living in this one.
@@ -275,6 +311,8 @@ function ExploreTopic() {
 
       {!loading && !failed && (
         <>
+          <QuotaNotice usage={usage} />
+
           <Overview overview={overview} topic={topic} />
 
           {curated.length > 0 && (
