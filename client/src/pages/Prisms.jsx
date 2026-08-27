@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { apiJson } from "../lib/api";
-import { IconPrism, IconChevronRight } from "../components/Icons";
+import { IconChevronRight } from "../components/Icons";
 import TopicIcon from "../components/TopicIcon";
 
 /* One band of the spectrum per Prism. */
@@ -80,6 +80,10 @@ function Prisms({ session }) {
      makes the updater impure, and React invokes those twice in StrictMode,
      which advanced the deck by two cards per swipe. */
   const dragRef = useRef(0);
+  /* The wheel handler advances the deck mid-gesture and needs to know where it
+     just landed; reading `index` from the closure would give it the value from
+     the render the listener was created in. */
+  const indexRef = useRef(0);
   const navigate = useNavigate();
   const deckRef = useRef(null);
 
@@ -103,6 +107,10 @@ function Prisms({ session }) {
       live = false;
     };
   }, [session]);
+
+  useEffect(() => {
+    indexRef.current = index;
+  }, [index]);
 
   const count = all.length;
   const clamp = useCallback(
@@ -207,17 +215,33 @@ function Prisms({ session }) {
     };
   }, [index, count, clamp]);
 
-  /* Trackpad. Two things the first version got wrong: it ignored any swipe
-     whose vertical drift exceeded its horizontal travel — which is most real
-     two-finger swipes — and it hard-locked after one advance until the gesture
-     went idle, so a long swipe moved a single card. */
-  const STEP_DELTA = 42;
+  /* Trackpad. A two-finger swipe drives the same continuous `drag` the finger
+     does, rather than stepping a whole card every time an accumulator crosses
+     a threshold — the stepping is what made it feel notched instead of
+     dragged, since the deck only ever moved in jumps and never followed the
+     fingers. Earlier fixes that still apply: don't require |deltaX| > |deltaY|
+     (most real swipes drift), and don't lock after one advance. */
+  const SWIPE_STEP = 150;
 
   useEffect(() => {
     const el = deckRef.current;
     if (!el) return;
     let acc = 0;
     let idle;
+    let live = false;
+
+    const release = () => {
+      if (!live) return;
+      live = false;
+      setDragging(false);
+      const d = dragRef.current;
+      dragRef.current = 0;
+      acc = 0;
+      setDrag(0);
+      if (Math.abs(d) > COMMIT) {
+        setIndex((i) => clamp(i + (d > 0 ? 1 : -1)));
+      }
+    };
 
     const onWheel = (e) => {
       // Horizontal intent, generously: a swipe that drifts is still a swipe.
@@ -225,25 +249,53 @@ function Prisms({ session }) {
         return;
       }
       e.preventDefault();
+      if (!live) {
+        live = true;
+        setDragging(true);
+      }
+      /* macOS keeps delivering momentum events after the fingers lift, so the
+         gesture ends when the events stop arriving, not when they get small. */
       clearTimeout(idle);
-      idle = setTimeout(() => {
-        acc = 0;
-      }, 160);
+      idle = setTimeout(release, 110);
 
       acc += e.deltaX;
-      // Subtract rather than reset, so a long swipe keeps advancing.
-      while (Math.abs(acc) >= STEP_DELTA) {
-        go(acc > 0 ? 1 : -1);
-        acc -= Math.sign(acc) * STEP_DELTA;
+      let d = acc / SWIPE_STEP;
+
+      /* A swipe past a full card commits it mid-gesture and carries the
+         remainder, so a long swipe crosses several without dropping out of 1:1
+         tracking. Index and drag move by one in opposite directions, so the
+         handover is invisible. */
+      while (Math.abs(d) >= 1) {
+        const dir = d > 0 ? 1 : -1;
+        const next = clamp(indexRef.current + dir);
+        if (next === indexRef.current) break;
+        indexRef.current = next;
+        setIndex(next);
+        acc -= dir * SWIPE_STEP;
+        d = acc / SWIPE_STEP;
       }
+
+      // Resist past the first and last card rather than sliding into nothing.
+      const ahead = indexRef.current + d;
+      if (ahead < 0 || ahead > count - 1) d *= 0.32;
+      d = Math.max(-1, Math.min(1, d));
+      dragRef.current = d;
+      setDrag(d);
     };
 
     el.addEventListener("wheel", onWheel, { passive: false });
+    // A gesture that never ends (tab switch, dropped event) would leave the
+    // deck stuck mid-drag with transitions disabled.
+    window.addEventListener("blur", release);
     return () => {
       el.removeEventListener("wheel", onWheel);
+      window.removeEventListener("blur", release);
       clearTimeout(idle);
+      // Re-binding mid-gesture would otherwise strand the deck with
+      // transitions disabled and a non-zero drag.
+      release();
     };
-  }, [go]);
+  }, [count, clamp]);
 
   return (
     <div className="prisms-stage">
@@ -309,11 +361,6 @@ function Prisms({ session }) {
           </div>
 
           <div className="pdeck-foot">
-            <span className="prism-eyebrow pdeck-mark">
-              <IconPrism className="prism-eyebrow-icon" />
-              Prisms
-            </span>
-
             <div className="pdeck-dots">
               {all.map((bundle, i) => (
                 <button

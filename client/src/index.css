@@ -3850,10 +3850,6 @@ nav {
   overflow: hidden;
 }
 
-.pdeck-mark {
-  margin-right: 4px;
-}
-
 /* --- the stage ---------------------------------------------------------- */
 
 .pdeck {
@@ -3954,19 +3950,49 @@ nav {
   mix-blend-mode: overlay;
 }
 
+/* z-index matters: the dot screen is .pdeck-visual::after, which counts as the
+   last child and so painted straight over the tile — the dots showed through
+   no matter how opaque the tile's own background was. Lifting the tile above
+   it also takes the dots out of the backdrop the blur samples, so the glass
+   picks up the gradient alone. */
 .pdeck-illo {
   position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 72px;
   height: 72px;
+  overflow: hidden;
   border-radius: 20px;
-  background: rgba(10, 10, 14, 0.32);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background:
+    linear-gradient(
+      152deg,
+      rgba(255, 255, 255, 0.26),
+      rgba(255, 255, 255, 0.07) 58%,
+      rgba(255, 255, 255, 0.12)
+    ),
+    rgba(9, 9, 14, 0.72);
+  backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.34),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.22),
+    0 12px 26px -14px rgba(0, 0, 0, 0.8);
   color: #fff;
   transition: transform 0.55s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* The same feTurbulence texture the auth card and the topic plates use, so the
+   grain reads as one system rather than a one-off on this tile. */
+.pdeck-illo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.38;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .pdeck-illo svg { width: 31px; height: 31px; }
@@ -4096,6 +4122,7 @@ nav {
 .pdeck-foot {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 22px;
   flex-shrink: 0;
 }
@@ -4470,6 +4497,10 @@ nav {
    itself goes light when it holds one, rather than the icon carrying a plate
    inside a plate. */
 .pdeck-illo:has(.is-brand) {
-  background: rgba(250, 250, 250, 0.92);
+  background: #fafafa;
   border-color: rgba(255, 255, 255, 0.6);
+}
+
+.pdeck-illo:has(.is-brand)::before {
+  display: none;
 }
