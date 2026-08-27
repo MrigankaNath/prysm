@@ -12,7 +12,7 @@
 
 const API = "https://api.iconify.design";
 const CACHE_KEY = "prysm.topicIcons.v1";
-const FALLBACK = "ph:compass-bold";
+const FALLBACK = "fluent-emoji-flat:compass";
 
 /* Tech topics where Iconify's search genuinely shines — it has logos for
    basically every language, framework and tool. Only these go to the network. */
@@ -22,34 +22,34 @@ const TECH_HINT =
 /* Concept map. First match wins, so the more specific entries lead.
    Keys are matched as whole words against the topic. */
 const CONCEPTS = [
-  [["quantum", "particle", "quark", "atom", "atomic", "physics", "relativity", "string theory", "boson", "fermion", "thermodynamics"], "ph:atom-bold"],
-  [["space", "astro", "astrophysics", "cosmology", "cosmos", "planet", "galaxy", "star", "orbit", "universe", "nasa"], "ph:planet-bold"],
-  [["rocket", "spaceflight", "propulsion", "aerospace"], "ph:rocket-launch-bold"],
-  [["chemistry", "chemical", "molecule", "molecular", "reaction", "compound", "polymer"], "ph:flask-bold"],
-  [["biology", "genetics", "gene", "dna", "genome", "evolution", "cell", "microbiology", "virus", "bacteria"], "ph:dna-bold"],
-  [["plant", "photosynthesis", "botany", "agriculture", "forest", "ecology"], "ph:plant-bold"],
-  [["brain", "neuroscience", "neural", "cognition", "cognitive", "psychology", "consciousness", "memory"], "ph:brain-bold"],
-  [["medicine", "medical", "health", "disease", "anatomy", "immune", "cancer", "nutrition"], "ph:heartbeat-bold"],
-  [["math", "mathematics", "theorem", "algebra", "calculus", "geometry", "topology", "proof", "equation", "bernoulli", "fourier", "linear"], "ph:math-operations-bold"],
-  [["statistics", "probability", "regression", "bayesian", "stochastic"], "ph:chart-line-up-bold"],
-  [["machine learning", "deep learning", "neural network", "ai", "artificial intelligence", "transformer", "llm", "reinforcement"], "ph:cpu-bold"],
-  [["computer science", "systems design", "system design", "distributed systems", "operating system", "programming", "code", "coding", "software", "developer", "api", "database", "algorithm", "compiler", "devops", "backend", "frontend", "framework"], "ph:code-bold"],
-  [["debug", "debugging", "testing", "bug"], "ph:bug-bold"],
-  [["philosophy", "stoicism", "ethics", "epistemology", "metaphysics", "logic", "existentialism", "aristotle", "plato", "socrates", "kant"], "ph:bank-bold"],
-  [["history", "ancient", "rome", "roman", "greece", "medieval", "empire", "war", "civilisation", "civilization", "archaeology"], "ph:scroll-bold"],
-  [["economics", "economy", "finance", "market", "monetary", "trade", "investment", "inflation", "money", "game theory", "supply chain"], "ph:currency-circle-dollar-bold"],
-  [["law", "legal", "constitution", "politics", "government", "democracy", "geopolitics"], "ph:gavel-bold"],
-  [["music", "audio", "sound", "acoustic", "instrument", "composition", "jazz", "classical music"], "ph:music-notes-bold"],
-  [["art", "painting", "design", "architecture", "drawing", "sculpture", "typography", "colour", "color"], "ph:palette-bold"],
-  [["film", "cinema", "movie", "video", "photography", "animation"], "ph:film-slate-bold"],
-  [["climate", "weather", "environment", "earth", "geography", "sustainability", "carbon"], "ph:globe-hemisphere-west-bold"],
-  [["ocean", "marine", "water", "fluid", "wave", "hydro"], "ph:waves-bold"],
-  [["geology", "rock", "volcano", "mountain", "mineral", "earthquake"], "ph:mountains-bold"],
-  [["energy", "electricity", "electric", "power", "battery", "nuclear", "solar"], "ph:lightning-bold"],
-  [["engineering", "mechanical", "machine", "robotics", "manufacturing", "systems"], "ph:gear-bold"],
-  [["language", "writing", "literature", "poetry", "linguistics", "grammar", "rhetoric", "book"], "ph:book-open-text-bold"],
-  [["urban", "city", "architecture", "planning", "infrastructure", "housing"], "ph:buildings-bold"],
-  [["experiment", "research", "method", "science"], "ph:test-tube-bold"],
+  [["quantum", "particle", "quark", "atom", "atomic", "physics", "relativity", "string theory", "boson", "fermion", "thermodynamics"], "fluent-emoji-flat:atom-symbol"],
+  [["space", "astro", "astrophysics", "cosmology", "cosmos", "planet", "galaxy", "star", "orbit", "universe", "nasa"], "fluent-emoji-flat:ringed-planet"],
+  [["rocket", "spaceflight", "propulsion", "aerospace"], "fluent-emoji-flat:rocket"],
+  [["chemistry", "chemical", "molecule", "molecular", "reaction", "compound", "polymer"], "fluent-emoji-flat:test-tube"],
+  [["biology", "genetics", "gene", "dna", "genome", "evolution", "cell", "microbiology", "virus", "bacteria"], "fluent-emoji-flat:dna"],
+  [["plant", "photosynthesis", "botany", "agriculture", "forest", "ecology"], "fluent-emoji-flat:seedling"],
+  [["brain", "neuroscience", "neural", "cognition", "cognitive", "psychology", "consciousness", "memory"], "fluent-emoji-flat:brain"],
+  [["medicine", "medical", "health", "disease", "anatomy", "immune", "cancer", "nutrition"], "fluent-emoji-flat:stethoscope"],
+  [["math", "mathematics", "theorem", "algebra", "calculus", "geometry", "topology", "proof", "equation", "bernoulli", "fourier", "linear"], "fluent-emoji-flat:abacus"],
+  [["statistics", "probability", "regression", "bayesian", "stochastic"], "fluent-emoji-flat:chart-increasing"],
+  [["machine learning", "deep learning", "neural network", "ai", "artificial intelligence", "transformer", "llm", "reinforcement"], "fluent-emoji-flat:robot"],
+  [["computer science", "systems design", "system design", "distributed systems", "operating system", "programming", "code", "coding", "software", "developer", "api", "database", "algorithm", "compiler", "devops", "backend", "frontend", "framework"], "fluent-emoji-flat:laptop"],
+  [["debug", "debugging", "testing", "bug"], "fluent-emoji-flat:bug"],
+  [["philosophy", "stoicism", "ethics", "epistemology", "metaphysics", "logic", "existentialism", "aristotle", "plato", "socrates", "kant"], "fluent-emoji-flat:classical-building"],
+  [["history", "ancient", "rome", "roman", "greece", "medieval", "empire", "war", "civilisation", "civilization", "archaeology"], "fluent-emoji-flat:scroll"],
+  [["economics", "economy", "finance", "market", "monetary", "trade", "investment", "inflation", "money", "game theory", "supply chain"], "fluent-emoji-flat:money-bag"],
+  [["law", "legal", "constitution", "politics", "government", "democracy", "geopolitics"], "fluent-emoji-flat:balance-scale"],
+  [["music", "audio", "sound", "acoustic", "instrument", "composition", "jazz", "classical music"], "fluent-emoji-flat:musical-notes"],
+  [["art", "painting", "design", "architecture", "drawing", "sculpture", "typography", "colour", "color"], "fluent-emoji-flat:artist-palette"],
+  [["film", "cinema", "movie", "video", "photography", "animation"], "fluent-emoji-flat:clapper-board"],
+  [["climate", "weather", "environment", "earth", "geography", "sustainability", "carbon"], "fluent-emoji-flat:globe-showing-europe-africa"],
+  [["ocean", "marine", "water", "fluid", "wave", "hydro"], "fluent-emoji-flat:water-wave"],
+  [["geology", "rock", "volcano", "mountain", "mineral", "earthquake"], "fluent-emoji-flat:mountain"],
+  [["energy", "electricity", "electric", "power", "battery", "nuclear", "solar"], "fluent-emoji-flat:high-voltage"],
+  [["engineering", "mechanical", "machine", "robotics", "manufacturing", "systems"], "fluent-emoji-flat:gear"],
+  [["language", "writing", "literature", "poetry", "linguistics", "grammar", "rhetoric", "book"], "fluent-emoji-flat:books"],
+  [["urban", "city", "architecture", "planning", "infrastructure", "housing"], "fluent-emoji-flat:cityscape"],
+  [["experiment", "research", "method", "science"], "fluent-emoji-flat:microscope"],
 ];
 
 function readCache() {
@@ -85,7 +85,7 @@ export function conceptIcon(topic) {
   }
   // A named tool with no concept match is still code, not a compass. This is
   // also the offline answer for tech topics whose logo lookup fails.
-  return TECH_HINT.test(text) ? "ph:code-bold" : FALLBACK;
+  return TECH_HINT.test(text) ? "fluent-emoji-flat:laptop" : FALLBACK;
 }
 
 /* One band of the prism per topic, picked by hash so a given topic always
@@ -112,13 +112,18 @@ export function topicColor(topic) {
 
 /* Icon sets that draw in their own colours. Tinting these would flatten a
    multicolour logo to a single hue, so they are left alone. */
-const MULTICOLOUR = /^(logos|skill-icons|vscode-icons|flat-color-icons|devicon):/;
+const MULTICOLOUR =
+  /^(logos|skill-icons|vscode-icons|flat-color-icons|devicon|fluent-emoji-flat|noto|openmoji|twemoji):/;
 
-/** True for icons that draw in their own colours — they need a light plate,
- *  because plenty of brand marks (Express, Next.js, Flask) are solid black and
- *  disappear against a dark background. */
+/* Two different questions, and conflating them was a bug: "does this icon
+   carry its own colours" is not the same as "does it need a light plate".
+   The concept icons are vivid and read fine on dark; brand marks are often
+   solid black (Express, Next.js, Flask) and disappear without one. */
+const NEEDS_LIGHT_PLATE = /^(logos|simple-icons|skill-icons|devicon):/;
+
+/** True only for brand marks that need something light to sit on. */
 export function isBrandIcon(icon) {
-  return MULTICOLOUR.test(String(icon || ""));
+  return NEEDS_LIGHT_PLATE.test(String(icon || ""));
 }
 
 /**

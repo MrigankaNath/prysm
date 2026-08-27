@@ -3770,21 +3770,21 @@ nav {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
-  /* The plate picks up a wash of the icon's own tint, so the colour reads as
-     deliberate rather than as a stray coloured glyph on a grey chip. */
-  border: 1px solid color-mix(in srgb, var(--tint, #a1a1aa) 22%, transparent);
+  width: 32px;
+  height: 32px;
+  /* Neutral on purpose: the icons carry their own colour now, and a tinted
+     plate behind a vivid multicolour glyph just muddies both. */
+  border: 1px solid #1e1e25;
   border-radius: 9px;
-  background: color-mix(in srgb, var(--tint, #a1a1aa) 10%, #08080b);
+  background: #0d0d12;
   transition:
     border-color 0.2s ease,
     transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .topic-icon img {
-  width: 16px;
-  height: 16px;
+  width: 19px;
+  height: 19px;
   display: block;
 }
 
@@ -3810,7 +3810,7 @@ nav {
 
 .feed-topic-card:hover .topic-icon,
 .wl-topic-tile:hover .topic-icon {
-  border-color: color-mix(in srgb, var(--tint, #a1a1aa) 55%, transparent);
+  border-color: #3a3a45;
   transform: scale(1.06);
 }
 
@@ -3831,8 +3831,8 @@ nav {
 }
 
 .spec-topic .topic-icon img {
-  width: 14px;
-  height: 14px;
+  width: 17px;
+  height: 17px;
 }
 
 .spec-topic:hover .topic-icon {
