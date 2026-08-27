@@ -1773,6 +1773,11 @@ nav {
   flex-direction: column;
   overflow: hidden;
   border: 1.5px solid var(--line-bold);
+  /* A heavier, lighter bottom edge: the card reads as a slab with thickness
+     rather than a flat outline. Darkening it instead would be invisible —
+     the page behind is already black. */
+  border-bottom-width: 4px;
+  border-bottom-color: #3d3d49;
   border-radius: var(--radius-xl);
   background: var(--surface);
   transition:
@@ -1803,6 +1808,7 @@ nav {
   transform: translateY(-4px);
   background: var(--surface-raised);
   border-color: color-mix(in srgb, var(--band, #a1a1aa) 44%, var(--line-bold));
+  border-bottom-color: color-mix(in srgb, var(--band, #a1a1aa) 60%, #3d3d49);
   box-shadow:
     0 0 26px color-mix(in srgb, var(--band, #000) 22%, transparent),
     0 0 64px color-mix(in srgb, var(--band, #000) 12%, transparent);
@@ -1964,18 +1970,28 @@ nav {
   line-height: 1.55;
 }
 
+/* A long host like blogs.scientificamerican.com would otherwise push the
+   signal onto a second line and break the card's even foot. */
 .fcard-foot {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 10px;
   margin-top: auto;
   padding-top: 13px;
   border-top: 1px solid var(--line);
   color: #52525b;
   font-size: 0.74rem;
+  white-space: nowrap;
+}
+
+.fcard-foot > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .fcard-signal {
+  flex-shrink: 0;
   color: var(--text-dim);
   font-weight: 600;
 }

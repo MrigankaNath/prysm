@@ -1,4 +1,5 @@
 import { BookmarkButton } from "./ResultCard";
+import { recordVisit } from "../lib/library";
 import { hostOf, formatSignal } from "../lib/result";
 import { CATEGORY_ICONS, CATEGORY_LABELS } from "./categories";
 import { lighten, topicColor } from "../lib/topicIcon";
@@ -68,6 +69,7 @@ function FeedCard({ item, topic, category, compact = false }) {
           href={item.url}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => recordVisit(item, { topic, category })}
         >
           {item.title}
         </a>
