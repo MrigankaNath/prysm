@@ -237,9 +237,17 @@ app.get("/api/feed/discover", requireAuth, async (req, res) => {
     if (topics.rows.length === 0) return res.json({ topics: [], items: [] });
 
     const names = topics.rows.map((r) => r.topic);
+    /* Deliberately ignores expires_at, unlike live search.
+     *
+     * Freshness matters when you ask a question; it does not matter much for a
+     * list of things to read later — a fortnight-old set of articles on string
+     * theory is still worth reading. Honouring the TTL here meant a topic
+     * silently vanished from the feed the moment its cache lapsed, which is
+     * how the feed ended up almost empty. The outer bound stops genuinely
+     * ancient rows lingering forever. */
     const cached = await pool.query(
       `SELECT topic, source, results FROM topic_cache
-        WHERE topic = ANY($1) AND expires_at > now()`,
+        WHERE topic = ANY($1) AND fetched_at > now() - interval '90 days'`,
       [names],
     );
 

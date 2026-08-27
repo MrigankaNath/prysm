@@ -88,10 +88,40 @@ export function conceptIcon(topic) {
   return TECH_HINT.test(text) ? "ph:code-bold" : FALLBACK;
 }
 
-/** Full URL for an icon, tinted server-side since an <img> can't inherit
- *  currentColor from the page. */
-export function iconUrl(icon, color = "#a1a1aa") {
-  return `${API}/${icon.replace(":", "/")}.svg?color=${encodeURIComponent(color)}`;
+/* One band of the prism per topic, picked by hash so a given topic always
+   gets the same colour. Stable beats random: the same subject looks the same
+   everywhere it appears. */
+const BANDS = [
+  "#60a5fa",
+  "#a78bfa",
+  "#f472b6",
+  "#fbbf24",
+  "#34d399",
+  "#22d3ee",
+];
+
+/** Deterministic colour for a topic. */
+export function topicColor(topic) {
+  const key = String(topic || "").toLowerCase();
+  let hash = 0;
+  for (let i = 0; i < key.length; i += 1) {
+    hash = (hash * 31 + key.charCodeAt(i)) % 997;
+  }
+  return BANDS[hash % BANDS.length];
+}
+
+/* Icon sets that draw in their own colours. Tinting these would flatten a
+   multicolour logo to a single hue, so they are left alone. */
+const MULTICOLOUR = /^(logos|skill-icons|vscode-icons|flat-color-icons|devicon):/;
+
+/**
+ * Full URL for an icon. An <img> can't inherit currentColor, so monotone icons
+ * are tinted server-side; multicolour sets are served untouched.
+ */
+export function iconUrl(icon, color) {
+  const base = `${API}/${icon.replace(":", "/")}.svg`;
+  if (!color || MULTICOLOUR.test(icon)) return base;
+  return `${base}?color=${encodeURIComponent(color)}`;
 }
 
 /**

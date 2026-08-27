@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { conceptIcon, iconUrl, resolveTopicIcon } from "../lib/topicIcon";
+import { conceptIcon, iconUrl, resolveTopicIcon, topicColor } from "../lib/topicIcon";
 
 /**
  * An icon for a topic, served by Iconify.
@@ -8,8 +8,10 @@ import { conceptIcon, iconUrl, resolveTopicIcon } from "../lib/topicIcon";
  * finds something better, so there is never an empty slot waiting on the
  * network — and if Iconify is unreachable the icon is simply the concept one.
  */
-function TopicIcon({ topic, color = "#a1a1aa", className = "" }) {
+function TopicIcon({ topic, color, className = "" }) {
   const [icon, setIcon] = useState(() => conceptIcon(topic));
+  // Each topic keeps its own band of the spectrum unless a caller overrides it.
+  const tint = color || topicColor(topic);
 
   useEffect(() => {
     let live = true;
@@ -23,8 +25,12 @@ function TopicIcon({ topic, color = "#a1a1aa", className = "" }) {
   }, [topic]);
 
   return (
-    <span className={`topic-icon ${className}`.trim()} aria-hidden="true">
-      <img src={iconUrl(icon, color)} alt="" loading="lazy" decoding="async" />
+    <span
+      className={`topic-icon ${className}`.trim()}
+      style={{ "--tint": tint }}
+      aria-hidden="true"
+    >
+      <img src={iconUrl(icon, tint)} alt="" loading="lazy" decoding="async" />
     </span>
   );
 }
