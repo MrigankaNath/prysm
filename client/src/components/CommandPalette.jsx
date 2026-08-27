@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiJson } from "../lib/api";
+import { getBookmarks, getHistory, getTopics } from "../lib/library";
+import { SPECTRUM_TOPICS } from "../lib/clusters";
 import {
   IconSearch,
   IconClock,
@@ -12,17 +14,76 @@ import {
 
 const EMPTY_RESULTS = { topics: [], bundles: [], content: [] };
 
-/* Slash commands. Two kinds, because scoping a 10-item Prism library is thin
-   on its own — the navigation ones are what make this a command palette
-   rather than a search box.
-   `scope` narrows what a query searches; `to` jumps straight to a page. */
+/* Slash commands. Every one of them scopes a search rather than jumping
+   somewhere: picking `/spectrum` used to close the palette and navigate, which
+   threw away the query you were half way through typing and left you to start
+   again in a different search box. Now the command becomes a chip in the field
+   and what you type next is searched inside it.
+   `to` is still here, but as a row you can choose once the scope is on — going
+   to the page is an option, not the only outcome. */
 const COMMANDS = [
   { key: "explore", hint: "topic", label: "Explore a topic live", scope: "explore" },
-  { key: "prism", hint: "query", label: "Search Prisms only", scope: "prism", to: "/prisms" },
-  { key: "spectrum", label: "Browse the Spectrum", to: "/spectrum" },
-  { key: "saved", label: "Your saved items", to: "/wavelength" },
-  { key: "feed", label: "Your feed", to: "/" },
+  { key: "prism", hint: "query", label: "Search Prisms", scope: "prism", to: "/prisms", go: "Open Prisms" },
+  { key: "spectrum", hint: "topic", label: "Search the Spectrum", scope: "spectrum", to: "/spectrum", go: "Browse the Spectrum" },
+  { key: "saved", hint: "title", label: "Search your saved items", scope: "saved", to: "/wavelength", go: "Open your saved items" },
+  { key: "feed", hint: "topic", label: "Search your feed", scope: "feed", to: "/", go: "Open your feed" },
 ];
+
+/* Scopes answered from what's already on the device — no request, so results
+   appear as fast as you type. `prism` isn't here because the Prism library
+   lives on the server. */
+const LOCAL_SCOPES = new Set(["spectrum", "saved", "feed"]);
+
+function matches(haystack, term) {
+  return String(haystack || "").toLowerCase().includes(term);
+}
+
+/** The rows a local scope shows for `term`, normalised to one shape. */
+function localResults(scope, term) {
+  const q = term.trim().toLowerCase();
+
+  if (scope === "spectrum") {
+    const all = SPECTRUM_TOPICS;
+    const hits = q
+      ? all.filter((t) => matches(t.topic, q) || matches(t.cluster, q))
+      : all;
+    return hits.slice(0, 8).map((t) => ({
+      id: t.topic,
+      main: t.topic,
+      meta: t.cluster,
+      topic: t.topic,
+    }));
+  }
+
+  if (scope === "saved") {
+    const hits = getBookmarks().filter(
+      (b) => !q || matches(b.title, q) || matches(b.topic, q),
+    );
+    return hits.slice(0, 8).map((b) => ({
+      id: b.url,
+      main: b.title,
+      meta: b.topic,
+      url: b.url,
+    }));
+  }
+
+  // feed — your own history and the topics you've explored.
+  const seen = new Set();
+  const rows = [];
+  for (const item of getHistory()) {
+    if (q && !matches(item.title, q) && !matches(item.topic, q)) continue;
+    if (seen.has(item.url)) continue;
+    seen.add(item.url);
+    rows.push({ id: item.url, main: item.title, meta: item.topic, url: item.url });
+  }
+  for (const { topic } of getTopics()) {
+    if (q && !matches(topic, q)) continue;
+    if (seen.has(topic)) continue;
+    seen.add(topic);
+    rows.push({ id: topic, main: topic, meta: "topic", topic });
+  }
+  return rows.slice(0, 8);
+}
 
 /** Split "/prism react hooks" into its command and the rest of the query. */
 function parseCommand(raw) {
@@ -33,6 +94,12 @@ function parseCommand(raw) {
   const command = COMMANDS.find((c) => c.key === word.toLowerCase());
   // Still typing the command name — show the menu filtered to what matches.
   if (!command) return { command: null, rest: "", partial: word.toLowerCase() };
+  /* A complete name with nothing after it is still uncommitted: "/saved" could
+     be on its way to nothing else, but the user hasn't pressed anything yet.
+     Keeping the menu up gives Enter and Tab something to accept — without
+     this, typing the whole command and hitting Enter searched the web for the
+     literal string "/saved". */
+  if (!rest) return { command, rest: "", partial: word.toLowerCase() };
   return { command, rest, partial: null };
 }
 const RECENTS_KEY = "prysm.recentSearches";
@@ -68,6 +135,42 @@ function pushRecent(topic) {
   } catch {
     /* storage unavailable — recents are a convenience, not a requirement */
   }
+}
+
+const SCOPE_LABELS = {
+  spectrum: "Spectrum topics",
+  saved: "Saved",
+  feed: "Your feed",
+};
+
+const SCOPE_EMPTY = {
+  spectrum: "No topics here yet.",
+  saved: "You haven't saved anything yet.",
+  feed: "Nothing in your feed yet — explore a topic to start it.",
+};
+
+/** One list shape for every scope answered from this device. */
+function LocalRows({ label, rows, onPick, emptyText }) {
+  return (
+    <div className="command-group">
+      <div className="command-group-label">{label}</div>
+      {rows.length === 0 ? (
+        <p className="command-empty">{emptyText}</p>
+      ) : (
+        rows.map((row) => (
+          <button
+            key={row.id}
+            type="button"
+            className="command-item"
+            onClick={() => onPick(row)}
+          >
+            <span className="command-item-main">{row.main}</span>
+            {row.meta && <span className="command-item-meta">{row.meta}</span>}
+          </button>
+        ))
+      )}
+    </div>
+  );
 }
 
 function CommandPalette({ open, setOpen }) {
@@ -119,7 +222,8 @@ function CommandPalette({ open, setOpen }) {
   useEffect(() => {
     const term = query.trim();
 
-    if (!term) {
+    // A local scope reads from this device, so the request would be discarded.
+    if (!term || LOCAL_SCOPES.has(scope?.scope)) {
       setResults(EMPTY_RESULTS);
       setSearching(false);
       return;
@@ -133,7 +237,7 @@ function CommandPalette({ open, setOpen }) {
     }, 200);
 
     return () => clearTimeout(debounce);
-  }, [query]);
+  }, [query, scope]);
 
   if (!open) return null;
 
@@ -161,16 +265,26 @@ function CommandPalette({ open, setOpen }) {
     ? COMMANDS.filter((c) => c.key.startsWith(partial))
     : [];
 
+  /* Always promotes to a chip and hands the empty field back. Navigating on
+     selection is what the old version did, and it discarded whatever you were
+     typing at the moment you told it what you were looking for. */
   const runCommand = (c) => {
-    if (c.to && !c.scope) {
-      setOpen(false);
-      navigate(c.to);
-      return;
-    }
-    // Promote to a chip and hand the empty field back for the actual query.
     setScope(c);
     setQuery("");
     inputRef.current?.focus();
+  };
+
+  const goToPage = (to) => {
+    setOpen(false);
+    navigate(to);
+  };
+
+  const isLocal = LOCAL_SCOPES.has(command?.scope);
+  const localRows = isLocal ? localResults(command.scope, query) : [];
+
+  const openRow = (row) => {
+    if (row.url) return openContent(row.url);
+    if (row.topic) return goToTopic(row.topic);
   };
   const hasResults =
     results.topics.length > 0 ||
@@ -200,22 +314,40 @@ function CommandPalette({ open, setOpen }) {
             value={query}
             onChange={(e) => {
               const value = e.target.value;
-              // "/prism " (name + space) promotes straight to a chip, so the
-              // command never lingers as text next to its own chip.
-              const done = !scope && /^\/(\w+)\s$/.exec(value);
+              /* A name followed by a space promotes straight to a chip, so the
+                 command never lingers as text next to its own chip. The tail is
+                 kept rather than dropped, so pasting "/prism react hooks" whole
+                 scopes and searches instead of being read as a topic. */
+              const done = !scope && /^\/(\w+)\s(.*)$/s.exec(value);
               const matched =
                 done && COMMANDS.find((c) => c.key === done[1].toLowerCase());
               if (matched) {
-                runCommand(matched);
+                setScope(matched);
+                setQuery(done[2]);
                 return;
               }
               setQuery(value);
             }}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                if (showCommandMenu && matchingCommands[0]) {
+              /* Tab completes the command the same way Enter does. It is what
+                 people reach for to accept a suggestion, and leaving it to move
+                 focus out of the field mid-search is its own small betrayal. */
+              if ((e.key === "Enter" || e.key === "Tab") && showCommandMenu) {
+                if (matchingCommands[0]) {
                   e.preventDefault();
                   runCommand(matchingCommands[0]);
+                  return;
+                }
+              }
+
+              if (e.key === "Enter" && !showCommandMenu) {
+                // Inside a local scope, Enter takes the first match rather
+                // than abandoning the scope to run a live search.
+                if (isLocal) {
+                  if (localRows[0]) {
+                    e.preventDefault();
+                    openRow(localRows[0]);
+                  }
                 } else if (trimmedQuery && command?.scope !== "prism") {
                   e.preventDefault();
                   goToTopic(trimmedQuery.toLowerCase());
@@ -326,36 +458,55 @@ function CommandPalette({ open, setOpen }) {
           )}
 
           {!showCommandMenu && command && !trimmedQuery && (
-            <div className="command-group">
-              {/* A navigation command is an action, so it gets a row you can
-                  click. Telling someone to press a key and giving them nothing
-                  to aim at is the usual way this pattern goes wrong. */}
-              {command.to && !command.scope ? (
-                <button
-                  type="button"
-                  className="command-item command-item-primary"
-                  onClick={() => {
-                    setOpen(false);
-                    navigate(command.to);
-                  }}
-                >
-                  <span className={`command-scope scope-${command.key}`}>
-                    /{command.key}
-                  </span>
-                  <span className="command-item-main">{command.label}</span>
-                  <span className="command-item-meta">↵</span>
-                </button>
-              ) : (
-                <p className="command-empty">
-                  {command.scope === "prism"
-                    ? "Type to search Prisms by title or topic."
-                    : "Type a topic to pull live results from across the web."}
-                </p>
+            <>
+              {/* Going to the page is still available — it just isn't automatic
+                  any more. Telling someone to press a key and giving them
+                  nothing to aim at is the usual way this pattern goes wrong. */}
+              {command.to && (
+                <div className="command-group">
+                  <button
+                    type="button"
+                    className="command-item"
+                    onClick={() => goToPage(command.to)}
+                  >
+                    <span className={`command-scope scope-${command.key}`}>
+                      /{command.key}
+                    </span>
+                    <span className="command-item-main">{command.go}</span>
+                    <IconChevronRight className="command-item-chevron" />
+                  </button>
+                </div>
               )}
-            </div>
+
+              {isLocal ? (
+                <LocalRows
+                  label={SCOPE_LABELS[command.scope]}
+                  rows={localRows}
+                  onPick={openRow}
+                  emptyText={SCOPE_EMPTY[command.scope]}
+                />
+              ) : (
+                <div className="command-group">
+                  <p className="command-empty">
+                    {command.scope === "prism"
+                      ? "Type to search Prisms by title or topic."
+                      : "Type a topic to pull live results from across the web."}
+                  </p>
+                </div>
+              )}
+            </>
           )}
 
-          {!showCommandMenu && trimmedQuery && (
+          {!showCommandMenu && trimmedQuery && isLocal && (
+            <LocalRows
+              label={SCOPE_LABELS[command.scope]}
+              rows={localRows}
+              onPick={openRow}
+              emptyText={`Nothing in ${SCOPE_LABELS[command.scope].toLowerCase()} matches that.`}
+            />
+          )}
+
+          {!showCommandMenu && trimmedQuery && !isLocal && (
             <>
               {command?.scope !== "prism" && (
               <div className="command-group">
