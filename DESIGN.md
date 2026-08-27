@@ -27,9 +27,11 @@ The same subject is the same colour everywhere it appears — stable beats
 varied, because the colour becomes a way to recognise something.
 
 **The animated ring** — a `conic-gradient` border cycling `--rainbow-angle` —
-means *"this is the active thing"*. Nav's current page, the selected category
-chip, the auth button once the form is submittable. It should stay rare; it
-stops meaning anything if everything glows.
+means *"this is the active thing"*. Nav's current page, the auth button once
+the form is submittable, and a feed bookmark **once it is saved**. It should
+stay rare; it stops meaning anything if everything glows — which is why the
+bookmark carries it in its saved state rather than at rest. A ring on every
+bookmark would spend the signal on a control instead of a state.
 
 ## Surfaces
 
@@ -47,6 +49,12 @@ stops meaning anything if everything glows.
 Radii: `--radius-md 14px` for plates and inputs, `--radius-lg 20px` for cards,
 `--radius-xl 26px` for the feed's bold-stroked cards and panels, `999px` for
 pills, `24px` for the Prism deck cards.
+
+**Cards have a bottom edge.** Sides and top are 1.5px; the bottom is **4px in
+a lighter tone** (`#3d3d49`), so the card reads as a slab with thickness rather
+than a flat outline. Darkening the bottom instead — the usual way to fake
+depth — is invisible here, because the page behind it is already black. On
+hover the bottom edge takes the item's band.
 
 **Two stroke weights, and they are not interchangeable.** `--line` is a
 hairline — correct around a 32px icon plate, invisible around a 300px card,
@@ -124,6 +132,12 @@ title *is* the link; on hover it takes colour, an underline, and weight via
 reflows the line under the cursor. Explore shows ~27 results across nine lanes;
 a border on each is noise, and the row's own hover is the affordance.
 
+**The whole card is the link.** A stretched `::after` on the title anchor
+covers the card, with the bookmark lifted back above it on `z-index: 2`. The
+overlay belongs to the anchor, so this stays one link and one button — no
+interactive element nested inside another, which is what a card-shaped `<a>`
+wrapping a `<button>` would be.
+
 **Feed: cards.** Eight items, mixed categories, drawn from up to eight
 different searches. A row list gives them identical weight and shows neither
 *which topic this came from* nor *what kind of thing it is* — the two facts
@@ -193,6 +207,20 @@ doubles as the topic's colour key. Dim at rest, full opacity on hover.
 Sections are **not** boxed. An earlier pass wrapped the result lists in a
 bold-stroked panel; a box around boxes is redundant, and the panel clipped the
 first row's hover glow square against its own rounded corner.
+
+## Explore
+
+**A banner, not a bare title.** The topic's icon, its name, and what was found
+sit in one bold-stroked band tinted with the topic's own colour, so the page
+states its subject before any result does.
+
+**Categories are lanes, not chips.** A tile you can see, with its name
+underneath and its count in the corner, connected left to right by a hairline
+so the row reads as one instrument rather than nine loose buttons. The previous
+version was icon-only with the label revealed on hover — unreadable until you
+moved a cursor over it, and on touch, where there is no hover, never readable
+at all. Each lane keeps its category's hue (`PICKER_HUES`), so the strip
+doubles as the colour key the results below use.
 
 ## Layout
 

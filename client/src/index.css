@@ -1368,8 +1368,57 @@ nav {
    Explore (search results)
    ========================================================================== */
 
-.explore-hero {
-  margin-bottom: 32px;
+/* A banner band rather than a bare title: the topic's icon, its name, and what
+   was found, in one block that sets the page's subject before any result does.
+   Same stroke language as the feed's cards, tinted with the topic's own band. */
+.explore-banner {
+  display: flex;
+  align-items: center;
+  gap: clamp(18px, 2.6vw, 30px);
+  margin-bottom: clamp(30px, 4vw, 48px);
+  padding: clamp(22px, 3vw, 34px) clamp(22px, 3vw, 36px);
+  border: 1.5px solid color-mix(in srgb, var(--band, #a1a1aa) 32%, var(--line-bold));
+  border-bottom-width: 4px;
+  border-bottom-color: color-mix(in srgb, var(--band, #a1a1aa) 46%, #3d3d49);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      90% 160% at 4% 0%,
+      color-mix(in srgb, var(--band, #a1a1aa) 14%, transparent),
+      transparent 60%
+    ),
+    var(--surface);
+}
+
+.explore-banner .topic-icon {
+  width: clamp(56px, 6vw, 76px);
+  height: clamp(56px, 6vw, 76px);
+  border-radius: 20px;
+}
+
+.explore-banner .topic-icon img {
+  width: 52%;
+  height: 52%;
+}
+
+.explore-banner-copy {
+  min-width: 0;
+}
+
+.explore-banner-meta {
+  margin: 10px 0 0;
+  color: var(--text-faint);
+  font-size: 0.92rem;
+}
+
+/* Side by side, the icon eats width the title needs before the viewport is
+   actually narrow — the same trap the feed header fell into. */
+@media (max-width: 560px) {
+  .explore-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
 }
 
 .explore-eyebrow {
@@ -1393,35 +1442,6 @@ nav {
   text-transform: capitalize;
 }
 
-/* The prism rule — light split, used as the page's one decorative element. */
-.explore-rule {
-  height: 2px;
-  margin-top: 22px;
-  border-radius: 2px;
-  background: linear-gradient(
-    90deg,
-    #3b82f6,
-    #8b5cf6,
-    #ec4899,
-    #f59e0b,
-    #10b981,
-    transparent 92%
-  );
-  opacity: 0.75;
-  animation: rule-in 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-  transform-origin: left;
-}
-
-@keyframes rule-in {
-  from {
-    transform: scaleX(0);
-    opacity: 0;
-  }
-  to {
-    transform: scaleX(1);
-    opacity: 0.75;
-  }
-}
 
 .explore-error {
   padding: 22px;
@@ -1923,9 +1943,70 @@ nav {
   color: var(--text-faint);
 }
 
+/* The base .bookmark-btn is absolutely positioned for the explore row's
+   layout. Left that way inside a card it anchors to the card box at right: 0,
+   which put it hard against the edge outside the padding. */
 .fcard-top .bookmark-btn {
+  position: relative;
+  z-index: 2;
+  top: auto;
+  right: auto;
   margin-left: auto;
   flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  color: #52525b;
+}
+
+.fcard:hover .bookmark-btn {
+  border-color: var(--line-strong);
+  color: #a1a1aa;
+}
+
+.fcard .bookmark-btn:hover {
+  border-color: #52525b;
+  background: #16161c;
+  color: #fafafa;
+}
+
+/* The rainbow ring means "this is the active thing", so it belongs on a
+   bookmark that is *saved*, not on every one at rest — a ring on all of them
+   would spend the signal on a control rather than a state. */
+.fcard .bookmark-btn.saved {
+  border-color: transparent;
+  animation: rainbow-spin 9s linear infinite;
+  background:
+    linear-gradient(var(--surface-raised), var(--surface-raised)) padding-box,
+    conic-gradient(
+        from var(--rainbow-angle),
+        #3b82f6,
+        #8b5cf6,
+        #ec4899,
+        #f59e0b,
+        #10b981,
+        #06b6d4,
+        #3b82f6
+      )
+      border-box;
+  color: #fbbf24;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fcard .bookmark-btn.saved {
+    animation: none;
+  }
+}
+
+/* Stretched link: the whole card is the target, with the bookmark lifted back
+   above it. The overlay belongs to the anchor, so this stays one link and one
+   button — no interactive element nested inside another. */
+.fcard-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
 .fcard-link {
@@ -2948,14 +3029,6 @@ nav {
   margin-top: 52px;
 }
 
-.overview-count {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #3f3f46;
-  text-transform: uppercase;
-  letter-spacing: 0.11em;
-}
-
 .overview-cue {
   display: inline-flex;
   color: #303038;
@@ -3368,137 +3441,153 @@ nav {
   }
 }
 
-/* --- category picker ---------------------------------------------------- */
+/* --- category lanes ------------------------------------------------------
+   A tile strip: what the category is, how much of it there is, and its name
+   underneath. Connected by a hairline so the row reads as one instrument
+   rather than nine loose buttons. */
 
-.picker {
+.lanes {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin: 0 0 40px;
-  padding-bottom: 26px;
-  border-bottom: 1px solid #131318;
+  align-items: flex-start;
+  gap: 26px;
+  margin: 0 0 clamp(34px, 4vw, 52px);
+  padding-bottom: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
   animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: 120ms;
 }
 
-/* Icon-only. The name is revealed on hover rather than sitting in the row,
-   so a nine-category topic reads as a colour key instead of a wall of pills. */
-.picker-chip {
-  position: relative;
-  display: inline-flex;
+.lanes::-webkit-scrollbar {
+  display: none;
+}
+
+.lane {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 11px 15px;
-  border: 1px solid color-mix(in srgb, var(--hue) 22%, #131318);
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--hue) 7%, transparent);
-  /* The hue is carried at rest, not only on hover — the row is meant to read
-     as a colour key you can learn, so the colours have to be there to learn. */
-  color: color-mix(in srgb, var(--hue) 74%, #8a8a95);
-  font-family: var(--font-ui);
+  gap: 12px;
+  flex-shrink: 0;
+  width: 104px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-faint);
+  font-family: inherit;
   cursor: pointer;
+}
+
+.lane-tile {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 92px;
+  height: 92px;
+  border: 1.5px solid var(--line-bold);
+  border-bottom-width: 4px;
+  border-bottom-color: #3d3d49;
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  color: color-mix(in srgb, var(--hue, #a1a1aa) 70%, #a1a1aa);
   transition:
-    color 0.18s ease,
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    transform 0.18s ease;
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.42s var(--ease-bounce),
+    box-shadow 0.28s var(--ease-settle);
 }
 
-.picker-chip:hover,
-.picker-chip:focus-visible {
-  color: var(--hue);
-  border-color: color-mix(in srgb, var(--hue) 55%, transparent);
-  background: color-mix(in srgb, var(--hue) 15%, transparent);
-  transform: translateY(-2px);
-  outline: none;
+/* The connector, drawn into the gap to the tile's left. */
+.lane + .lane .lane-tile::before {
+  content: "";
+  position: absolute;
+  right: 100%;
+  width: 26px;
+  height: 1px;
+  background: var(--line-bold);
 }
 
-/* Selected reads as filled rather than merely brighter, so it survives sitting
-   next to eight other coloured chips. */
-.picker-chip.active {
-  color: color-mix(in srgb, var(--hue) 30%, #ffffff);
-  border-color: color-mix(in srgb, var(--hue) 70%, transparent);
-  background: color-mix(in srgb, var(--hue) 22%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--hue) 28%, transparent);
+.lane-tile svg {
+  width: 30px;
+  height: 30px;
 }
 
-.picker-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* The category icons are stroked with the shared prism gradient; inside a
-   chip that fights the chip's own hue, so force them to inherit it. */
-.picker-mark svg {
-  width: 19px;
-  height: 19px;
-  stroke: currentColor;
-}
-
-.picker-count {
-  font-size: 0.76rem;
-  font-weight: 700;
-  color: currentColor;
-  opacity: 0.72;
+.lane-count {
+  position: absolute;
+  right: 9px;
+  bottom: 7px;
+  color: var(--text-faint);
+  font-size: 0.7rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
-/* Hover label. Positioned above so it never covers the next chip in the row. */
-.picker-tip {
-  position: absolute;
-  bottom: calc(100% + 9px);
-  left: 50%;
-  transform: translate(-50%, 4px);
-  padding: 6px 11px;
-  border: 1px solid color-mix(in srgb, var(--hue) 34%, #1c1c20);
-  border-radius: 8px;
-  background: #0c0c11;
-  color: #e4e4e7;
-  font-size: 0.76rem;
+.lane-label {
+  font-size: 0.78rem;
   font-weight: 600;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  z-index: 20;
-  transition:
-    opacity 0.16s ease,
-    transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  line-height: 1.3;
+  text-align: center;
+  transition: color 0.2s ease;
 }
 
-.picker-chip:hover .picker-tip,
-.picker-chip:focus-visible .picker-tip {
-  opacity: 1;
-  transform: translate(-50%, 0);
+.lane:hover .lane-tile {
+  transform: translateY(-3px);
+  background: var(--surface-raised);
+  border-color: color-mix(in srgb, var(--hue, #a1a1aa) 40%, var(--line-bold));
+  border-bottom-color: color-mix(in srgb, var(--hue, #a1a1aa) 55%, #3d3d49);
 }
 
-/* Touch has no hover, so the labels would never appear — show them inline. */
-@media (hover: none) {
-  .picker-tip {
-    position: static;
+.lane:hover .lane-label {
+  color: var(--text-dim);
+}
+
+.lane.active .lane-tile {
+  border-color: color-mix(in srgb, var(--hue, #a1a1aa) 70%, transparent);
+  border-bottom-color: var(--hue, #a1a1aa);
+  background: color-mix(in srgb, var(--hue, #a1a1aa) 10%, var(--surface));
+  color: var(--hue, #a1a1aa);
+  box-shadow:
+    0 0 24px color-mix(in srgb, var(--hue, #a1a1aa) 20%, transparent),
+    0 0 56px color-mix(in srgb, var(--hue, #a1a1aa) 10%, transparent);
+}
+
+.lane.active .lane-label {
+  color: #fafafa;
+}
+
+.lane:focus-visible .lane-tile {
+  outline: 2px solid var(--hue, #a78bfa);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lane:hover .lane-tile {
     transform: none;
-    opacity: 1;
-    padding: 0;
-    border: none;
-    background: none;
-    color: inherit;
-    font-size: 0.82rem;
   }
 }
 
-@media (max-width: 520px) {
-  .picker {
-    gap: 7px;
-    margin-bottom: 30px;
+@media (max-width: 620px) {
+  .lanes {
+    gap: 18px;
   }
 
-  .picker-chip {
-    padding: 8px 11px;
+  .lane {
+    width: 84px;
   }
 
-  .picker-mark svg {
-    width: 16px;
-    height: 16px;
+  .lane-tile {
+    width: 76px;
+    height: 76px;
+    border-radius: 20px;
+  }
+
+  .lane-tile svg {
+    width: 25px;
+    height: 25px;
+  }
+
+  .lane + .lane .lane-tile::before {
+    width: 18px;
   }
 }
 

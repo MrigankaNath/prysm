@@ -10,6 +10,8 @@ import Prose from "../components/Prose";
 import { recordTopic } from "../lib/library";
 import { apiFetch, apiJson } from "../lib/api";
 import { IconChevronDown, IconGrid } from "../components/Icons";
+import TopicIcon from "../components/TopicIcon";
+import { lighten, topicColor } from "../lib/topicIcon";
 
 // How many results a category shows before "Show more".
 const COLLAPSED_COUNT = 3;
@@ -28,41 +30,35 @@ const PICKER_HUES = {
   curated: "#a3e635",
 };
 
-/* Icon-only, with the name revealed on hover/focus. The label is still in the
-   DOM as the accessible name, so this stays usable by keyboard and screen
-   reader — it's only visually collapsed. */
-function PickerButton({ id, label, count, hue, active, onSelect }) {
+/* A lane per category: a tile you can see, with its name underneath. The
+   previous version was icon-only with the label revealed on hover, which meant
+   the row was unreadable until you moved a cursor over it — and on touch,
+   where there is no hover, never readable at all. */
+function Lane({ id, label, count, hue, active, onSelect }) {
+  const Icon = id === "all" ? IconGrid : CATEGORY_ICONS[id] || IconGrid;
+
   return (
     <button
       type="button"
-      className={`picker-chip${active ? " active" : ""}`}
+      className={`lane${active ? " active" : ""}`}
       style={{ "--hue": hue }}
       onClick={() => onSelect(id)}
       aria-label={`${label}, ${count} results`}
       aria-pressed={active}
     >
-      <span className="picker-mark">
-        {id === "all" ? (
-          <IconGrid />
-        ) : (
-          (() => {
-            const Icon = CATEGORY_ICONS[id];
-            return Icon ? <Icon /> : <IconGrid />;
-          })()
-        )}
+      <span className="lane-tile">
+        <Icon />
+        <span className="lane-count">{count}</span>
       </span>
-      <span className="picker-count">{count}</span>
-      <span className="picker-tip" aria-hidden="true">
-        {label}
-      </span>
+      <span className="lane-label">{label}</span>
     </button>
   );
 }
 
-function CategoryPicker({ sections, active, onSelect, total }) {
+function CategoryLanes({ sections, active, onSelect, total }) {
   return (
-    <nav className="picker" aria-label="Filter results by category">
-      <PickerButton
+    <nav className="lanes" aria-label="Filter results by category">
+      <Lane
         id="all"
         label="Everything"
         count={total}
@@ -71,7 +67,7 @@ function CategoryPicker({ sections, active, onSelect, total }) {
         onSelect={onSelect}
       />
       {sections.map(({ key, items }) => (
-        <PickerButton
+        <Lane
           key={key}
           id={key}
           label={CATEGORY_LABELS[key] || key}
@@ -139,7 +135,7 @@ function CategorySection({ category, items, topic, index }) {
 
 /* The answer, set as type rather than boxed in a card. It gets the top of the
    page to itself; the sources begin below the fold. */
-function Overview({ overview, topic, total, categories }) {
+function Overview({ overview, topic }) {
   if (!overview) return null;
 
   return (
@@ -147,10 +143,6 @@ function Overview({ overview, topic, total, categories }) {
       <Prose text={overview.snippet || overview.title} topic={topic} />
 
       <div className="overview-foot" style={{ "--delay": "420ms" }}>
-        <span className="overview-count">
-          {total} source{total === 1 ? "" : "s"} across {categories}{" "}
-          {categories === 1 ? "category" : "categories"}
-        </span>
         <span className="overview-cue" aria-hidden="true">
           <IconChevronDown />
         </span>
@@ -238,10 +230,27 @@ function ExploreTopic() {
 
   return (
     <div className="page page-wide explore">
-      <header className="explore-hero">
-        <span className="explore-eyebrow">Exploring</span>
-        <h1 className="explore-title">{topic}</h1>
-        <div className="explore-rule" aria-hidden="true" />
+      <header
+        className="explore-banner"
+        style={{
+          "--band": topicColor(topic),
+          "--band-lit": lighten(topicColor(topic), 0.4),
+        }}
+      >
+        <TopicIcon topic={topic} />
+        <div className="explore-banner-copy">
+          <span className="explore-eyebrow">Exploring</span>
+          <h1 className="explore-title">{topic}</h1>
+          <p className="explore-banner-meta">
+            {loading
+              ? "Pulling the best of the web"
+              : total > 0
+                ? `${total} source${total === 1 ? "" : "s"} across ${sections.length} ${
+                    sections.length === 1 ? "category" : "categories"
+                  }`
+                : "Nothing found yet"}
+          </p>
+        </div>
       </header>
 
       {loading && (
@@ -251,7 +260,6 @@ function ExploreTopic() {
               <div key={i} className="skeleton-card" style={{ "--i": i }} />
             ))}
           </div>
-          <p>Pulling the best of the web on {topic}…</p>
         </div>
       )}
 
@@ -267,12 +275,7 @@ function ExploreTopic() {
 
       {!loading && !failed && (
         <>
-          <Overview
-            overview={overview}
-            topic={topic}
-            total={total}
-            categories={sections.length}
-          />
+          <Overview overview={overview} topic={topic} />
 
           {curated.length > 0 && (
             <section className="cat-section">
@@ -294,7 +297,7 @@ function ExploreTopic() {
           )}
 
           {sections.length > 1 && (
-            <CategoryPicker
+            <CategoryLanes
               sections={sections}
               active={active}
               onSelect={setActive}
