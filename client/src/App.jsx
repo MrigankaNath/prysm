@@ -50,14 +50,19 @@ function AppNav({ hidden, onOpenSearch, session }) {
     <nav>
       <span className="nav-brand">Prysm</span>
 
+      {/* Deliberately shaped like the field it opens rather than an icon
+          button — search is the primary way into the product, and a 30px pill
+          in the corner reads as a minor tool. */}
       <button
         type="button"
-        className="command-hint"
+        className="nav-search"
         onClick={onOpenSearch}
         aria-label="Search"
       >
-        <IconSearch className="command-hint-icon" />
-        <span className="command-hint-keys">{isMac ? "⌘K" : "Ctrl K"}</span>
+        <IconSearch className="nav-search-icon" />
+        <span className="nav-search-text">Search topics, Prisms, anything…</span>
+        <span className="nav-search-slash">/</span>
+        <kbd className="nav-search-kbd">{isMac ? "⌘K" : "Ctrl K"}</kbd>
       </button>
 
       <div className="nav-links">

@@ -11,6 +11,30 @@ import {
 } from "./Icons";
 
 const EMPTY_RESULTS = { topics: [], bundles: [], content: [] };
+
+/* Slash commands. Two kinds, because scoping a 10-item Prism library is thin
+   on its own — the navigation ones are what make this a command palette
+   rather than a search box.
+   `scope` narrows what a query searches; `to` jumps straight to a page. */
+const COMMANDS = [
+  { key: "explore", hint: "topic", label: "Explore a topic live", scope: "explore" },
+  { key: "prism", hint: "query", label: "Search Prisms only", scope: "prism", to: "/prisms" },
+  { key: "spectrum", label: "Browse the Spectrum", to: "/spectrum" },
+  { key: "saved", label: "Your saved items", to: "/wavelength" },
+  { key: "feed", label: "Your feed", to: "/" },
+];
+
+/** Split "/prism react hooks" into its command and the rest of the query. */
+function parseCommand(raw) {
+  const match = /^\/(\w*)\s*(.*)$/s.exec(raw);
+  if (!match) return { command: null, rest: raw, partial: null };
+
+  const [, word, rest] = match;
+  const command = COMMANDS.find((c) => c.key === word.toLowerCase());
+  // Still typing the command name — show the menu filtered to what matches.
+  if (!command) return { command: null, rest: "", partial: word.toLowerCase() };
+  return { command, rest, partial: null };
+}
 const RECENTS_KEY = "prysm.recentSearches";
 const MAX_RECENTS = 5;
 
@@ -88,7 +112,10 @@ function CommandPalette({ open, setOpen }) {
   }, [open]);
 
   useEffect(() => {
-    if (!query.trim()) {
+    const parsed = parseCommand(query);
+    const term = (parsed.command ? parsed.rest : query).trim();
+
+    if (!term) {
       setResults(EMPTY_RESULTS);
       setSearching(false);
       return;
@@ -96,7 +123,7 @@ function CommandPalette({ open, setOpen }) {
 
     setSearching(true);
     const debounce = setTimeout(() => {
-      apiJson(`/api/search?q=${encodeURIComponent(query)}`, EMPTY_RESULTS)
+      apiJson(`/api/search?q=${encodeURIComponent(term)}`, EMPTY_RESULTS)
         .then(setResults)
         .finally(() => setSearching(false));
     }, 200);
@@ -122,7 +149,23 @@ function CommandPalette({ open, setOpen }) {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const trimmedQuery = query.trim();
+  const { command, rest, partial } = parseCommand(query);
+  const trimmedQuery = (command ? rest : query).trim();
+  const showCommandMenu = partial !== null;
+  const matchingCommands = showCommandMenu
+    ? COMMANDS.filter((c) => c.key.startsWith(partial))
+    : [];
+
+  const runCommand = (c) => {
+    if (c.to && !rest.trim()) {
+      setOpen(false);
+      navigate(c.to);
+      return;
+    }
+    // Keep the command and let the user carry on typing its query.
+    setQuery(`/${c.key} `);
+    inputRef.current?.focus();
+  };
   const hasResults =
     results.topics.length > 0 ||
     results.bundles.length > 0 ||
@@ -139,6 +182,11 @@ function CommandPalette({ open, setOpen }) {
       >
         <div className="command-input-wrapper">
           <IconSearch className="command-input-icon" />
+          {command && (
+            <span className={`command-scope scope-${command.key}`}>
+              /{command.key}
+            </span>
+          )}
           <input
             ref={inputRef}
             type="text"
@@ -146,9 +194,24 @@ function CommandPalette({ open, setOpen }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && trimmedQuery) {
+              if (e.key === "Enter") {
+                if (showCommandMenu && matchingCommands[0]) {
+                  e.preventDefault();
+                  runCommand(matchingCommands[0]);
+                } else if (command?.to && !trimmedQuery) {
+                  e.preventDefault();
+                  setOpen(false);
+                  navigate(command.to);
+                } else if (trimmedQuery && command?.scope !== "prism") {
+                  e.preventDefault();
+                  goToTopic(trimmedQuery.toLowerCase());
+                }
+              }
+              // Backspace on an empty query drops the scope rather than
+              // stranding you in a mode you can't see how to leave.
+              if (e.key === "Backspace" && command && !rest) {
                 e.preventDefault();
-                goToTopic(trimmedQuery.toLowerCase());
+                setQuery("");
               }
             }}
           />
@@ -156,7 +219,28 @@ function CommandPalette({ open, setOpen }) {
         </div>
 
         <div className="command-body">
-          {!trimmedQuery && (
+          {showCommandMenu && (
+            <div className="command-group">
+              <div className="command-group-label">Commands</div>
+              {matchingCommands.length === 0 && (
+                <p className="command-empty">No command matches that.</p>
+              )}
+              {matchingCommands.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  className="command-item"
+                  onClick={() => runCommand(c)}
+                >
+                  <span className={`command-scope scope-${c.key}`}>/{c.key}</span>
+                  <span className="command-item-main">{c.label}</span>
+                  {c.hint && <span className="command-item-meta">{c.hint}</span>}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {!showCommandMenu && !command && !trimmedQuery && (
             <>
               {recents.length > 0 && (
                 <div className="command-group">
@@ -197,7 +281,26 @@ function CommandPalette({ open, setOpen }) {
                 </div>
               </div>
 
+              <div className="command-group">
+                <div className="command-group-label">Commands</div>
+                <div className="command-suggestions">
+                  {COMMANDS.map((c) => (
+                    <button
+                      key={c.key}
+                      type="button"
+                      className={`command-cmdchip scope-${c.key}`}
+                      onClick={() => runCommand(c)}
+                    >
+                      /{c.key}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="command-hintbar">
+                <span>
+                  <kbd>/</kbd> for commands
+                </span>
                 <span>
                   <kbd>↵</kbd> to explore
                 </span>
@@ -208,8 +311,39 @@ function CommandPalette({ open, setOpen }) {
             </>
           )}
 
-          {trimmedQuery && (
+          {!showCommandMenu && command && !trimmedQuery && (
+            <div className="command-group">
+              {/* A navigation command is an action, so it gets a row you can
+                  click. Telling someone to press a key and giving them nothing
+                  to aim at is the usual way this pattern goes wrong. */}
+              {command.to && !command.scope ? (
+                <button
+                  type="button"
+                  className="command-item command-item-primary"
+                  onClick={() => {
+                    setOpen(false);
+                    navigate(command.to);
+                  }}
+                >
+                  <span className={`command-scope scope-${command.key}`}>
+                    /{command.key}
+                  </span>
+                  <span className="command-item-main">{command.label}</span>
+                  <span className="command-item-meta">↵</span>
+                </button>
+              ) : (
+                <p className="command-empty">
+                  {command.scope === "prism"
+                    ? "Type to search Prisms by title or topic."
+                    : "Type a topic to pull live results from across the web."}
+                </p>
+              )}
+            </div>
+          )}
+
+          {!showCommandMenu && trimmedQuery && (
             <>
+              {command?.scope !== "prism" && (
               <div className="command-group">
                 <button
                   type="button"
@@ -227,8 +361,9 @@ function CommandPalette({ open, setOpen }) {
                   </span>
                 </button>
               </div>
+              )}
 
-              {results.topics.length > 0 && (
+              {command?.scope !== "prism" && results.topics.length > 0 && (
                 <div className="command-group">
                   <div className="command-group-label">Topics</div>
                   {results.topics.map((topic) => (
@@ -265,7 +400,7 @@ function CommandPalette({ open, setOpen }) {
                 </div>
               )}
 
-              {results.content.length > 0 && (
+              {command?.scope !== "prism" && results.content.length > 0 && (
                 <div className="command-group">
                   <div className="command-group-label">Content</div>
                   {results.content.map((item) => (
@@ -285,7 +420,14 @@ function CommandPalette({ open, setOpen }) {
                 </div>
               )}
 
-              {!searching && !hasResults && (
+              {!searching && command?.scope === "prism" && results.bundles.length === 0 && (
+                <p className="command-empty">
+                  No Prism matches &ldquo;{trimmedQuery}&rdquo;. Ten exist so far
+                  — clear the <kbd>/prism</kbd> scope to search everything.
+                </p>
+              )}
+
+              {!searching && command?.scope !== "prism" && !hasResults && (
                 <p className="command-empty">
                   Nothing curated for that yet — press <kbd>↵</kbd> to pull live
                   results from across the web.

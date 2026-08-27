@@ -152,35 +152,87 @@ nav {
   border-color: #303038;
 }
 
-/* Deliberately neutral: the rainbow is reserved for the active page, so
-   position reads as the only colour-carrying signal in the nav. */
-.command-hint {
-  display: inline-flex;
+/* The search trigger. Sized and shaped like the input it opens so it reads
+   as the way into the product, not as a minor tool in the corner. */
+.nav-search {
+  display: flex;
   align-items: center;
-  gap: 7px;
-  flex-shrink: 0;
-  padding: 7px 13px;
-  border: 1px solid #1c1c20;
-  border-radius: 999px;
-  background-color: #0b0b0e;
-  color: #6f6f7a;
-  font-size: 0.78rem;
-  font-weight: 500;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 420px;
+  padding: 9px 10px 9px 15px;
+  border: 1px solid #22222a;
+  border-radius: 12px;
+  background: #08080b;
+  color: #52525b;
+  font-family: var(--font-ui);
+  font-size: 0.88rem;
+  text-align: left;
   cursor: pointer;
   transition:
-    color 0.14s ease,
-    border-color 0.14s ease;
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease;
 }
 
-.command-hint:hover {
-  color: #d4d4d8;
-  border-color: #303038;
+.nav-search:hover {
+  border-color: #34343d;
+  background: #0d0d12;
+  color: #a1a1aa;
 }
 
-.command-hint-icon {
-  width: 14px;
-  height: 14px;
+.nav-search-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
+
+.nav-search-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The slash hint is the discoverability fix for the commands — without it
+   nobody finds them. */
+.nav-search-slash,
+.nav-search-kbd {
+  flex-shrink: 0;
+  padding: 3px 7px;
+  border: 1px solid #26262e;
+  border-radius: 6px;
+  background: #131318;
+  color: #52525b;
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.nav-search-slash {
+  min-width: 20px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .nav-search-text,
+  .nav-search-slash {
+    display: none;
+  }
+  .nav-search {
+    flex: 0 0 auto;
+    max-width: none;
+    padding: 9px 12px;
+  }
+}
+
+@media (max-width: 620px) {
+  .nav-search-kbd { display: none; }
+  .nav-search { padding: 9px; }
+}
+
 
 @media (max-width: 760px) {
   .command-hint-keys {
@@ -3552,4 +3604,47 @@ nav {
   .pdeck-nav {
     transition: none;
   }
+}
+
+/* --- slash commands ----------------------------------------------------- */
+
+/* One hue per command so an active scope is recognisable at a glance rather
+   than being a word you have to read. */
+.command-scope,
+.command-cmdchip {
+  --scope: #8b5cf6;
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--scope) 38%, transparent);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--scope) 15%, transparent);
+  color: color-mix(in srgb, var(--scope) 55%, #ffffff);
+  font-family: var(--font-ui);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.scope-explore { --scope: #3b82f6; }
+.scope-prism { --scope: #8b5cf6; }
+.scope-spectrum { --scope: #ec4899; }
+.scope-saved { --scope: #f59e0b; }
+.scope-feed { --scope: #10b981; }
+
+/* In the input the chip sits between the icon and the caret, so the mode is
+   visible while you type rather than only in the results. */
+.command-input-wrapper .command-scope {
+  margin-left: 12px;
+}
+
+.command-cmdchip {
+  cursor: pointer;
+  transition:
+    transform 0.14s ease,
+    border-color 0.14s ease;
+}
+
+.command-cmdchip:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--scope) 75%, transparent);
 }
