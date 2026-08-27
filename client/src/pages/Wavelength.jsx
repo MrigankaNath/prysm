@@ -8,6 +8,7 @@ import {
   subscribe,
 } from "../lib/library";
 import ResultCard from "../components/ResultCard";
+import TopicIcon from "../components/TopicIcon";
 import { IconBookmark, IconHistory, IconTarget } from "../components/Icons";
 
 const TABS = [
@@ -139,7 +140,10 @@ function Wavelength() {
                 to={`/explore/${encodeURIComponent(topic)}`}
                 className="wl-topic-tile"
               >
-                <span className="wl-topic-name">{topic}</span>
+                <span className="feed-topic-head">
+                  <TopicIcon topic={topic} />
+                  <span className="wl-topic-name">{topic}</span>
+                </span>
                 <span className="wl-topic-meta">{total} results</span>
               </Link>
             ))}

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getTopics, subscribe } from "../lib/library";
 import { IconCompass, IconHistory } from "../components/Icons";
+import TopicIcon from "../components/TopicIcon";
 
 /* The browsable half of discovery. Hand-grouped so the page reads as a map
    rather than a tag cloud — each cluster takes one band of the prism. */
@@ -146,6 +147,7 @@ function Spectrum() {
                   to={`/explore/${encodeURIComponent(topic)}`}
                   className="spec-topic"
                 >
+                  <TopicIcon topic={topic} color={cluster.hue} />
                   {topic}
                 </Link>
               ))}

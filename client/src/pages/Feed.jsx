@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getBookmarks, getHistory, getTopics, subscribe } from "../lib/library";
 import ResultCard from "../components/ResultCard";
+import TopicIcon from "../components/TopicIcon";
 import { apiJson } from "../lib/api";
 import {
   IconBookmark,
@@ -106,7 +107,10 @@ function Feed({ session }) {
                 to={`/explore/${encodeURIComponent(topic)}`}
                 className="feed-topic-card"
               >
-                <span className="feed-topic-name">{topic}</span>
+                <span className="feed-topic-head">
+                  <TopicIcon topic={topic} />
+                  <span className="feed-topic-name">{topic}</span>
+                </span>
                 <span className="feed-topic-meta">
                   {total !== null ? `${total} results` : "Open"}{" "}
                   <IconChevronRight />

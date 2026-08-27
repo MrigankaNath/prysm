@@ -3756,3 +3756,64 @@ nav {
     gap: 20px 14px;
   }
 }
+
+/* --- topic icons (Iconify) ---------------------------------------------- */
+
+.topic-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #08080b;
+  transition:
+    border-color 0.2s ease,
+    transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.topic-icon img {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.feed-topic-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.feed-topic-card:hover .topic-icon,
+.wl-topic-tile:hover .topic-icon {
+  border-color: #3a3a45;
+  transform: scale(1.06);
+}
+
+/* In the Spectrum grid the icon is inline with the label, tinted to the
+   cluster's own band. */
+.spec-topic {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spec-topic .topic-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border-color: color-mix(in srgb, var(--hue) 22%, transparent);
+  background: color-mix(in srgb, var(--hue) 9%, transparent);
+}
+
+.spec-topic .topic-icon img {
+  width: 14px;
+  height: 14px;
+}
+
+.spec-topic:hover .topic-icon {
+  border-color: color-mix(in srgb, var(--hue) 55%, transparent);
+}
