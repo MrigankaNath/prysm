@@ -114,6 +114,13 @@ export function topicColor(topic) {
    multicolour logo to a single hue, so they are left alone. */
 const MULTICOLOUR = /^(logos|skill-icons|vscode-icons|flat-color-icons|devicon):/;
 
+/** True for icons that draw in their own colours — they need a light plate,
+ *  because plenty of brand marks (Express, Next.js, Flask) are solid black and
+ *  disappear against a dark background. */
+export function isBrandIcon(icon) {
+  return MULTICOLOUR.test(String(icon || ""));
+}
+
 /**
  * Full URL for an icon. An <img> can't inherit currentColor, so monotone icons
  * are tinted server-side; multicolour sets are served untouched.
@@ -144,25 +151,42 @@ export async function resolveTopicIcon(topic) {
     return concept;
   }
 
-  try {
-    const res = await fetch(
-      `${API}/search?query=${encodeURIComponent(key)}&limit=8`,
-    );
-    if (res.ok) {
-      const data = await res.json();
-      // Prefer the monotone logo sets; the coloured ones clash with the theme.
-      const best =
-        (data.icons || []).find((i) => i.startsWith("simple-icons:")) ||
-        (data.icons || []).find((i) => i.startsWith("lineicons:")) ||
-        null;
-      if (best) {
-        cache[key] = best;
-        writeCache(cache);
-        return best;
-      }
+  /* `logos:` first — a real brand mark in its own colours beats a monotone
+     glyph. The others are fallbacks for tools it doesn't carry. */
+  const SETS = ["logos:", "skill-icons:", "simple-icons:", "lineicons:"];
+
+  /* Two queries, because the full topic often misses: "express js" finds
+     nothing in logos:, while "express" finds logos:express. The first
+     significant word is the one that matches a product name. */
+  const firstWord = key.split(/\s+/).find((w) => w.length > 2) || key;
+  const queries = firstWord === key ? [key] : [key, firstWord];
+
+  /* Both queries are gathered before choosing, so set preference applies
+     across the union. Picking per query meant a lower-preference hit on the
+     full topic beat a `logos:` hit on the single word — "express js" chose a
+     skill-icons variant while logos:express existed. */
+  const found = [];
+  for (const q of queries) {
+    try {
+      const res = await fetch(`${API}/search?query=${encodeURIComponent(q)}&limit=24`);
+      if (!res.ok) continue;
+      const { icons = [] } = await res.json();
+      found.push(...icons);
+    } catch {
+      /* offline or blocked — the concept icon is already a good answer */
     }
-  } catch {
-    /* offline or blocked — the concept icon is already a good answer */
+  }
+
+  for (const set of SETS) {
+    // skill-icons ships -light/-dark pairs; -dark is the one drawn for dark UIs.
+    const hit =
+      found.find((i) => i.startsWith(set) && !i.endsWith("-light")) ||
+      found.find((i) => i.startsWith(set));
+    if (hit) {
+      cache[key] = hit;
+      writeCache(cache);
+      return hit;
+    }
   }
 
   cache[key] = concept;

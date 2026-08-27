@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { conceptIcon, iconUrl, resolveTopicIcon, topicColor } from "../lib/topicIcon";
+import {
+  conceptIcon,
+  iconUrl,
+  isBrandIcon,
+  resolveTopicIcon,
+  topicColor,
+} from "../lib/topicIcon";
 
 /**
  * An icon for a topic, served by Iconify.
@@ -26,7 +32,7 @@ function TopicIcon({ topic, color, className = "" }) {
 
   return (
     <span
-      className={`topic-icon ${className}`.trim()}
+      className={`topic-icon${isBrandIcon(icon) ? " is-brand" : ""} ${className}`.trim()}
       style={{ "--tint": tint }}
       aria-hidden="true"
     >

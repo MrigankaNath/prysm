@@ -3782,6 +3782,19 @@ nav {
   display: block;
 }
 
+/* Brand marks keep their own colours, and a fair number of them are solid
+   black — Express, Next.js, Flask — so they need something to sit on. */
+.topic-icon.is-brand {
+  border-color: #26262e;
+  background: #f4f4f5;
+}
+
+.feed-topic-card:hover .topic-icon.is-brand,
+.wl-topic-tile:hover .topic-icon.is-brand {
+  border-color: #52525b;
+  background: #ffffff;
+}
+
 .feed-topic-head {
   display: flex;
   align-items: center;
