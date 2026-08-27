@@ -8,14 +8,20 @@ const pool = require("./index");
  * it degrades here, where the reason can be explained, instead. */
 const APP_TOPICS_PER_MONTH = 300;
 
-/* Per user. Twenty is deliberately generous against the 300 ceiling: most
- * people explore a handful of new topics a month, and the ones who explore
- * twenty are exactly the ones worth keeping. It bounds the damage — one
- * account cannot take more than a fifteenth of the month — without the cap
- * being something a real user trips over. */
+/* Per user.
+ *
+ * Forty rather than twenty because the overview/articles TTL went from a week
+ * to a month: a topic used to be re-bought roughly four times a month if
+ * anyone kept visiting it, and now it is bought once. That is where the extra
+ * twenty came from — not from raising the budget.
+ *
+ * The per-user cap is there to stop one account draining the month, not to
+ * ration a large userbase; APP_TOPICS_PER_MONTH is what actually protects the
+ * budget. So it is set high enough that a real user never meets it. If sign-ups
+ * ever outgrow the ceiling, this is the number to lower. */
 const PLAN_LIMITS = {
-  free: 20,
-  premium: 200,
+  free: 40,
+  premium: 400,
 };
 
 /** Calendar month, matching the boundary the upstream quotas reset on. */

@@ -97,28 +97,43 @@ function UsageMeter() {
   if (!usage) return null;
 
   const pct = Math.min(100, Math.round((usage.used / usage.limit) * 100));
-  const low = usage.remaining <= Math.max(2, usage.limit * 0.15);
+  const low = usage.remaining <= Math.max(3, usage.limit * 0.2);
+  /* The bar is a scarcity cue, and showing one from the first search makes a
+     cap nobody is near feel like a cap. It appears once a quarter of the
+     month's allowance is gone; before that the sentence alone is enough. */
+  const showBar = pct >= 25;
 
   return (
     <>
-      <h2 className="set-heading">This month</h2>
-      <div className="set-email-row">
-        <span className="set-email">
-          {usage.used} of {usage.limit} new topics
-        </span>
-        <span className="set-note">{usage.remaining} left</span>
-      </div>
+      <h2 className="set-heading">Your plan</h2>
+      <p className="set-note">
+        Reading, saving, your feed, Prisms and every topic already in Prysm are
+        <strong> unlimited</strong> — however much you use them.
+      </p>
+
       <div className="usage-meter">
-        <div className="usage-bar">
-          <div
-            className={`usage-fill${low ? " low" : ""}`}
-            style={{ width: `${pct}%` }}
-          />
+        <div className="set-email-row">
+          <span className="set-email">
+            {usage.remaining} new topics left this month
+          </span>
+          <span className="set-note">
+            {usage.used} of {usage.limit} used
+          </span>
         </div>
+
+        {showBar && (
+          <div className="usage-bar">
+            <div
+              className={`usage-fill${low ? " low" : ""}`}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        )}
+
         <p className="usage-note">
-          Only a topic <strong>nobody has explored yet</strong> counts — it has
-          to be searched from scratch. Re-opening anything already in Prysm is
-          free and unlimited, however often you do it. Resets on the 1st.
+          A topic only counts the <strong>first time anyone searches it</strong>,
+          because that is when Prysm has to go and find it. After that it is in
+          the library and free for everyone, forever. Resets on the 1st.
         </p>
       </div>
       <div className="set-divider" />
@@ -135,7 +150,7 @@ function PremiumSection() {
       <div className="set-premium-card">
         <h3 className="set-premium-title">Unlock every Prism</h3>
         <p className="set-premium-copy">
-          Curated learning paths, 200 new topics a month instead of 20, and
+          Curated learning paths, 400 new topics a month instead of 40, and
           depth calibration tuned to what you already know.
         </p>
         <button type="button" className="set-premium-cta">

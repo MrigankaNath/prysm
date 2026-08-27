@@ -1831,6 +1831,7 @@ nav {
 }
 
 .usage-bar {
+  margin-top: 14px;
   height: 8px;
   overflow: hidden;
   border-radius: 999px;

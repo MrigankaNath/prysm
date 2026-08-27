@@ -511,17 +511,23 @@ app.get("/api/explore", requireAuth, async (req, res) => {
  *   - articles, repos and videos, about a week
  *   - Hacker News, days — new threads are the whole point of it            */
 const TTL_HOURS = {
-  /* Matches articles, not because an overview goes stale in a week, but
-     because the two share one round of Tavily searches (sources/tavily.js).
-     Expiring at different times would have whichever lapsed first pay for the
-     bundle and discard the other half. */
-  overview: 24 * 7,
+  /* Overview and articles are the only two that cost money, and at a week they
+     were the most expensive thing in the app for the wrong reason: a topic
+     anyone kept visiting was re-bought four times a month. At thirty days it
+     is bought once.
+     Staleness is bounded by the lanes around them — discussions refresh every
+     three days and papers every fortnight — so what goes a month old is the
+     definition and the explainer articles, which are the most evergreen part
+     of the page. An explainer on photosynthesis is not different in November.
+     They share one Tavily bundle, so they must share a TTL: whichever lapsed
+     first would pay for both halves and discard the other. */
+  overview: 24 * 30,
+  articles: 24 * 30,
   books: 24 * 30,
   papers: 24 * 14,
   qa: 24 * 14,
   podcasts: 24 * 14,
   code: 24 * 7,
-  articles: 24 * 7,
   videos: 24 * 7,
   discussions: 24 * 3,
 };
