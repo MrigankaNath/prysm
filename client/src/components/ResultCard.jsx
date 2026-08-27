@@ -6,6 +6,7 @@ import {
   subscribe,
 } from "../lib/library";
 import { IconBookmark, IconPlay } from "./Icons";
+import { hostOf, formatSignal } from "../lib/result";
 
 function useBookmarkState(url) {
   const [saved, setSaved] = useState(() => isBookmarked(url));
@@ -28,28 +29,6 @@ export function BookmarkButton({ item, topic, category }) {
       <IconBookmark />
     </button>
   );
-}
-
-function hostOf(url) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return null;
-  }
-}
-
-function formatSignal(item) {
-  if (typeof item.signal !== "number" || item.signal <= 0) return null;
-  const rounded =
-    item.signal >= 1000 ? `${(item.signal / 1000).toFixed(1)}k` : item.signal;
-  const labels = {
-    github: "stars",
-    hackernews: "points",
-    stackexchange: "votes",
-    podcasts: "episodes",
-  };
-  const label = labels[item.source];
-  return label ? `${rounded} ${label}` : null;
 }
 
 function Meta({ item }) {
