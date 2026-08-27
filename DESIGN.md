@@ -214,13 +214,38 @@ first row's hover glow square against its own rounded corner.
 sit in one bold-stroked band tinted with the topic's own colour, so the page
 states its subject before any result does.
 
-**Categories are lanes, not chips.** A tile you can see, with its name
-underneath and its count in the corner, connected left to right by a hairline
-so the row reads as one instrument rather than nine loose buttons. The previous
-version was icon-only with the label revealed on hover — unreadable until you
-moved a cursor over it, and on touch, where there is no hover, never readable
-at all. Each lane keeps its category's hue (`PICKER_HUES`), so the strip
-doubles as the colour key the results below use.
+**Categories ride the rail.** See below. Each item keeps its category's hue
+(`PICKER_HUES`), so the strip doubles as the colour key the results below use.
+
+## Spectrum
+
+**A band per cluster.** The cluster's icon, how many topics it holds, its name
+and its blurb, in the same bold-stroked block the explore banner uses — so a
+band on Spectrum and a topic on Explore are recognisably the same thing. The
+icon is named explicitly per cluster in `CLUSTERS`, not resolved: "Machines
+that learn" is not a topic and the concept map has nothing to match it to.
+`TopicIcon` takes an `icon` prop for exactly this.
+
+**Topics ride the rail**, at `is-lg`.
+
+## The rail
+
+One row of tiles, each with its name underneath, joined left to right by a
+hairline so the row reads as one instrument rather than a handful of loose
+buttons. **Explore uses it for categories, Spectrum for topics** — the same
+strip at two sizes, which is most of what makes the two pages look like one
+product.
+
+**It scrolls rather than wraps**, and that is structural, not taste: a wrapped
+row cannot be connected. The first tile on the second line is not
+`:first-child`, so it draws a connector into the gutter to its left with
+nothing on the other end.
+
+**The right edge is masked** — the last 34px fade out, so a tile the rail has
+run out of room for trails off instead of being sliced. When the row fits, that
+band falls on empty space and nothing shows. The mask clips to the rail's box,
+which is why the rail carries vertical padding: without it the active tile's
+glow is sliced flat top and bottom.
 
 ## Layout
 

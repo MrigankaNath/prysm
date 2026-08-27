@@ -2443,7 +2443,7 @@ nav {
 .spec-clusters {
   display: flex;
   flex-direction: column;
-  gap: 34px;
+  gap: clamp(48px, 6vw, 80px);
 }
 
 .spec-cluster {
@@ -2451,88 +2451,77 @@ nav {
   animation-delay: var(--stagger, 0ms);
 }
 
-.spec-cluster-head {
+/* A band per cluster, not a hairline bar and a heading: the cluster's icon,
+   how many topics it holds, its name and its blurb, in one block that states
+   the section before any tile does. Same treatment as the explore banner, so
+   a band on Spectrum and a topic on Explore are recognisably the same thing. */
+.spec-banner {
   display: flex;
-  align-items: flex-start;
-  gap: 15px;
-  margin-bottom: 16px;
+  align-items: center;
+  gap: clamp(16px, 2vw, 24px);
+  margin-bottom: clamp(20px, 2.4vw, 30px);
+  padding: clamp(18px, 2.2vw, 26px) clamp(20px, 2.6vw, 30px);
+  border: 1.5px solid color-mix(in srgb, var(--hue) 30%, var(--line-bold));
+  border-bottom-width: 4px;
+  border-bottom-color: color-mix(in srgb, var(--hue) 46%, #3d3d49);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(
+      90% 160% at 4% 0%,
+      color-mix(in srgb, var(--hue) 13%, transparent),
+      transparent 60%
+    ),
+    var(--surface);
 }
 
-.spec-cluster-bar {
-  flex-shrink: 0;
-  width: 3px;
-  align-self: stretch;
-  min-height: 42px;
-  border-radius: 3px;
-  background: linear-gradient(
-    180deg,
-    var(--hue),
-    color-mix(in srgb, var(--hue) 20%, transparent)
-  );
+.spec-banner .topic-icon {
+  width: clamp(48px, 5vw, 62px);
+  height: clamp(48px, 5vw, 62px);
+  border-radius: 18px;
+}
+
+.spec-banner .topic-icon img {
+  width: 52%;
+  height: 52%;
+}
+
+.spec-banner-copy {
+  min-width: 0;
+}
+
+.spec-banner-eyebrow {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--text-faint);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
 }
 
 .spec-cluster-label {
-  margin: 0 0 4px;
-  font-size: 1.22rem;
+  font-family: var(--font-display);
+  margin: 0 0 5px;
+  font-size: clamp(1.3rem, 1rem + 0.9vw, 1.7rem);
   font-weight: 700;
-  letter-spacing: -0.024em;
+  letter-spacing: -0.03em;
   color: #fafafa;
 }
 
 .spec-cluster-blurb {
   margin: 0;
   color: var(--text-faint);
-  font-size: 0.88rem;
+  font-size: 0.92rem;
 }
 
-.spec-topic-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
+@media (max-width: 560px) {
+  .spec-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
 }
 
-.spec-topic {
-  position: relative;
-  overflow: hidden;
-  padding: 15px 17px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--text-dim);
-  font-size: 0.93rem;
-  font-weight: 500;
-  text-decoration: none;
-  text-transform: capitalize;
-  transition:
-    border-color 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease;
-}
-
-/* A hairline of the cluster's hue slides in on hover — the only colour these
-   tiles carry, so the band stays readable at a glance. */
-.spec-topic::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--hue);
-  transform: scaleY(0);
-  transform-origin: center;
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.spec-topic:hover {
-  border-color: color-mix(in srgb, var(--hue) 45%, transparent);
-  color: #fafafa;
-  transform: translateY(-2px);
-}
-
-.spec-topic:hover::before {
-  transform: scaleY(1);
-}
 
 
 /* ==========================================================================
@@ -3441,28 +3430,40 @@ nav {
   }
 }
 
-/* --- category lanes ------------------------------------------------------
-   A tile strip: what the category is, how much of it there is, and its name
-   underneath. Connected by a hairline so the row reads as one instrument
-   rather than nine loose buttons. */
+/* --- the rail — a connected strip of tiles ------------------------------------------------------
+   One row of tiles, each with its name underneath, joined left to right by a
+   hairline so the row reads as one instrument rather than a handful of loose
+   buttons. Explore uses it for categories, Spectrum for topics — same strip at
+   two sizes, so the two pages are visibly the same product.
 
-.lanes {
+   It scrolls rather than wraps. A wrapped row cannot be connected: the first
+   tile on the second line is not :first-child, so it draws a connector into
+   the gutter to its left with nothing on the other end. */
+
+.rail {
   display: flex;
   align-items: flex-start;
   gap: 26px;
-  margin: 0 0 clamp(34px, 4vw, 52px);
-  padding-bottom: 4px;
+  /* Vertical padding, because the mask below clips to this box — without it
+     the active tile's glow is sliced flat at the rail's top and bottom. */
+  margin: 0 0 clamp(26px, 3.4vw, 44px);
+  padding: 12px 0 14px;
   overflow-x: auto;
   scrollbar-width: none;
+  /* Fades the last 34px of the visible box, so a tile the rail runs out of
+     room for trails off instead of being sliced. When the row fits, that band
+     falls on empty space and nothing shows. */
+  mask-image: linear-gradient(90deg, #000 calc(100% - 34px), transparent);
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 34px), transparent);
   animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: 120ms;
 }
 
-.lanes::-webkit-scrollbar {
+.rail::-webkit-scrollbar {
   display: none;
 }
 
-.lane {
+.rail-item {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3474,10 +3475,11 @@ nav {
   background: none;
   color: var(--text-faint);
   font-family: inherit;
+  text-decoration: none;
   cursor: pointer;
 }
 
-.lane-tile {
+.rail-tile {
   position: relative;
   display: grid;
   place-items: center;
@@ -3498,7 +3500,7 @@ nav {
 }
 
 /* The connector, drawn into the gap to the tile's left. */
-.lane + .lane .lane-tile::before {
+.rail-item + .rail-item .rail-tile::before {
   content: "";
   position: absolute;
   right: 100%;
@@ -3507,12 +3509,12 @@ nav {
   background: var(--line-bold);
 }
 
-.lane-tile svg {
+.rail-tile svg {
   width: 30px;
   height: 30px;
 }
 
-.lane-count {
+.rail-count {
   position: absolute;
   right: 9px;
   bottom: 7px;
@@ -3522,7 +3524,7 @@ nav {
   font-variant-numeric: tabular-nums;
 }
 
-.lane-label {
+.rail-label {
   font-size: 0.78rem;
   font-weight: 600;
   line-height: 1.3;
@@ -3530,18 +3532,18 @@ nav {
   transition: color 0.2s ease;
 }
 
-.lane:hover .lane-tile {
+.rail-item:hover .rail-tile {
   transform: translateY(-3px);
   background: var(--surface-raised);
   border-color: color-mix(in srgb, var(--hue, #a1a1aa) 40%, var(--line-bold));
   border-bottom-color: color-mix(in srgb, var(--hue, #a1a1aa) 55%, #3d3d49);
 }
 
-.lane:hover .lane-label {
+.rail-item:hover .rail-label {
   color: var(--text-dim);
 }
 
-.lane.active .lane-tile {
+.rail-item.active .rail-tile {
   border-color: color-mix(in srgb, var(--hue, #a1a1aa) 70%, transparent);
   border-bottom-color: var(--hue, #a1a1aa);
   background: color-mix(in srgb, var(--hue, #a1a1aa) 10%, var(--surface));
@@ -3551,46 +3553,108 @@ nav {
     0 0 56px color-mix(in srgb, var(--hue, #a1a1aa) 10%, transparent);
 }
 
-.lane.active .lane-label {
+.rail-item.active .rail-label {
   color: #fafafa;
 }
 
-.lane:focus-visible .lane-tile {
+.rail-item:focus-visible .rail-tile {
   outline: 2px solid var(--hue, #a78bfa);
   outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .lane:hover .lane-tile {
+  .rail-item:hover .rail-tile {
     transform: none;
   }
 }
 
 @media (max-width: 620px) {
-  .lanes {
+  .rail {
     gap: 18px;
   }
 
-  .lane {
+  .rail-item {
     width: 84px;
   }
 
-  .lane-tile {
+  .rail-tile {
     width: 76px;
     height: 76px;
     border-radius: 20px;
   }
 
-  .lane-tile svg {
+  .rail-tile svg {
     width: 25px;
     height: 25px;
   }
 
-  .lane + .lane .lane-tile::before {
+  .rail-item + .rail-item .rail-tile::before {
     width: 18px;
   }
 }
 
+
+/* Spectrum's tiles carry a topic icon at illustration scale, so the strip is
+   sized up rather than redrawn. */
+.rail.is-lg {
+  gap: 30px;
+}
+
+.rail.is-lg .rail-item {
+  width: 178px;
+}
+
+.rail.is-lg .rail-tile {
+  width: 178px;
+  height: 158px;
+  border-radius: 28px;
+}
+
+.rail.is-lg .rail-item + .rail-item .rail-tile::before {
+  width: 30px;
+}
+
+.rail.is-lg .rail-tile .topic-icon {
+  width: 66px;
+  height: 66px;
+  border-radius: 20px;
+}
+
+.rail.is-lg .rail-tile .topic-icon img {
+  width: 35px;
+  height: 35px;
+}
+
+.rail.is-lg .rail-label {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: capitalize;
+}
+
+.rail.is-lg .rail-item:hover .rail-label {
+  color: #fafafa;
+}
+
+@media (max-width: 620px) {
+  .rail.is-lg {
+    gap: 20px;
+  }
+
+  .rail.is-lg .rail-item,
+  .rail.is-lg .rail-tile {
+    width: 140px;
+  }
+
+  .rail.is-lg .rail-tile {
+    height: 128px;
+    border-radius: 22px;
+  }
+
+  .rail.is-lg .rail-item + .rail-item .rail-tile::before {
+    width: 20px;
+  }
+}
 
 /* ==========================================================================
    Auth form — the submit button reads its own state
@@ -4548,30 +4612,6 @@ nav {
   transform: scale(1.06);
 }
 
-/* In the Spectrum grid the icon is inline with the label, tinted to the
-   cluster's own band. */
-.spec-topic {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.spec-topic .topic-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  border-color: color-mix(in srgb, var(--hue) 22%, transparent);
-  background: color-mix(in srgb, var(--hue) 9%, transparent);
-}
-
-.spec-topic .topic-icon img {
-  width: 17px;
-  height: 17px;
-}
-
-.spec-topic:hover .topic-icon {
-  border-color: color-mix(in srgb, var(--hue) 55%, transparent);
-}
 
 /* --- topic icon inside the Prism deck's tile ---------------------------- */
 

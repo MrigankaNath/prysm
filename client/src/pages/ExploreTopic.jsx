@@ -30,35 +30,35 @@ const PICKER_HUES = {
   curated: "#a3e635",
 };
 
-/* A lane per category: a tile you can see, with its name underneath. The
-   previous version was icon-only with the label revealed on hover, which meant
-   the row was unreadable until you moved a cursor over it — and on touch,
-   where there is no hover, never readable at all. */
-function Lane({ id, label, count, hue, active, onSelect }) {
+/* One rail item per category: a tile you can see, with its name underneath.
+   The previous version was icon-only with the label revealed on hover, which
+   meant the row was unreadable until you moved a cursor over it — and on
+   touch, where there is no hover, never readable at all. */
+function RailItem({ id, label, count, hue, active, onSelect }) {
   const Icon = id === "all" ? IconGrid : CATEGORY_ICONS[id] || IconGrid;
 
   return (
     <button
       type="button"
-      className={`lane${active ? " active" : ""}`}
+      className={`rail-item${active ? " active" : ""}`}
       style={{ "--hue": hue }}
       onClick={() => onSelect(id)}
       aria-label={`${label}, ${count} results`}
       aria-pressed={active}
     >
-      <span className="lane-tile">
+      <span className="rail-tile">
         <Icon />
-        <span className="lane-count">{count}</span>
+        <span className="rail-count">{count}</span>
       </span>
-      <span className="lane-label">{label}</span>
+      <span className="rail-label">{label}</span>
     </button>
   );
 }
 
-function CategoryLanes({ sections, active, onSelect, total }) {
+function CategoryRail({ sections, active, onSelect, total }) {
   return (
-    <nav className="lanes" aria-label="Filter results by category">
-      <Lane
+    <nav className="rail" aria-label="Filter results by category">
+      <RailItem
         id="all"
         label="Everything"
         count={total}
@@ -67,7 +67,7 @@ function CategoryLanes({ sections, active, onSelect, total }) {
         onSelect={onSelect}
       />
       {sections.map(({ key, items }) => (
-        <Lane
+        <RailItem
           key={key}
           id={key}
           label={CATEGORY_LABELS[key] || key}
@@ -297,7 +297,7 @@ function ExploreTopic() {
           )}
 
           {sections.length > 1 && (
-            <CategoryLanes
+            <CategoryRail
               sections={sections}
               active={active}
               onSelect={setActive}

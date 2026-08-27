@@ -9,6 +9,7 @@ import TopicIcon from "../components/TopicIcon";
 const CLUSTERS = [
   {
     id: "engineering",
+    icon: "ph:wrench-bold",
     label: "Engineering",
     hue: "#3b82f6",
     blurb: "How things get built, and why they break.",
@@ -23,6 +24,7 @@ const CLUSTERS = [
   },
   {
     id: "intelligence",
+    icon: "ph:brain-bold",
     label: "Machines that learn",
     hue: "#8b5cf6",
     blurb: "From the maths underneath to what actually ships.",
@@ -37,6 +39,7 @@ const CLUSTERS = [
   },
   {
     id: "science",
+    icon: "ph:atom-bold",
     label: "The physical world",
     hue: "#ec4899",
     blurb: "Matter, energy, and the very large and very small.",
@@ -51,6 +54,7 @@ const CLUSTERS = [
   },
   {
     id: "mind",
+    icon: "ph:lightbulb-filament-bold",
     label: "Thinking clearly",
     hue: "#f59e0b",
     blurb: "Philosophy, reasoning, and how people decide.",
@@ -65,6 +69,7 @@ const CLUSTERS = [
   },
   {
     id: "world",
+    icon: "ph:globe-hemisphere-west-bold",
     label: "People and money",
     hue: "#10b981",
     blurb: "History, markets, and how societies organise.",
@@ -132,23 +137,33 @@ function Spectrum() {
             className="spec-cluster"
             style={{ "--hue": cluster.hue, "--stagger": `${i * 70}ms` }}
           >
-            <div className="spec-cluster-head">
-              <span className="spec-cluster-bar" aria-hidden="true" />
-              <div>
+            <header className="spec-banner">
+              <TopicIcon
+                topic={cluster.label}
+                icon={cluster.icon}
+                color={cluster.hue}
+              />
+              <div className="spec-banner-copy">
+                <span className="spec-banner-eyebrow">
+                  {cluster.topics.length} topics
+                </span>
                 <h3 className="spec-cluster-label">{cluster.label}</h3>
                 <p className="spec-cluster-blurb">{cluster.blurb}</p>
               </div>
-            </div>
+            </header>
 
-            <div className="spec-topic-grid">
+            <div className="rail is-lg">
               {cluster.topics.map((topic) => (
                 <Link
                   key={topic}
                   to={`/explore/${encodeURIComponent(topic)}`}
-                  className="spec-topic"
+                  className="rail-item"
+                  style={{ "--hue": cluster.hue }}
                 >
-                  <TopicIcon topic={topic} color={cluster.hue} />
-                  {topic}
+                  <span className="rail-tile">
+                    <TopicIcon topic={topic} color={cluster.hue} />
+                  </span>
+                  <span className="rail-label">{topic}</span>
                 </Link>
               ))}
             </div>

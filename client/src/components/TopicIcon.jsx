@@ -15,8 +15,8 @@ import {
  * finds something better, so there is never an empty slot waiting on the
  * network — and if Iconify is unreachable the icon is simply the concept one.
  */
-function TopicIcon({ topic, color, className = "" }) {
-  const [icon, setIcon] = useState(() => conceptIcon(topic));
+function TopicIcon({ topic, color, icon: fixed, className = "" }) {
+  const [icon, setIcon] = useState(() => fixed || conceptIcon(topic));
   // Each topic keeps its own band of the spectrum unless a caller overrides it.
   const base = color || topicColor(topic);
   /* The glyph sits on a plate of its own hue, so it is lifted well clear of it
@@ -24,6 +24,10 @@ function TopicIcon({ topic, color, className = "" }) {
   const tint = lighten(base);
 
   useEffect(() => {
+    if (fixed) {
+      setIcon(fixed);
+      return undefined;
+    }
     let live = true;
     setIcon(conceptIcon(topic));
     resolveTopicIcon(topic).then((resolved) => {
@@ -32,7 +36,7 @@ function TopicIcon({ topic, color, className = "" }) {
     return () => {
       live = false;
     };
-  }, [topic]);
+  }, [topic, fixed]);
 
   return (
     <span
