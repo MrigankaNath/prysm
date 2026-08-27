@@ -12,6 +12,9 @@ import {
 
 function Feed({ session }) {
   const [discover, setDiscover] = useState({ topics: [], items: [] });
+  /* Without this the empty state renders for a beat before the fetch resolves,
+     so every visit flashes "Nothing here yet" at someone who has plenty. */
+  const [loading, setLoading] = useState(true);
   const [showAll, setShowAll] = useState(false);
   const [library, setLibrary] = useState(() => ({
     bookmarks: getBookmarks(),
@@ -32,16 +35,19 @@ function Feed({ session }) {
   );
 
   useEffect(() => {
-    apiJson("/api/feed/discover", { topics: [], items: [] }).then((data) =>
-      setDiscover({
-        topics: data?.topics || [],
-        items: Array.isArray(data?.items) ? data.items : [],
-      }),
-    );
+    apiJson("/api/feed/discover", { topics: [], items: [] })
+      .then((data) =>
+        setDiscover({
+          topics: data?.topics || [],
+          items: Array.isArray(data?.items) ? data.items : [],
+        }),
+      )
+      .finally(() => setLoading(false));
   }, [session]);
 
   const { bookmarks, history, topics } = library;
   const isEmpty =
+    !loading &&
     bookmarks.length === 0 &&
     history.length === 0 &&
     discover.items.length === 0 &&

@@ -90,7 +90,7 @@ function CategorySection({ category, items, topic, index }) {
   const Icon = CATEGORY_ICONS[category];
   const visible = expanded ? items : items.slice(0, COLLAPSED_COUNT);
   const hidden = items.length - visible.length;
-  const isMediaGrid = category === "videos";
+  const isMediaGrid = category === "videos" || category === "podcasts";
 
   return (
     <section
@@ -202,11 +202,23 @@ function ExploreTopic() {
       .finally(() => setLoading(false));
   }, [topic]);
 
-  const overview = categories?.overview
-    ? Array.isArray(categories.overview)
+  /* Tavily's overview is the good version, but it is one metered call that can
+     fail, rate-limit, or come back empty — and when it did, the page lost its
+     description entirely. Fall back to the best available snippet so there is
+     always something to read at the top. */
+  const overview = useMemo(() => {
+    if (!categories) return null;
+    const direct = Array.isArray(categories.overview)
       ? categories.overview[0]
-      : categories.overview
-    : null;
+      : categories.overview;
+    if (direct?.snippet || direct?.title) return direct;
+
+    for (const key of ["articles", "papers", "books", "qa"]) {
+      const first = (categories[key] || []).find((i) => i?.snippet?.length > 90);
+      if (first) return first;
+    }
+    return null;
+  }, [categories]);
 
   const sections = useMemo(() => {
     if (!categories) return [];

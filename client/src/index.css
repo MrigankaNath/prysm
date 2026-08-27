@@ -3648,3 +3648,111 @@ nav {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--scope) 75%, transparent);
 }
+
+/* Deck-shaped placeholder, so the Prisms page doesn't jump from a line of text
+   to a full deck once the fetch lands. */
+.pdeck-skeleton {
+  pointer-events: none;
+}
+
+.pdeck-ghost {
+  width: var(--card-w);
+  height: 390px;
+  border-radius: 24px;
+  background: linear-gradient(100deg, #0b0b0e 30%, #15151b 50%, #0b0b0e 70%);
+  background-size: 220% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* --- video + podcast tiles ----------------------------------------------
+   Both ship a real image, so they read better as tiles than as rows: the
+   thumbnail leads, sitting in its own inset plate so it never touches the
+   type beneath it.
+------------------------------------------------------------------------- */
+
+.cat-grid {
+  grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
+  gap: 26px 20px;
+}
+
+.cat-grid .res-tile {
+  flex-direction: column;
+  gap: 0;
+  padding: 8px 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  transition:
+    border-color 0.3s ease,
+    background-color 0.3s ease,
+    transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.cat-grid .res-tile:hover {
+  border-color: #34343d;
+  background: var(--surface-raised);
+  transform: translateY(-3px);
+}
+
+/* The row-hover light wash belongs to list rows, not tiles. */
+.cat-grid .res-tile::before {
+  display: none;
+}
+
+.cat-grid .res-tile .res-plate {
+  padding: 0;
+  border: none;
+  border-radius: 13px;
+  background: none;
+  overflow: hidden;
+}
+
+.cat-grid .res-tile .res-thumb {
+  width: 100%;
+  border-radius: 13px;
+}
+
+/* Podcast artwork is square; in a tile it reads better cropped to a softer
+   landscape so the grid rows line up with the video tiles. */
+.cat-grid .plate-podcasts .res-thumb {
+  aspect-ratio: 16 / 10;
+}
+
+.cat-grid .res-tile .res-body {
+  padding: 14px 8px 0;
+  transform: none;
+}
+
+.cat-grid .res-tile .res-link {
+  margin-top: 0;
+  font-size: 0.98rem;
+  line-height: 1.34;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cat-grid .res-tile .res-snippet {
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  font-size: 0.84rem;
+  margin-top: 7px;
+}
+
+.cat-grid .res-tile .res-meta {
+  margin-top: 10px;
+}
+
+.cat-grid .res-tile .bookmark-btn {
+  top: 16px;
+  right: 16px;
+}
+
+@media (max-width: 620px) {
+  .cat-grid {
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 20px 14px;
+  }
+}

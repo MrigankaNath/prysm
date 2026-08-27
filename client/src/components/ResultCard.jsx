@@ -72,20 +72,26 @@ function Meta({ item }) {
 /* Thumbnails sit inside their own padded plate, so the image never butts up
    against the type beside it. */
 function Thumb({ item, category }) {
+  const [broken, setBroken] = useState(false);
+
   return (
     <span className={`res-plate plate-${category}`}>
       <span className="res-thumb">
-        {item.thumbnail ? (
+        {item.thumbnail && !broken ? (
           <img
             src={item.thumbnail}
             alt=""
             loading="lazy"
             decoding="async"
-            onError={(e) => {
-              e.currentTarget.style.visibility = "hidden";
-            }}
+            /* Referrer-less requests are what most image CDNs reject when a
+               thumbnail silently fails to appear. */
+            referrerPolicy="no-referrer"
+            onError={() => setBroken(true)}
           />
         ) : (
+          /* A hidden <img> leaves an empty box that looks identical to a
+             missing thumbnail, so a failure falls back to the gradient
+             instead — visibly deliberate rather than broken. */
           <span className="res-thumb-fallback" aria-hidden="true" />
         )}
         {category === "videos" && (
@@ -104,9 +110,14 @@ function Thumb({ item, category }) {
 function ResultCard({ item, topic, category }) {
   const hasThumb =
     ["videos", "podcasts", "books"].includes(category) && item.thumbnail;
+  // Videos and podcasts render as tiles, so their thumbnail leads the card
+  // rather than sitting beside the text.
+  const isTile = category === "videos" || category === "podcasts";
 
   return (
-    <div className={`res${hasThumb ? " res-with-thumb" : ""}`}>
+    <div
+      className={`res${hasThumb ? " res-with-thumb" : ""}${isTile ? " res-tile" : ""}`}
+    >
       {hasThumb && (
         <a
           className="res-thumb-link"

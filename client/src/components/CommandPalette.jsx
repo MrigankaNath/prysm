@@ -72,6 +72,10 @@ function pushRecent(topic) {
 
 function CommandPalette({ open, setOpen }) {
   const [query, setQuery] = useState("");
+  /* The active command is state, not part of the input value. Keeping it in
+     the text meant it rendered twice — once as the chip, once as the typed
+     "/prism" still sitting in the field. */
+  const [scope, setScope] = useState(null);
   const [results, setResults] = useState(EMPTY_RESULTS);
   const [searching, setSearching] = useState(false);
   const [recents, setRecents] = useState([]);
@@ -100,6 +104,7 @@ function CommandPalette({ open, setOpen }) {
     }
 
     setQuery("");
+    setScope(null);
     setResults(EMPTY_RESULTS);
     setRecents(readRecents());
     document.body.style.overflow = "hidden";
@@ -112,8 +117,7 @@ function CommandPalette({ open, setOpen }) {
   }, [open]);
 
   useEffect(() => {
-    const parsed = parseCommand(query);
-    const term = (parsed.command ? parsed.rest : query).trim();
+    const term = query.trim();
 
     if (!term) {
       setResults(EMPTY_RESULTS);
@@ -149,21 +153,23 @@ function CommandPalette({ open, setOpen }) {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const { command, rest, partial } = parseCommand(query);
-  const trimmedQuery = (command ? rest : query).trim();
-  const showCommandMenu = partial !== null;
+  const { partial } = parseCommand(query);
+  const command = scope;
+  const trimmedQuery = query.trim();
+  const showCommandMenu = !scope && partial !== null;
   const matchingCommands = showCommandMenu
     ? COMMANDS.filter((c) => c.key.startsWith(partial))
     : [];
 
   const runCommand = (c) => {
-    if (c.to && !rest.trim()) {
+    if (c.to && !c.scope) {
       setOpen(false);
       navigate(c.to);
       return;
     }
-    // Keep the command and let the user carry on typing its query.
-    setQuery(`/${c.key} `);
+    // Promote to a chip and hand the empty field back for the actual query.
+    setScope(c);
+    setQuery("");
     inputRef.current?.focus();
   };
   const hasResults =
@@ -192,16 +198,24 @@ function CommandPalette({ open, setOpen }) {
             type="text"
             placeholder="What do you want to learn?"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              // "/prism " (name + space) promotes straight to a chip, so the
+              // command never lingers as text next to its own chip.
+              const done = !scope && /^\/(\w+)\s$/.exec(value);
+              const matched =
+                done && COMMANDS.find((c) => c.key === done[1].toLowerCase());
+              if (matched) {
+                runCommand(matched);
+                return;
+              }
+              setQuery(value);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 if (showCommandMenu && matchingCommands[0]) {
                   e.preventDefault();
                   runCommand(matchingCommands[0]);
-                } else if (command?.to && !trimmedQuery) {
-                  e.preventDefault();
-                  setOpen(false);
-                  navigate(command.to);
                 } else if (trimmedQuery && command?.scope !== "prism") {
                   e.preventDefault();
                   goToTopic(trimmedQuery.toLowerCase());
@@ -209,9 +223,9 @@ function CommandPalette({ open, setOpen }) {
               }
               // Backspace on an empty query drops the scope rather than
               // stranding you in a mode you can't see how to leave.
-              if (e.key === "Backspace" && command && !rest) {
+              if (e.key === "Backspace" && scope && !query) {
                 e.preventDefault();
-                setQuery("");
+                setScope(null);
               }
             }}
           />

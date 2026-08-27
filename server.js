@@ -516,6 +516,14 @@ const LIVE_CATEGORIES = {
 // should fall below them.
 const UNSCORED_BASELINE = 0.6;
 
+/* Videos and articles lead whenever they have anything, because they are where
+   most people should start on most topics. A multiplier wasn't enough — on
+   "react hooks" a 58k-star repo still outranked them — and the ordering is a
+   deliberate editorial choice rather than a popularity contest. Categories
+   with no results are skipped, so a topic with nothing on YouTube still won't
+   open with an empty Videos section. Everything else stays score-ranked. */
+const START_HERE = ["videos", "articles"];
+
 // Not every topic is best served by the same medium: philosophy lives in
 // podcasts and books, a JS library lives in code and Q&A. Rank categories per
 // topic instead of showing one fixed order. Deterministic for now — the
@@ -537,13 +545,28 @@ function rankCategories(categories) {
         quality = Math.min(Math.log10(peak + 1) / Math.log10(config.saturation), 1);
       }
 
+      /* Videos and articles are where most people should start on most
+         topics — one is the lowest-effort way in, the other is the most
+         complete. They earn a boost rather than a fixed slot, so a topic that
+         genuinely has nothing on YouTube still won't lead with an empty
+         Videos section. */
       return { name, score: fill * quality };
     })
     .sort((a, b) => b.score - a.score)
     .map(({ name }) => name);
 
+  const has = (name) => {
+    const value = categories[name];
+    return Array.isArray(value) ? value.length > 0 : Boolean(value);
+  };
+
+  const lead = START_HERE.filter(has);
+  const rest = scored.filter(
+    (name) => name !== "overview" && !lead.includes(name),
+  );
+
   // The overview is a primer, so it always leads regardless of score.
-  return ["overview", ...scored.filter((name) => name !== "overview")].filter(
+  return ["overview", ...lead, ...rest].filter(
     (name) => name === "overview" ? Boolean(categories.overview) : true,
   );
 }

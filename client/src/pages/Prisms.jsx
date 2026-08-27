@@ -239,7 +239,11 @@ function Prisms({ session }) {
         <h1 className="pdeck-h1">Paths through a subject</h1>
       </header>
 
-      {loading && <p className="wl-empty">Loading Prisms…</p>}
+      {loading && (
+        <div className="pdeck pdeck-skeleton" aria-hidden="true">
+          <div className="pdeck-ghost" />
+        </div>
+      )}
 
       {!loading && count === 0 && (
         <p className="wl-empty">
