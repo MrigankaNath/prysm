@@ -3474,17 +3474,31 @@ nav {
   display: flex;
   align-items: flex-start;
   gap: 26px;
-  /* Vertical padding, because the mask below clips to this box — without it
-     the active tile's glow is sliced flat at the rail's top and bottom. */
-  margin: 0 0 clamp(26px, 3.4vw, 44px);
-  padding: 12px 0 14px;
+  /* Padding on all four sides, pulled back out with a negative margin so the
+     tiles still line up with the banner above.
+     `overflow-x: auto` clips to this box, so with no horizontal padding the
+     first tile's 1.5px border sat exactly on the clip edge and lost its outer
+     half — the left edge read thinner than the right. The vertical padding is
+     there for the same reason: without it the active tile's glow is sliced
+     flat top and bottom. */
+  --rail-bleed: 16px;
+  margin: 0 calc(-1 * var(--rail-bleed)) clamp(26px, 3.4vw, 44px);
+  padding: 12px var(--rail-bleed) 14px;
   overflow-x: auto;
   scrollbar-width: none;
   /* Fades the last 34px of the visible box, so a tile the rail runs out of
      room for trails off instead of being sliced. When the row fits, that band
      falls on empty space and nothing shows. */
-  mask-image: linear-gradient(90deg, #000 calc(100% - 34px), transparent);
-  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 34px), transparent);
+  mask-image: linear-gradient(
+    90deg,
+    #000 calc(100% - 34px - var(--rail-bleed)),
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    #000 calc(100% - 34px - var(--rail-bleed)),
+    transparent
+  );
   animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: 120ms;
 }
@@ -3499,6 +3513,7 @@ nav {
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
+  box-sizing: border-box;
   width: 104px;
   padding: 0;
   border: none;
@@ -3513,6 +3528,10 @@ nav {
   position: relative;
   display: grid;
   place-items: center;
+  /* Without this the border sits outside the declared width, so the tile is
+     really 95px in a 92px item — it overhung both sides, and the scroll
+     container clipped the overhang off the first tile's left edge. */
+  box-sizing: border-box;
   width: 92px;
   height: 92px;
   border: 1.5px solid var(--line-bold);
