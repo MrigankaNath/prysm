@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getBookmarks, getHistory, getTopics, subscribe } from "../lib/library";
-import ResultCard from "../components/ResultCard";
+import FeedCard from "../components/FeedCard";
 import TopicIcon from "../components/TopicIcon";
+import { lighten, topicColor } from "../lib/topicIcon";
 import { apiJson } from "../lib/api";
 import {
   IconBookmark,
@@ -10,6 +11,60 @@ import {
   IconCompass,
   IconChevronRight,
 } from "../components/Icons";
+
+/* Every topic card carries its own band of the spectrum: the base hue drives
+   the stroke and the glow, the lightened one fills the button — a solid fill
+   at full saturation would be amber under white text on some topics and
+   violet under white on others, and only one of those is readable. */
+function bandStyle(topic) {
+  const band = topicColor(topic);
+  return { "--band": band, "--band-lit": lighten(band, 0.34) };
+}
+
+/* The lead card is the answer to the section's own promise. "Continue
+   exploring" implies there is one thing you'd continue, so it gets the hero
+   slot, the only filled button on the page, and twice the width. */
+function LeadTopic({ topic, total }) {
+  return (
+    <Link
+      to={`/explore/${encodeURIComponent(topic)}`}
+      className="feed-topic-card feed-topic-lead"
+      style={bandStyle(topic)}
+    >
+      <span className="feed-lead-top">
+        <TopicIcon topic={topic} />
+        <span className="feed-lead-chip">Pick up here</span>
+      </span>
+      <span className="feed-lead-body">
+        <span className="feed-topic-name">{topic}</span>
+        <span className="feed-lead-meta">
+          {total !== null ? `${total} results waiting` : "Ready when you are"}
+        </span>
+      </span>
+      <span className="feed-lead-cta">
+        Continue
+        <IconChevronRight />
+      </span>
+    </Link>
+  );
+}
+
+function TopicCard({ topic, total }) {
+  return (
+    <Link
+      to={`/explore/${encodeURIComponent(topic)}`}
+      className="feed-topic-card"
+      style={bandStyle(topic)}
+    >
+      <TopicIcon topic={topic} />
+      <span className="feed-topic-name">{topic}</span>
+      <span className="feed-topic-foot">
+        {total !== null ? `${total} results` : "Open"}
+        <IconChevronRight />
+      </span>
+    </Link>
+  );
+}
 
 function Feed({ session }) {
   const [discover, setDiscover] = useState({ topics: [], items: [] });
@@ -61,12 +116,13 @@ function Feed({ session }) {
     ? discover.topics.map((topic) => ({ topic, total: null }))
     : topics.map(({ topic, total }) => ({ topic, total }));
 
+  const [lead, ...restTopics] = topicList.slice(0, 9);
   const visibleItems = showAll ? discover.items : discover.items.slice(0, 8);
 
   return (
     <div className="page page-wide feed">
       <header className="feed-head">
-        <div>
+        <div className="feed-head-copy">
           <h1 className="feed-title">Your feed</h1>
           <p className="feed-sub">
             Built from what you&rsquo;ve saved and searched — not from what&rsquo;s
@@ -74,7 +130,7 @@ function Feed({ session }) {
           </p>
         </div>
 
-        {/*  ILLUSTRATION SLOT — "feed mark", ~200x140.  */}
+        {/*  ILLUSTRATION SLOT — "feed mark", ~220x160.  */}
         <div className="illo-slot illo-slot-head" aria-hidden="true">
           <span className="illo-hint">illustration</span>
         </div>
@@ -85,37 +141,28 @@ function Feed({ session }) {
           <p className="feed-empty-title">Nothing here yet</p>
           <p className="feed-empty-copy">
             Search any topic and it starts filling in. Press{" "}
-            <kbd className="inline-kbd">⌘K</kbd>, or browse the{" "}
-            <Link to="/spectrum" className="inline-link">
-              Spectrum
-            </Link>
-            .
+            <kbd className="inline-kbd">⌘K</kbd> to search from anywhere.
           </p>
+          <Link to="/spectrum" className="btn-bounce">
+            Browse the Spectrum
+            <IconChevronRight />
+          </Link>
         </div>
       )}
 
-      {topicList.length > 0 && (
+      {lead && (
         <section className="feed-section">
           <h3 className="feed-section-head">
             <IconCompass className="feed-section-icon" />
             Continue exploring
+            <Link to="/spectrum" className="feed-section-link">
+              All topics
+            </Link>
           </h3>
           <div className="feed-topic-row">
-            {topicList.slice(0, 8).map(({ topic, total }) => (
-              <Link
-                key={topic}
-                to={`/explore/${encodeURIComponent(topic)}`}
-                className="feed-topic-card"
-              >
-                <span className="feed-topic-head">
-                  <TopicIcon topic={topic} />
-                  <span className="feed-topic-name">{topic}</span>
-                </span>
-                <span className="feed-topic-meta">
-                  {total !== null ? `${total} results` : "Open"}{" "}
-                  <IconChevronRight />
-                </span>
-              </Link>
+            <LeadTopic topic={lead.topic} total={lead.total} />
+            {restTopics.map(({ topic, total }) => (
+              <TopicCard key={topic} topic={topic} total={total} />
             ))}
           </div>
         </section>
@@ -127,9 +174,9 @@ function Feed({ session }) {
             <IconCompass className="feed-section-icon" />
             Because you searched
           </h3>
-          <div className="cat-cols">
+          <div className="fcard-grid">
             {visibleItems.map((item) => (
-              <ResultCard
+              <FeedCard
                 key={item.url}
                 item={item}
                 topic={item.topic || ""}
@@ -160,13 +207,14 @@ function Feed({ session }) {
               All {bookmarks.length}
             </Link>
           </h3>
-          <div className="cat-stack">
+          <div className="fcard-grid is-compact">
             {bookmarks.slice(0, 4).map((item) => (
-              <ResultCard
+              <FeedCard
                 key={item.url}
                 item={item}
                 topic={item.topic || ""}
                 category={item.category || "articles"}
+                compact
               />
             ))}
           </div>
@@ -182,13 +230,14 @@ function Feed({ session }) {
               All {history.length}
             </Link>
           </h3>
-          <div className="cat-stack">
+          <div className="fcard-grid is-compact">
             {history.slice(0, 4).map((item) => (
-              <ResultCard
+              <FeedCard
                 key={item.url}
                 item={item}
                 topic={item.topic || ""}
                 category={item.category || "articles"}
+                compact
               />
             ))}
           </div>

@@ -16,6 +16,19 @@
   --text-faint: #6f6f7a;
   --radius-lg: 20px;
   --radius-md: 14px;
+  /* Card scale. At 26px the stroke reads as a drawn edge rather than a
+     rounded rectangle's corner, which is what the feed's cards are after. */
+  --radius-xl: 26px;
+
+  /* A stroke you can actually see. --line is a hairline: correct on a 32px
+     plate, invisible around a 300px card, which then reads as a floating
+     block of slightly-lighter black. Bold containers use this at 1.5px. */
+  --line-bold: #31313c;
+
+  /* One easing for anything that settles; a second, overshooting one for
+     controls that should feel struck rather than faded. */
+  --ease-settle: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* The app is a column that fills the viewport: nav at its natural height, the
@@ -1331,8 +1344,9 @@ nav {
 }
 
 .illo-slot-head {
-  width: 200px;
-  height: 128px;
+  width: 220px;
+  height: 158px;
+  border-radius: var(--radius-xl);
 }
 
 .illo-slot-overview {
@@ -1519,26 +1533,41 @@ nav {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  margin-top: 11px;
-  padding: 9px 17px;
-  border: 1px solid var(--line);
+  margin-top: 18px;
+  padding: 12px 24px;
+  border: 1.5px solid var(--line-bold);
   border-radius: 999px;
   background: transparent;
-  color: var(--text-faint);
+  color: var(--text-dim);
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.86rem;
   font-weight: 600;
   cursor: pointer;
   transition:
     color 0.14s ease,
     border-color 0.14s ease,
-    background-color 0.14s ease;
+    background-color 0.14s ease,
+    transform 0.44s var(--ease-bounce);
 }
 
 .cat-expand:hover {
   color: #fafafa;
-  border-color: var(--line-strong);
+  border-color: #4a4a56;
   background: var(--surface);
+  transform: translateY(-2px);
+}
+
+.cat-expand:active {
+  transform: scale(0.97);
+  transition-duration: 0.09s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cat-expand,
+  .cat-expand:hover,
+  .cat-expand:active {
+    transform: none;
+  }
 }
 
 .cat-expand-icon {
@@ -1559,9 +1588,17 @@ nav {
 
 /* ==========================================================================
    Feed
+   ==========================================================================
+
+   The feed is set with more air than anywhere else in the app. Sections are
+   separated by whitespace alone — no rules, no alternating backgrounds — and
+   every container carries a stroke at --line-bold rather than the hairline,
+   which at card scale reads as an edge instead of a slightly lighter black.
+
+   Colour is spent in exactly one place: the lead card, in the topic's own
+   band. Filling every card would turn a spectrum into neon-on-dark.
    ========================================================================== */
 
-.feed-head,
 .wl-head {
   display: flex;
   align-items: flex-start;
@@ -1570,7 +1607,6 @@ nav {
   margin-bottom: 30px;
 }
 
-.feed-title,
 .wl-title {
   font-family: var(--font-display);
   margin: 0 0 7px;
@@ -1580,7 +1616,6 @@ nav {
   color: #fafafa;
 }
 
-.feed-sub,
 .wl-subtitle {
   margin: 0;
   max-width: 48ch;
@@ -1589,32 +1624,92 @@ nav {
   line-height: 1.6;
 }
 
+.feed-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+  margin-bottom: clamp(40px, 5.5vw, 72px);
+}
+
+.feed-head-copy {
+  min-width: 0;
+}
+
+.feed-title {
+  font-family: var(--font-display);
+  margin: 0 0 12px;
+  font-size: clamp(2rem, 1.3rem + 2.6vw, 3.15rem);
+  font-weight: 800;
+  letter-spacing: -0.043em;
+  line-height: 1.02;
+  color: #fafafa;
+}
+
+.feed-sub {
+  margin: 0;
+  max-width: 42ch;
+  color: var(--text-faint);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+/* --------------------------------------------------------------------------
+   Empty state — an invitation, not a shrug. It gets the same air as a full
+   feed so the page doesn't collapse to a third of its height when new.
+   -------------------------------------------------------------------------- */
+
 .feed-empty {
-  padding: 44px 30px;
-  border: 1px dashed #26262e;
-  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(52px, 8vw, 88px) 30px;
+  border: 1.5px dashed #2a2a33;
+  border-radius: var(--radius-xl);
   text-align: center;
 }
 
 .feed-empty-title {
-  margin: 0 0 8px;
-  font-size: 1.1rem;
+  font-family: var(--font-display);
+  margin: 0 0 12px;
+  font-size: 1.55rem;
   font-weight: 700;
-  color: #e4e4e7;
+  letter-spacing: -0.03em;
+  color: #fafafa;
 }
 
 .feed-empty-copy {
-  margin: 0;
+  margin: 0 0 32px;
+  max-width: 46ch;
   color: var(--text-faint);
-  font-size: 0.92rem;
+  font-size: 0.98rem;
   line-height: 1.7;
 }
 
+/* --------------------------------------------------------------------------
+   Sections
+   -------------------------------------------------------------------------- */
+
 .feed-section {
-  margin-bottom: 36px;
+  margin-bottom: clamp(56px, 7vw, 104px);
 }
 
-.feed-section-head,
+.feed-section:last-child {
+  margin-bottom: 0;
+}
+
+.feed-section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 clamp(20px, 2.4vw, 30px);
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+}
+
 .spec-recent-head {
   display: flex;
   align-items: center;
@@ -1641,56 +1736,536 @@ nav {
   text-decoration: none;
   text-transform: none;
   letter-spacing: 0;
+  transition: color 0.16s ease;
 }
 
 .feed-section-link:hover {
   color: #a78bfa;
 }
 
+/* --------------------------------------------------------------------------
+   Result cards
+
+   Explore renders results as rows on purpose — 27 of them across nine lanes,
+   where a border on each is noise. The feed is a different job: eight items,
+   mixed categories, drawn from up to eight different searches. Cards here, and
+   the extra space goes on the two facts a row list hides — which topic this
+   came from, and what kind of thing it is.
+   -------------------------------------------------------------------------- */
+
+/* align-items: start, not the default stretch. Only some categories carry a
+   thumbnail, so a stretched row gives every card the height of the tallest —
+   and a card whose interior is half empty reads as broken, where a shorter
+   card with space beneath it just reads as a staggered grid. */
+.fcard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+  align-items: start;
+  gap: 26px;
+}
+
+.fcard-grid.is-compact {
+  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+}
+
+.fcard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1.5px solid var(--line-bold);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.42s var(--ease-bounce),
+    box-shadow 0.28s var(--ease-settle);
+}
+
+/* One beam entering from the left and dispersing — the motif, at 2px. It is
+   the only decoration on the card, and it doubles as the topic's colour key. */
+.fcard::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--band, #a1a1aa) 70%, transparent),
+    var(--band-lit, #a1a1aa) 50%,
+    color-mix(in srgb, var(--band, #a1a1aa) 70%, transparent)
+  );
+  opacity: 0.55;
+  transition: opacity 0.24s ease;
+}
+
+.fcard:hover {
+  transform: translateY(-4px);
+  background: var(--surface-raised);
+  border-color: color-mix(in srgb, var(--band, #a1a1aa) 44%, var(--line-bold));
+  box-shadow:
+    0 0 26px color-mix(in srgb, var(--band, #000) 22%, transparent),
+    0 0 64px color-mix(in srgb, var(--band, #000) 12%, transparent);
+}
+
+.fcard:hover::before {
+  opacity: 1;
+}
+
+.fcard:focus-within {
+  border-color: color-mix(in srgb, var(--band, #a1a1aa) 55%, var(--line-bold));
+}
+
+/* Full-bleed under the spectral edge, each category keeping its own aspect —
+   one crop mangles the others. */
+.fcard-thumb {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #050507;
+}
+
+.fcard-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fcard:hover .fcard-thumb img {
+  transform: scale(1.05);
+}
+
+.fcard-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: rgba(8, 8, 10, 0.72);
+  backdrop-filter: blur(6px);
+  color: #fafafa;
+}
+
+.fcard-play svg {
+  width: 15px;
+  height: 15px;
+  margin-left: 2px;
+}
+
+.fcard-body {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  padding: 21px 22px 19px;
+}
+
+.fcard.is-compact .fcard-body {
+  gap: 9px;
+  padding: 17px 18px 15px;
+}
+
+/* The eyebrow answers "what is this" and "where did it come from" in one
+   line — the two things the row list never showed. */
+.fcard-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fcard-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  color: var(--text-faint);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.fcard-kind svg {
+  width: 13px;
+  height: 13px;
+  color: var(--band-lit, #a1a1aa);
+}
+
+.fcard-topic {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--band-lit, #a1a1aa);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* Separator drawn rather than typed, so it disappears cleanly when a card has
+   no topic to name. */
+.fcard-topic::before {
+  content: "·";
+  margin-right: 7px;
+  color: var(--text-faint);
+}
+
+.fcard-top .bookmark-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.fcard-link {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 1.06rem;
+  font-weight: 600;
+  line-height: 1.32;
+  letter-spacing: -0.022em;
+  color: #f4f4f5;
+  text-decoration: none;
+  transition: color 0.16s ease;
+}
+
+.fcard.is-compact .fcard-link {
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  font-size: 1rem;
+}
+
+.fcard:hover .fcard-link,
+.fcard-link:focus-visible {
+  color: var(--band-lit, #fafafa);
+}
+
+.fcard-snippet {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.fcard-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 13px;
+  border-top: 1px solid var(--line);
+  color: #52525b;
+  font-size: 0.74rem;
+}
+
+.fcard-signal {
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fcard,
+  .fcard:hover,
+  .fcard:hover .fcard-thumb img {
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Topic cards
+   -------------------------------------------------------------------------- */
+
 .feed-topic-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 11px;
+  grid-template-columns: repeat(auto-fill, minmax(226px, 1fr));
+  grid-auto-rows: minmax(170px, auto);
+  gap: 26px;
 }
 
 .feed-topic-card {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  padding: 16px 17px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
+  align-items: flex-start;
+  gap: 18px;
+  padding: 24px 24px 18px;
+  border: 1.5px solid var(--line-bold);
+  border-radius: var(--radius-xl);
   background: var(--surface);
   text-decoration: none;
   transition:
-    border-color 0.16s ease,
-    transform 0.16s ease;
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.42s var(--ease-bounce),
+    box-shadow 0.28s var(--ease-settle);
 }
 
 .feed-topic-card:hover {
-  border-color: #34343d;
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  background: var(--surface-raised);
+  border-color: color-mix(in srgb, var(--band, #a1a1aa) 44%, var(--line-bold));
+  box-shadow:
+    0 0 26px color-mix(in srgb, var(--band, #000) 22%, transparent),
+    0 0 64px color-mix(in srgb, var(--band, #000) 12%, transparent);
+}
+
+.feed-topic-card:focus-visible {
+  outline: 2px solid var(--band-lit, #a78bfa);
+  outline-offset: 3px;
+}
+
+.feed-topic-card .topic-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+}
+
+.feed-topic-card .topic-icon img {
+  width: 23px;
+  height: 23px;
 }
 
 .feed-topic-name {
-  font-size: 0.96rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 1.24rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.028em;
   color: #f4f4f5;
   text-transform: capitalize;
 }
 
-.feed-topic-meta {
+/* Pushed to the bottom so cards of different title lengths still line their
+   footers up across the row. */
+.feed-topic-foot {
   display: flex;
   align-items: center;
-  gap: 5px;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  margin-top: auto;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
   color: #52525b;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: color 0.16s ease;
 }
 
-.feed-topic-meta svg {
-  width: 12px;
-  height: 12px;
+.feed-topic-foot svg {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.32s var(--ease-bounce);
 }
+
+.feed-topic-card:hover .feed-topic-foot {
+  color: #a1a1aa;
+}
+
+.feed-topic-card:hover .feed-topic-foot svg {
+  transform: translateX(4px);
+}
+
+/* --------------------------------------------------------------------------
+   Lead card — double width, the topic's band, and the page's only filled
+   button. The section promises something to continue; this is it.
+   -------------------------------------------------------------------------- */
+
+.feed-topic-lead {
+  gap: 22px;
+  padding: 30px 30px 30px;
+  border-color: color-mix(in srgb, var(--band, #a1a1aa) 40%, var(--line-bold));
+  background:
+    radial-gradient(
+      120% 150% at 6% 0%,
+      color-mix(in srgb, var(--band, #a1a1aa) 15%, transparent),
+      transparent 64%
+    ),
+    var(--surface);
+}
+
+.feed-topic-lead:hover {
+  background:
+    radial-gradient(
+      120% 150% at 6% 0%,
+      color-mix(in srgb, var(--band, #a1a1aa) 21%, transparent),
+      transparent 64%
+    ),
+    var(--surface-raised);
+  border-color: color-mix(in srgb, var(--band, #a1a1aa) 62%, var(--line-bold));
+}
+
+/* Two columns wide and two rows tall. A one-row lead leaves its neighbours
+   stretched to a height they have nothing to put in, which reads as three
+   half-empty cards next to a full one. */
+@media (min-width: 720px) {
+  .feed-topic-lead {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+}
+
+.feed-lead-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.feed-topic-lead .topic-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 17px;
+}
+
+.feed-topic-lead .topic-icon img {
+  width: 30px;
+  height: 30px;
+}
+
+/* The one coloured outline on the page. Same idea as the rainbow ring
+   elsewhere: a bold stroke means "this is the active thing". */
+.feed-lead-chip {
+  padding: 7px 15px;
+  border: 1.5px solid color-mix(in srgb, var(--band, #a78bfa) 62%, transparent);
+  border-radius: 999px;
+  color: var(--band-lit, #a78bfa);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+}
+
+.feed-lead-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.feed-topic-lead .feed-topic-name {
+  font-size: clamp(1.6rem, 1.1rem + 1.4vw, 2.15rem);
+  letter-spacing: -0.036em;
+  color: #fafafa;
+}
+
+.feed-lead-meta {
+  color: var(--text-faint);
+  font-size: 0.9rem;
+}
+
+.feed-lead-cta,
+.btn-bounce {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 26px;
+  border: none;
+  border-radius: 999px;
+  background: var(--band-lit, #b293f9);
+  color: #08080a;
+  font-family: var(--font-ui);
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: -0.012em;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 10px 26px -16px
+    color-mix(in srgb, var(--band-lit, #b293f9) 95%, transparent);
+  transition:
+    transform 0.44s var(--ease-bounce),
+    box-shadow 0.24s var(--ease-settle);
+}
+
+.feed-lead-cta svg,
+.btn-bounce svg {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.34s var(--ease-bounce);
+}
+
+.feed-topic-lead:hover .feed-lead-cta,
+.btn-bounce:hover {
+  transform: translateY(-2px) scale(1.035);
+  box-shadow: 0 18px 36px -16px
+    color-mix(in srgb, var(--band-lit, #b293f9) 95%, transparent);
+}
+
+.feed-topic-lead:hover .feed-lead-cta svg,
+.btn-bounce:hover svg {
+  transform: translateX(3px);
+}
+
+/* Press has to be quick — an overshoot on the way down reads as a control
+   that didn't register the click. */
+.feed-topic-lead:active .feed-lead-cta,
+.btn-bounce:active {
+  transform: scale(0.965);
+  transition-duration: 0.09s;
+}
+
+.btn-bounce:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 3px;
+}
+
+/* The illustration is flex-shrink: 0, so side-by-side it squeezes the title
+   into a two-word column long before the viewport is actually narrow. */
+@media (max-width: 720px) {
+  .feed-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 26px;
+  }
+
+  .feed-head .illo-slot-head {
+    width: 100%;
+    height: 132px;
+  }
+
+  .feed-sub {
+    max-width: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .feed-topic-card {
+    padding: 20px 20px 16px;
+  }
+
+  .feed-topic-lead {
+    padding: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feed-topic-card,
+  .feed-topic-card:hover,
+  .feed-lead-cta,
+  .btn-bounce,
+  .feed-topic-lead:hover .feed-lead-cta,
+  .btn-bounce:hover,
+  .feed-topic-card:hover .feed-topic-foot svg,
+  .feed-lead-cta svg,
+  .btn-bounce:hover svg {
+    transform: none;
+  }
+}
+
 
 /* ==========================================================================
    Spectrum

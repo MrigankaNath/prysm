@@ -45,7 +45,14 @@ stops meaning anything if everything glows.
 ```
 
 Radii: `--radius-md 14px` for plates and inputs, `--radius-lg 20px` for cards,
-`999px` for pills, `24px` for the Prism deck cards.
+`--radius-xl 26px` for the feed's bold-stroked cards and panels, `999px` for
+pills, `24px` for the Prism deck cards.
+
+**Two stroke weights, and they are not interchangeable.** `--line` is a
+hairline — correct around a 32px icon plate, invisible around a 300px card,
+which then reads as a floating block of slightly-lighter black. Containers at
+card scale use `--line-bold #31313c` at **1.5px**, which is an edge you can
+actually see. Hairlines stay for dividers *inside* a container.
 
 ## Typography
 
@@ -64,8 +71,14 @@ share a voice.
 
 ## Motion
 
-One easing for anything that settles: `cubic-bezier(0.32, 0.72, 0, 1)`.
-Entrances use `cubic-bezier(0.16, 1, 0.3, 1)`.
+One easing for anything that settles: `--ease-settle`,
+`cubic-bezier(0.32, 0.72, 0, 1)`. Entrances use `cubic-bezier(0.16, 1, 0.3, 1)`.
+
+`--ease-bounce`, `cubic-bezier(0.34, 1.56, 0.64, 1)`, overshoots, and is only
+for **controls that should feel struck rather than faded** — a filled button,
+a card lifting under the cursor, an arrow nudging forward. Press goes the other
+way: `scale(0.965)` at **0.09s with no overshoot**, because an overshoot on the
+way down reads as a control that didn't register the click.
 
 - page/section entrance — 0.5s, staggered by index
 - deck transitions — 0.58s
@@ -102,10 +115,28 @@ silently falls back to black. `iconUrl` guards on a hex pattern for that reason.
 
 ## Result presentation
 
-**Rows, not cards.** No borders or backgrounds around a result. The title *is*
-the link; on hover it takes colour, an underline, and weight via
+Two presentations, and which one applies is decided by the job the screen is
+doing — not by preference.
+
+**Explore: rows, not cards.** No borders or backgrounds around a result. The
+title *is* the link; on hover it takes colour, an underline, and weight via
 `-webkit-text-stroke` rather than `font-weight`, because changing weight
-reflows the line under the cursor.
+reflows the line under the cursor. Explore shows ~27 results across nine lanes;
+a border on each is noise, and the row's own hover is the affordance.
+
+**Feed: cards.** Eight items, mixed categories, drawn from up to eight
+different searches. A row list gives them identical weight and shows neither
+*which topic this came from* nor *what kind of thing it is* — the two facts
+that decide whether an item is worth a click. The card spends its extra space
+on exactly those, as a single eyebrow line: category glyph and label, then the
+topic in its own band.
+
+**Only videos get a thumbnail on the feed.** A 16:9 still is the shape of a
+full-bleed band, so it crops to nothing; square podcast art and 2:3 book covers
+have to be cut in half to fit one. The grid is `align-items: start` for the
+same reason — with the default stretch, one card carrying an image gives its
+whole row that height, and a card whose interior is half empty reads as broken
+where a shorter card with space beneath it reads as a staggered grid.
 
 Hover draws a band of spectral light across the row and drifts the text 5px —
 refraction, not a rule.
@@ -129,6 +160,39 @@ slabs.
 Key terms get a colour-plated background — first mention only, substring-aware
 (once "quantum computing" is plated, "quantum" alone is not), and spaced at
 least 90 characters apart so they distribute rather than cluster in line one.
+
+## The feed
+
+The app's most-visited screen, and the one set with the most air. Three rules
+carry it:
+
+**Sections are separated by whitespace alone** — no rules, no alternating
+backgrounds, `clamp(56px, 7vw, 104px)` between them. The eyebrow heading and
+the gap above it are the entire structural device.
+
+**One lead card, then a rail.** "Continue exploring" promises there is a thing
+to continue, so the most recent topic takes a card **two columns wide and two
+grid rows tall**, and the rest pack around it. The two-row span is not
+cosmetic: a one-row lead stretches its neighbours to a height they have nothing
+to fill, which reads as three half-empty cards beside a full one.
+
+**Colour is spent in exactly one place per section.** The lead card takes its
+topic's own band — a tinted radial wash, a bold outlined chip, and the page's only filled
+button. Every other card is a neutral bold stroke that picks up its band only
+on hover. Filling all of them turns a spectrum into neon-on-dark.
+
+The filled button is `lighten(band, 0.34)` under **near-black text**. Six bands
+under white text is not a legible set — amber at full saturation is 2.1:1 —
+and lightening every band lets one text colour work across all of them.
+
+Result cards carry their band as a **2px spectral edge** along the top —
+`linear-gradient(90deg, band-lit, band 38%, transparent 78%)`, one beam
+entering from the left and dispersing. It is the card's only decoration, and it
+doubles as the topic's colour key. Dim at rest, full opacity on hover.
+
+Sections are **not** boxed. An earlier pass wrapped the result lists in a
+bold-stroked panel; a box around boxes is redundant, and the panel clipped the
+first row's hover glow square against its own rounded corner.
 
 ## Layout
 
