@@ -3867,12 +3867,21 @@ nav {
 /* --- topic icon inside the Prism deck's tile ---------------------------- */
 
 /* The glass tile is already the plate here, so the icon drops its own. */
+/* Truly bare: the deck's glass tile is already the plate, so every part of the
+   chip treatment has to come off. Leaving the box-shadow on drew the inset
+   highlight as a square inside the tile. */
 .topic-icon.topic-icon-bare {
   width: auto;
   height: auto;
+  overflow: visible;
   border: none;
-  background: none;
   border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.topic-icon.topic-icon-bare .topic-icon-grain {
+  display: none;
 }
 
 .topic-icon.topic-icon-bare img {
