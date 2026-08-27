@@ -3,6 +3,7 @@ import {
   conceptIcon,
   iconUrl,
   isBrandIcon,
+  lighten,
   resolveTopicIcon,
   topicColor,
 } from "../lib/topicIcon";
@@ -17,7 +18,10 @@ import {
 function TopicIcon({ topic, color, className = "" }) {
   const [icon, setIcon] = useState(() => conceptIcon(topic));
   // Each topic keeps its own band of the spectrum unless a caller overrides it.
-  const tint = color || topicColor(topic);
+  const base = color || topicColor(topic);
+  /* The glyph sits on a plate of its own hue, so it is lifted well clear of it
+     rather than tinted the same value and disappearing into the background. */
+  const tint = lighten(base);
 
   useEffect(() => {
     let live = true;
@@ -33,9 +37,12 @@ function TopicIcon({ topic, color, className = "" }) {
   return (
     <span
       className={`topic-icon${isBrandIcon(icon) ? " is-brand" : ""} ${className}`.trim()}
-      style={{ "--tint": tint }}
+      style={{ "--tint": base }}
       aria-hidden="true"
     >
+      {/* Same feTurbulence grain the auth card uses, so the texture reads as
+          one system rather than a one-off. */}
+      <span className="topic-icon-grain" aria-hidden="true" />
       <img src={iconUrl(icon, tint)} alt="" loading="lazy" decoding="async" />
     </span>
   );
