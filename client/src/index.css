@@ -1992,9 +1992,14 @@ nav {
   inset: 0;
   z-index: 2;
   pointer-events: none;
-  opacity: 0.4;
-  mix-blend-mode: hard-light;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Quiet. At 0.4 on hard-light the noise read as static across the whole
+     board rather than as a finish on it — louder than anything else on the
+     page, when a cover should be the calmest thing on a shelf. Overlay at 0.14
+     keeps the tooth without the hiss, and matches the weight the topic plates
+     and the auth card carry. */
+  opacity: 0.14;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* --- depth --------------------------------------------------------------- */
@@ -2087,6 +2092,182 @@ nav {
 }
 
 /* --------------------------------------------------------------------------
+   Discussions and Q&A — conversations on glass
+
+   Neither lane ships an image, so the card can't be led by one. What it is led
+   by is what actually decides whether a thread is worth opening: how many
+   people weighed in, and where it happened. As rows both were the smallest
+   text on the line.
+   -------------------------------------------------------------------------- */
+
+.glass-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.glass {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 22px 16px;
+  border: 1px solid var(--line-bold);
+  border-radius: 18px;
+  /* Glass: a translucent plate over the page rather than a solid one. The
+     blur is what separates it from the feed's opaque cards — those sit on the
+     page, these sit above it. */
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  backdrop-filter: blur(14px) saturate(130%);
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.4s var(--ease-bounce),
+    box-shadow 0.3s var(--ease-settle);
+}
+
+.glass:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--cat, #22d3ee) 46%, var(--line-bold));
+  background: color-mix(in srgb, var(--surface-raised) 75%, transparent);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--cat, #22d3ee) 13%, transparent);
+}
+
+/* Stretched over the card, with the bookmark lifted back above it, so the
+   whole thing is one target and still only one link and one button. */
+.glass-hit {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.glass-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.glass-mark {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, var(--cat, #22d3ee) 26%, var(--line));
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--cat, #22d3ee) 10%, transparent);
+}
+
+.glass-mark svg {
+  width: 15px;
+  height: 15px;
+}
+
+.glass-host {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-faint);
+  font-size: 0.74rem;
+}
+
+.glass-top .bookmark-btn {
+  position: relative;
+  top: auto;
+  right: auto;
+  z-index: 2;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.glass-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.04rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.022em;
+  color: #f4f4f5;
+  transition: color 0.16s ease;
+}
+
+.glass:hover .glass-title {
+  color: #ffffff;
+}
+
+.glass-blurb {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.glass-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* The count is the point of a thread, so it is set as one. */
+.glass-signal {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: color-mix(in srgb, var(--cat, #22d3ee) 40%, #fafafa);
+}
+
+.glass-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  color: #52525b;
+  font-size: 0.74rem;
+  font-weight: 600;
+  transition: color 0.16s ease;
+}
+
+.glass-go svg {
+  width: 12px;
+  height: 12px;
+  transition: transform 0.32s var(--ease-bounce);
+}
+
+.glass:hover .glass-go {
+  color: var(--text-dim);
+}
+
+.glass:hover .glass-go svg {
+  transform: translateX(4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass:hover,
+  .glass:hover .glass-go svg {
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
    Papers — a sheet, not a link
 
    Where a paper was published and how often it has been cited are what decide
@@ -2115,11 +2296,14 @@ nav {
   /* The bound edge. A paper is a document, so it gets a margin rule rather
      than a card's full border — the lane should not read like the feed. */
   border-left: 3px solid color-mix(in srgb, var(--cat, #6366f1) 55%, transparent);
+  /* Same glass as the conversation lanes, tinted at the bound edge — the three
+     text-only lanes are one family with three different jobs. */
   background: linear-gradient(
     100deg,
-    color-mix(in srgb, var(--cat, #6366f1) 7%, var(--surface)),
-    var(--surface) 55%
+    color-mix(in srgb, var(--cat, #6366f1) 9%, color-mix(in srgb, var(--surface) 55%, transparent)),
+    color-mix(in srgb, var(--surface) 55%, transparent) 55%
   );
+  backdrop-filter: blur(14px) saturate(130%);
   transition:
     border-left-color 0.2s ease,
     box-shadow 0.3s var(--ease-settle),
@@ -3708,6 +3892,53 @@ nav {
 
 .overview {
   padding: 8px 0 76px;
+}
+
+/* Two columns once there's an image to put in the second. Not a reserved slot:
+   plenty of Wikipedia articles have no lead image, and an empty frame beside
+   the definition is worse than a full-width definition. */
+.overview.has-figure {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+  align-items: start;
+  gap: clamp(28px, 4vw, 60px);
+}
+
+.overview-body {
+  min-width: 0;
+}
+
+/* A mat and a frame, the way a print is hung — the image is a photograph of
+   something, not a UI surface, so it gets an edge that says so. */
+.overview-figure {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--line-bold);
+  border-radius: 18px;
+  background: linear-gradient(160deg, #14141a, #0b0b0f);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 20px 44px -28px rgba(0, 0, 0, 0.9);
+}
+
+.overview-figure img {
+  display: block;
+  width: 100%;
+  /* Fixed, so a portrait lead image and a landscape one frame identically
+     rather than one of them running the height of the definition. */
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+  .overview.has-figure {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .overview-figure {
+    max-width: 380px;
+  }
 }
 
 .overview-foot {

@@ -375,6 +375,23 @@ band falls on empty space and nothing shows. The mask clips to the rail's box,
 which is why the rail carries vertical padding: without it the active tile's
 glow is sliced flat top and bottom.
 
+## The topic figure
+
+Wikipedia's lead image for the article, framed beside the definition. It is
+already in the summary response the overview comes from, so it costs nothing —
+and unlike a stock photo it is *of the topic*: "speed cubing" returns a
+competitor mid-solve rather than a generic desk.
+
+**Conditional, never reserved.** Plenty of articles have no lead image (game
+theory doesn't), so the second column only exists when there is something to
+put in it; an empty frame beside the definition is worse than a full-width
+definition. A dead URL removes the column at runtime for the same reason.
+
+**Wikimedia only serves a fixed set of pre-rendered widths per file.** Measured
+on one image: 330 and 500 return 200, while 400, 640 and 800 all return 400 —
+even though the original is 1600px. So the URL is used exactly as the API gave
+it, and the frame is sized to suit rather than the width being rewritten.
+
 ## Layout
 
 `#root` is a flex column owning the viewport height; `nav` is `flex-shrink: 0`.

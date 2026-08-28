@@ -73,7 +73,15 @@ async function fetchWikipediaOverview(topic) {
     type: "overview",
     snippet,
     published_at: null,
-    thumbnail: null,
+    /* The article's lead image. Free, keyless, already in this response — and
+       unlike a stock photo it is *of the topic*: "speed cubing" returns Feliks
+       Zemdegs mid-solve, not a generic desk. Plenty of topics have none, so
+       everything downstream treats it as optional. */
+    /* Exactly the URL the API gave us. Wikimedia only serves a fixed set of
+       pre-rendered thumbnail widths per file — measured on one image: 330 and
+       500 return 200, while 400, 640 and 800 all return 400 — so rewriting the
+       width in the path is not safe even when the original is far larger. */
+    thumbnail: page.thumbnail?.source || null,
   };
 }
 

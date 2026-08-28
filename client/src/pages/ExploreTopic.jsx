@@ -11,6 +11,7 @@ import ResultCard from "../components/ResultCard";
 import BookCard from "../components/BookCard";
 import PaperCard from "../components/PaperCard";
 import MediaCard from "../components/MediaCard";
+import GlassCard from "../components/GlassCard";
 import Prose from "../components/Prose";
 import { recordTopic } from "../lib/library";
 import { apiFetch, apiJson } from "../lib/api";
@@ -103,6 +104,10 @@ function CategorySection({ category, items, topic, index }) {
      shelf of books, a stack of papers, and artwork-led cards for the two that
      ship real images. The rest stay rows, which is right for them — an article
      or a thread is a link and nothing more. */
+  /* Threads and answers are conversations: what decides whether one is worth
+     opening is how many people weighed in and how far it got, and as rows both
+     were the smallest text on the line. They card, on the same glass shell the
+     papers use, so the three text-only lanes read as one family. */
   const layout =
     category === "books"
       ? "books"
@@ -110,7 +115,9 @@ function CategorySection({ category, items, topic, index }) {
         ? "papers"
         : category === "videos" || category === "podcasts"
           ? "media"
-          : null;
+          : category === "discussions" || category === "qa"
+            ? "glass"
+            : null;
 
   return (
     <section
@@ -140,6 +147,19 @@ function CategorySection({ category, items, topic, index }) {
         <div className="paper-stack">
           {visible.map((item, i) => (
             <PaperCard key={`${item.url}-${i}`} item={item} topic={topic} />
+          ))}
+        </div>
+      )}
+
+      {layout === "glass" && (
+        <div className="glass-grid">
+          {visible.map((item, i) => (
+            <GlassCard
+              key={`${item.url}-${i}`}
+              item={item}
+              topic={topic}
+              category={category}
+            />
           ))}
         </div>
       )}
@@ -243,30 +263,55 @@ function Overview({ overview, topic }) {
   );
 
   return (
-    <section className="overview">
-      <Prose text={overview.snippet || overview.title} topic={topic} />
+    <section className={`overview${overview.thumbnail ? " has-figure" : ""}`}>
+      <div className="overview-body">
+        <Prose text={overview.snippet || overview.title} topic={topic} />
 
-      {/* An unattributed paragraph asks to be trusted; a linked one earns it.
-          Only rendered for Wikipedia — a synthesised answer has no single
-          page to point at, and inventing one would be worse than none. */}
-      {wiki && overview.url && (
-        <a
-          className="overview-source"
-          href={overview.url}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <IconWikipedia className="overview-source-mark" />
-          Wikipedia
-          <IconChevronRight className="overview-source-go" />
-        </a>
-      )}
+        {/* An unattributed paragraph asks to be trusted; a linked one earns it.
+            Only rendered for Wikipedia — a synthesised answer has no single
+            page to point at, and inventing one would be worse than none. */}
+        {wiki && overview.url && (
+          <a
+            className="overview-source"
+            href={overview.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <IconWikipedia className="overview-source-mark" />
+            Wikipedia
+            <IconChevronRight className="overview-source-go" />
+          </a>
+        )}
 
-      <div className="overview-foot" style={{ "--delay": "420ms" }}>
-        <span className="overview-cue" aria-hidden="true">
-          <IconChevronDown />
-        </span>
+        <div className="overview-foot" style={{ "--delay": "420ms" }}>
+          <span className="overview-cue" aria-hidden="true">
+            <IconChevronDown />
+          </span>
+        </div>
       </div>
+
+      {/* Wikipedia's own lead image for the article, already in the summary
+          response — so it costs nothing, and unlike a stock photo it is *of
+          the topic*: "speed cubing" returns a competitor mid-solve rather than
+          a generic desk. Plenty of articles have none, which is why the column
+          is conditional rather than reserved and left empty. */}
+      {overview.thumbnail && (
+        <figure className="overview-figure">
+          <img
+            src={overview.thumbnail}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            referrerPolicy="no-referrer"
+            /* A dead image would otherwise hold open a column of nothing. */
+            onError={(e) => {
+              const section = e.currentTarget.closest(".overview");
+              if (section) section.classList.remove("has-figure");
+              e.currentTarget.closest(".overview-figure")?.remove();
+            }}
+          />
+        </figure>
+      )}
     </section>
   );
 }
