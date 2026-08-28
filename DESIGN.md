@@ -192,10 +192,25 @@ than an auto-fill grid. A grid stretches its columns to fill the row, so a
 shelf of four and a shelf of five drew books at different sizes — and a book is
 a physical object, so two of them being different widths reads as a mistake.
 
-The cover is a scanned page where Open Library has one and a typeset board
-where it doesn't. **The page is inset with a margin, not bled to the edge**:
-what comes back is nearly always a scanned *title page*, cream with black type,
-and full-bleed it looked like a cropped screenshot.
+**Every cover is typeset; none are photographed.** Open Library has an image
+for roughly half of what it returns, and most of those are scans of a *title
+page* — a sheet of cream paper with a paragraph of 8pt type in the middle of
+it. At shelf size that is unreadable, and beside a real jacket it looks broken.
+Designing all of them is the only way the shelf is consistent, and it means the
+title and author are set at a size you can actually read: a book mark, the
+title in the display face (`text-wrap: balance`, four lines), the author under
+it at 66% white.
+
+The cloth is the topic's band under the same `feTurbulence` grain the topic
+plates and the auth card use — flat colour is exactly what makes a drawn book
+look like a coloured rectangle. The fore edge is ruled rather than solid, since
+a plain white strip reads as card rather than paper.
+
+**The cover carries the title, so the line under the shelf doesn't.** Repeating
+it would print the same words twice at two sizes; that line is only what the
+cover can't say — whether it's free to read, its year, and the bookmark. The
+bookmark sits in that flow rather than floating over the board, where on a
+turned book it hung in mid-air belonging to neither the cover nor the page.
 
 **`?default=false` on the cover URL is load-bearing.** Without it Open Library
 answers a missing cover with a blank 1px image and **HTTP 200** — measured — so

@@ -1,97 +1,77 @@
-import { useState } from "react";
 import { BookmarkButton } from "./ResultCard";
 import { recordVisit } from "../lib/library";
 import { topicColor, lighten } from "../lib/topicIcon";
+import { IconBooks } from "./Icons";
 
-/* Books are objects, so they get drawn as objects.
+/* Books are objects, so they get drawn as objects — and every one of them is
+ * typeset rather than photographed.
  *
- * Open Library returns a cover for maybe half of what it finds, which as a row
- * of thumbnails meant one entry with a picture and the next with a gap — the
- * lane read as a broken list rather than a shelf. Every book here has a cover:
- * a real one where it exists, and a typeset one where it doesn't, built from
- * the title and author on a ground derived from the title itself. Both are the
- * same shape, so the shelf is even either way.
+ * Open Library has a cover for maybe half of what it returns, and "a cover" is
+ * doing a lot of work in that sentence: some are jackets, most are scans of a
+ * title page, and a scanned title page is a sheet of cream paper with a
+ * paragraph of 8pt type in the middle of it. At shelf size that is unreadable,
+ * and next to a real jacket it looks broken. Designing all of them is the only
+ * way the shelf is consistent, and it means the title and author are set at a
+ * size you can actually read.
  */
 function BookCard({ item, topic, category = "books" }) {
-  const [broken, setBroken] = useState(false);
   const band = topicColor(item.title || "");
-  const showImage = item.thumbnail && !broken;
 
   /* Author and year come through as fields now; the joined snippet is the
      fallback for anything cached before that change shipped. */
-  const byline =
-    [item.author, item.year].filter(Boolean).join(" · ") ||
-    (item.snippet || "").replace(/\s*·\s*free to read$/, "");
+  const author =
+    item.author ||
+    (item.snippet || "").replace(/\s*·\s*free to read$/, "").split(" · ")[0] ||
+    "";
 
   return (
-    <article className="book" style={{ "--band": band, "--band-lit": lighten(band, 0.45) }}>
+    <article
+      className="book"
+      style={{ "--band": band, "--band-lit": lighten(band, 0.45) }}
+    >
       <a
         className="book-object"
         href={item.url}
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => recordVisit(item, { topic, category })}
-        aria-label={item.title}
+        aria-label={`${item.title}${author ? ` by ${author}` : ""}`}
       >
-        {/* A slab, not a face: front and back boards half the depth apart, with
-            the block of pages bridging them at the fore edge. Rotating this
-            about its own centre opens the book out; the previous version
-            pivoted on the binding, which foreshortened the cover into itself
-            and read as a squeeze rather than a turn. */}
+        {/* A slab, not a face: front and back boards half the spine's depth
+            apart, with the block of pages bridging them at the fore edge.
+            Rotating this about its own centre opens the book out; pivoting on
+            the binding foreshortened the cover into itself and read as a
+            squeeze rather than a turn. */}
         <span className="book-slab">
           <span className="book-front">
-            {showImage ? (
-              <img
-                className="book-page"
-                src={item.thumbnail}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                referrerPolicy="no-referrer"
-                onError={() => setBroken(true)}
-                /* Belt and braces for rows cached before ?default=false
-                   shipped, and for any host that answers a missing image with
-                   a placeholder rather than an error. */
-                onLoad={(e) => {
-                  if (e.currentTarget.naturalWidth < 10) setBroken(true);
-                }}
-              />
-            ) : (
-              <span className="book-typeset" aria-hidden="true">
-                <span className="book-typeset-rule" />
-                <span className="book-typeset-title">{item.title}</span>
-                {item.author && (
-                  <span className="book-typeset-author">{item.author}</span>
-                )}
-              </span>
-            )}
-
-            {/* The binding: cloth catching light down the hinge. Only visible
-                once the book turns, which is the point of it. */}
+            {/* Cloth, then grain over it. Flat colour is what makes a drawn
+                book look like a coloured rectangle. */}
+            <span className="book-grain" aria-hidden="true" />
+            {/* Light down the hinge, and the boards it runs between. */}
             <span className="book-binding" aria-hidden="true" />
+
+            <span className="book-cover">
+              <IconBooks className="book-mark" />
+              <span className="book-cover-title">{item.title}</span>
+              {author && <span className="book-cover-author">{author}</span>}
+            </span>
           </span>
 
           {/* The cut pages, standing on edge between the two boards. */}
           <span className="book-pages" aria-hidden="true" />
-          <span className="book-back" aria-hidden="true" />
+          <span className="book-back" aria-hidden="true">
+            <span className="book-grain" aria-hidden="true" />
+          </span>
         </span>
       </a>
 
+      {/* The cover carries the title, so this is only what the cover can't
+          say: whether it's readable, and the control to keep it. */}
       <div className="book-meta">
-        <a
-          className="book-title"
-          href={item.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => recordVisit(item, { topic, category })}
-        >
-          {item.title}
-        </a>
-        {byline && <p className="book-byline">{byline}</p>}
         <span className="book-free">Free to read</span>
+        {item.year && <span className="book-year">{item.year}</span>}
+        <BookmarkButton item={item} topic={topic} category={category} />
       </div>
-
-      <BookmarkButton item={item} topic={topic} category={category} />
     </article>
   );
 }
