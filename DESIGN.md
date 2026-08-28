@@ -180,12 +180,24 @@ gets no chip rather than a guess.
 **Books are a shelf and papers are documents.** Two lanes hold objects rather
 than links, so they are drawn as objects.
 
-*Books:* a **slab**, not a face. Front and back boards sit `translateZ(±25px)`
-apart with a 50px fore-edge panel stood on end between them
-(`rotateY(90deg)`), and the whole thing turns about its own centre —
-`rotateY(0deg)` at rest to `-30deg` on hover, over 0.9s. An earlier version
-pivoted on the binding, which foreshortened the cover into itself and read as a
-squeeze rather than a turn.
+*Books:* a **banded cover** on a slab. A panel of the topic's colour over a
+dark plate that carries the type, with a fore-edge panel stood on end
+(`rotateY(90deg)`) and a back board at `translateZ(-29cqw)`. **The front board
+is the reference plane and the depth runs behind it**, so the book opens away
+from the reader rather than swinging through them. It turns about its own
+centre, `0deg` to `-24deg` over 0.5s; an earlier version pivoted on the
+binding, which foreshortened the cover into itself and read as a squeeze.
+
+**The whole cover is drawn in `cqw`** against a `container-type: inline-size`
+slab — type, padding, the mark and the board's own thickness. A 148px book on
+mobile and a 196px one on the shelf are the same cover at two scales rather
+than two designs, with no breakpoint in between.
+
+**The band is a fixed 38%, not `flex: 1`.** A flex item won't shrink below its
+own content, so with both halves flexible the plate grew to fit the longest
+title and the band shrank to suit — a different split on every book, which is
+the one thing a shelf can't have. The title clamps at 3 lines and the author at
+1 for the same reason: 4 pushed the author and the mark past the bottom edge.
 
 **Every book is exactly `--book-w` wide**, and the shelf is flex-wrap rather
 than an auto-fill grid. A grid stretches its columns to fill the row, so a
