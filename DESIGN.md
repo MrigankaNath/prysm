@@ -180,11 +180,20 @@ gets no chip rather than a guess.
 **Books are a shelf and papers are documents.** Two lanes hold objects rather
 than links, so they are drawn as objects.
 
-*Books:* every board is the same 2:3 size — a scanned page where Open Library
-has one, a typeset cover where it doesn't. The board is **turned**
-(`rotateY(-11deg)`, pivoting on the binding) so the spine and the block of cut
-pages are both visible; that is what makes it an object rather than a rectangle
-with a picture in it. **The page is inset with a margin, not bled to the edge**:
+*Books:* a **slab**, not a face. Front and back boards sit `translateZ(±25px)`
+apart with a 50px fore-edge panel stood on end between them
+(`rotateY(90deg)`), and the whole thing turns about its own centre —
+`rotateY(0deg)` at rest to `-30deg` on hover, over 0.9s. An earlier version
+pivoted on the binding, which foreshortened the cover into itself and read as a
+squeeze rather than a turn.
+
+**Every book is exactly `--book-w` wide**, and the shelf is flex-wrap rather
+than an auto-fill grid. A grid stretches its columns to fill the row, so a
+shelf of four and a shelf of five drew books at different sizes — and a book is
+a physical object, so two of them being different widths reads as a mistake.
+
+The cover is a scanned page where Open Library has one and a typeset board
+where it doesn't. **The page is inset with a margin, not bled to the edge**:
 what comes back is nearly always a scanned *title page*, cream with black type,
 and full-bleed it looked like a cropped screenshot.
 

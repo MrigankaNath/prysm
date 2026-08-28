@@ -1772,138 +1772,165 @@ nav {
    where there is one, a typeset one where there isn't.
    -------------------------------------------------------------------------- */
 
+/* Every book is exactly --book-w wide. An auto-fill grid stretched each column
+   to fill the row, so a shelf of four and a shelf of five drew books at
+   different sizes — and a book is a physical object, so two of them being
+   different widths reads as a mistake rather than as a layout. Flex-wrap keeps
+   the width fixed and lets the row end where it ends. */
 .book-shelf {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
-  gap: clamp(26px, 3vw, 40px);
+  --book-w: 200px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(28px, 3.4vw, 46px);
   align-items: start;
-  /* Shared perspective, so every book on the shelf is seen from the same eye
-     point rather than each turning about its own. */
-  perspective: 1400px;
 }
 
 .book {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
+  width: var(--book-w);
 }
 
 .book-object {
+  display: block;
+  width: var(--book-w);
+  aspect-ratio: 3 / 4;
+  /* Per book, not on the shelf: a shared vanishing point would turn the books
+     at the left edge away from the ones at the right. */
+  perspective: 800px;
+  text-decoration: none;
+}
+
+.book-slab {
   position: relative;
   display: block;
-  aspect-ratio: 2 / 3;
-  /* Turned slightly, and pivoting on the binding, so the spine and the block
-     of pages are both visible — that is what makes it read as an object
-     rather than a rectangle with a picture in it. */
-  transform: rotateY(-11deg);
-  transform-origin: left center;
+  width: 100%;
+  height: 100%;
   transform-style: preserve-3d;
-  text-decoration: none;
-  transition: transform 0.55s var(--ease-bounce);
+  transform: rotateY(0deg);
+  transition: transform 0.9s ease;
 }
 
-/* The cover board. The page sits on it with a margin — what comes back from
-   Open Library is nearly always a scanned title page, cream with black type,
-   and bleeding that to the edge looked like a cropped screenshot. */
-.book-board {
+.book:hover .book-slab,
+.book-object:focus-visible .book-slab {
+  transform: rotateY(-30deg);
+}
+
+/* The two boards, half the spine's depth either side of centre. */
+.book-front,
+.book-back {
   position: absolute;
   inset: 0;
-  display: flex;
-  overflow: hidden;
-  padding: 9px 9px 9px 15px;
-  box-sizing: border-box;
-  border-radius: 2px 7px 7px 2px;
-  background:
-    linear-gradient(
-      100deg,
-      color-mix(in srgb, var(--band) 34%, #0b0b10),
-      color-mix(in srgb, var(--band) 14%, #08080c) 62%,
-      color-mix(in srgb, var(--band) 22%, #0b0b10)
-    );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.13),
-    0 3px 8px rgba(0, 0, 0, 0.55),
-    0 22px 40px -24px rgba(0, 0, 0, 0.95);
+  border-radius: 3px 8px 8px 3px;
+  background: linear-gradient(
+    to top right,
+    color-mix(in srgb, var(--band) 26%, #08080c),
+    color-mix(in srgb, var(--band) 52%, #15151d)
+  );
 }
 
+.book-front {
+  overflow: hidden;
+  display: flex;
+  padding: 10px 10px 10px 16px;
+  box-sizing: border-box;
+  transform: translateZ(25px);
+  box-shadow: 4px 5px 18px rgba(0, 0, 0, 0.75);
+}
+
+.book-back {
+  transform: translateZ(-25px);
+  box-shadow: -10px 0 46px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* The fore edge. A 50px-deep panel stood on end at the far side of the board,
+   so the two boards have something between them when the book turns. */
+.book-pages {
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 50px;
+  transform: translateX(calc(var(--book-w) - 25px)) rotateY(90deg);
+  background: linear-gradient(
+    90deg,
+    #e8e8ea 0 1px,
+    #fbfbfc 1px 3px,
+    #c9c9ce 3px 4px
+  );
+  background-size: 4px 100%;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.35);
+}
+
+/* What Open Library returns is nearly always a scanned title page — cream
+   paper, black type, square edges. Bled to the board's edge it looked like a
+   cropped screenshot; inset with a margin it reads as a page on a cover. */
 .book-page {
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: top center;
   display: block;
-  border-radius: 1px 2px 2px 1px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+  border-radius: 1px 3px 3px 1px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.55);
 }
 
-/* Paper curving into the binding. Sits over the page, at its left edge. */
-.book-gutter {
+/* Cloth catching light down the hinge. Mostly hidden until the book turns,
+   which is when a binding would actually show. */
+.book-binding {
   position: absolute;
-  inset: 0 auto 0 15px;
-  width: 16px;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 9%;
   pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.42),
-    rgba(0, 0, 0, 0.12) 55%,
-    transparent
-  );
-}
-
-/* The cut pages, standing proud of the board on the fore edge. */
-.book-block {
-  position: absolute;
-  inset: 4px -5px 4px auto;
-  left: 100%;
-  width: 6px;
-  border-radius: 0 3px 3px 0;
-  background: repeating-linear-gradient(
-    90deg,
-    #e4e4e7 0 1px,
-    #a1a1aa 1px 2px,
-    #d4d4d8 2px 3px
-  );
-  box-shadow: inset -1px 0 2px rgba(0, 0, 0, 0.4);
-  transform: translateZ(-1px);
-}
-
-/* The spine, at the binding. */
-.book-spine {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 11px;
-  border-radius: 3px 0 0 3px;
-  pointer-events: none;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--band) 45%, #000) 0%,
-    rgba(255, 255, 255, 0.2) 42%,
-    color-mix(in srgb, var(--band) 30%, #000) 100%
-  );
-  box-shadow: inset -1px 0 3px rgba(0, 0, 0, 0.55);
+  opacity: 0.55;
+  background:
+    linear-gradient(
+      90deg,
+      hsla(0, 0%, 100%, 0),
+      hsla(0, 0%, 100%, 0) 12%,
+      hsla(0, 0%, 100%, 0.25) 29.25%,
+      hsla(0, 0%, 100%, 0) 50.5%,
+      hsla(0, 0%, 100%, 0) 75.25%,
+      hsla(0, 0%, 100%, 0.25) 91%,
+      hsla(0, 0%, 100%, 0)
+    ),
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.06),
+      rgba(0, 0, 0, 0.2) 12%,
+      transparent 30%,
+      rgba(0, 0, 0, 0.04) 50%,
+      rgba(0, 0, 0, 0.4) 73.5%,
+      rgba(0, 0, 0, 0.6) 75.25%,
+      rgba(0, 0, 0, 0.3) 85.25%,
+      transparent
+    );
 }
 
 /* The stand-in jacket, for a book with no scan. */
 .book-typeset {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 10px;
   width: 100%;
   height: 100%;
-  padding: 16px 13px;
+  padding: 18px 15px;
   box-sizing: border-box;
-  border-radius: 1px 2px 2px 1px;
+  border-radius: 1px 3px 3px 1px;
   background: linear-gradient(
     160deg,
-    color-mix(in srgb, var(--band) 26%, #101017),
-    color-mix(in srgb, var(--band) 10%, #0a0a0e)
+    color-mix(in srgb, var(--band) 22%, #101017),
+    color-mix(in srgb, var(--band) 8%, #0a0a0e)
   );
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .book-typeset-rule {
-  width: 24px;
+  width: 26px;
   height: 2px;
   border-radius: 2px;
   background: var(--band-lit);
@@ -1912,11 +1939,11 @@ nav {
 .book-typeset-title {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
-  line-clamp: 5;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
   overflow: hidden;
   font-family: var(--font-display);
-  font-size: 0.88rem;
+  font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.02em;
@@ -1932,16 +1959,10 @@ nav {
   text-transform: uppercase;
 }
 
-/* Opening further, as if taken off the shelf. */
-.book:hover .book-object {
-  transform: rotateY(-22deg) translateZ(10px);
-}
-
-.book:hover .book-board {
+.book:hover .book-front {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    0 4px 10px rgba(0, 0, 0, 0.6),
-    0 30px 52px -22px color-mix(in srgb, var(--band) 65%, transparent);
+    4px 5px 18px rgba(0, 0, 0, 0.75),
+    0 26px 50px -26px color-mix(in srgb, var(--band) 70%, transparent);
 }
 
 .book-meta {
@@ -1998,10 +2019,17 @@ nav {
   opacity: 1;
 }
 
+@media (max-width: 620px) {
+  .book-shelf {
+    --book-w: 148px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .book-object,
-  .book:hover .book-object {
+  .book-slab,
+  .book:hover .book-slab {
     transform: none;
+    transition: none;
   }
 }
 
