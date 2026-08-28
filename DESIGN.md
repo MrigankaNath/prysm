@@ -344,6 +344,17 @@ states its subject before any result does.
 
 ## Spectrum
 
+**Twenty-five domains, shown as a map.** They are a compact grid of names you
+pick from, and the one you pick opens below it as a banner and a rail. Stacking
+twenty-five banner-and-rail sections was nine thousand pixels of page with no
+way to see the shape of the list — and the shape *is* the point: it should be
+obvious at a glance that this covers music and cooking as well as compilers.
+Rows rather than illustrated tiles, because at twenty-five the names are what
+matters and the artwork would bury them.
+
+Hues cycle through the six bands by position, so a domain's colour is stable
+without anyone assigning one.
+
 **A band per cluster.** The cluster's icon, how many topics it holds, its name
 and its blurb, in the same bold-stroked block the explore banner uses — so a
 band on Spectrum and a topic on Explore are recognisably the same thing. The
