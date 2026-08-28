@@ -1,3 +1,5 @@
+import { CATEGORY_GRADIENTS } from "./categories";
+
 const base = {
   viewBox: "0 0 24 24",
   fill: "none",
@@ -85,6 +87,21 @@ export function PrismGradientDefs() {
           <stop offset="0.82" stopColor="#f59e0b" />
           <stop offset="1" stopColor="#10b981" />
         </linearGradient>
+
+        {Object.entries(CATEGORY_GRADIENTS).map(([key, [from, to]]) => (
+          <linearGradient
+            key={key}
+            id={`cat-grad-${key}`}
+            x1="0"
+            y1="0"
+            x2="24"
+            y2="24"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop offset="0" stopColor={from} />
+            <stop offset="1" stopColor={to} />
+          </linearGradient>
+        ))}
 
         {/* The gradient above is sized in user units for 24x24 icons — anything
             larger clamps to its final stop. This one is bound to the element's

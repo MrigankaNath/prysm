@@ -110,12 +110,22 @@ Two distinct treatments, and conflating them is a bug that has happened once:
 
 | | Artwork | Plate |
 |---|---|---|
-| **Concept** (Phosphor glyph) | monotone, lightened toward white | gradient in the topic's band, grained, inset highlight |
+| **Concept** (Phosphor glyph) | monotone, `lighten(band, 0.8)` | gradient in the topic's band, grained, inset highlight |
 | **Brand** (`logos:` etc.) | own colours, untouched | light — many marks are solid black and vanish on dark |
 
 The grain is the same `feTurbulence` texture the auth card uses. It is the
 thing that stops a coloured chip reading as generic neon-on-dark: flat colour
 behind a flat glyph is exactly the look every dark-mode template has.
+
+**0.8, not the 0.62 default**: on the warm bands a 62% glyph sat close enough
+in value to the plate's own radial highlight that the tile read as empty at the
+size it is actually drawn.
+
+**Every icon has an `onError`.** A resolved brand id can 404 — Iconify's search
+indexes names its API doesn't always serve, and a cached id from an earlier
+session goes stale — and without a handler the browser draws its broken-image
+glyph, which looks like the app is broken rather than like an icon is missing.
+It steps down once to the concept glyph, then to a compass.
 
 `lighten()` runs in **JS, not `color-mix()`** — the value becomes an Iconify
 query parameter, where a CSS function arrives as literal text and the icon
@@ -168,8 +178,18 @@ in a padded plate so the image never touches the type, and each category keeps
 its own aspect (16:9 video stills, square podcast art, 2:3 book covers) —
 one crop mangles the others.
 
-**Three per category** behind an expander, with a category picker above so a
-lane can be chosen rather than scrolled to.
+**Four per category** behind an expander, with a category rail above so a lane
+can be chosen rather than scrolled to. Four rather than three because the lanes
+render in two columns, and an odd number always leaves a dangling row with a gap
+beside it. The expander can reveal an odd remainder — that only happens once, at
+the bottom.
+
+**Each content type strokes its icon with its own gradient**
+(`CATEGORY_GRADIENTS`). They all shared the single prism gradient, which made
+Research Papers, Discussions and Podcasts the same pink-violet-amber sweep —
+nine icons that couldn't be told apart at the size they're drawn. Each now leads
+with a hue of its own, and the second stop is a lighter tint of that hue rather
+than a different colour, because a two-hue blend just muddies at 16px.
 
 ## The overview
 
@@ -178,9 +198,17 @@ Hierarchy comes from **weight and colour, not scale**: emphasis is woven
 through in clauses rather than a bold block over a grey one, which reads as two
 slabs.
 
-Key terms get a colour-plated background — first mention only, substring-aware
-(once "quantum computing" is plated, "quantum" alone is not), and spaced at
-least 90 characters apart so they distribute rather than cluster in line one.
+**The break lands on sentences, not clauses.** Emphasis used to alternate every
+third clause. On a two-sentence definition that changes weight at commas, where
+the meaning doesn't — which is what read as random. The first sentence carries
+the definition and is set in white; everything after it steps down to grey.
+
+Key terms get a colour-plated background — **the topic's own words**, first
+mention only, substring-aware (once "quantum computing" is plated, "quantum"
+alone is not), and **at most two**. Plating whatever happened to be long
+("environments", "interactions") put marks on words with no claim to the
+reader's attention, and nine of them across three lines is confetti, not
+emphasis.
 
 ## The feed
 
@@ -247,6 +275,9 @@ product.
 row cannot be connected. The first tile on the second line is not
 `:first-child`, so it draws a connector into the gutter to its left with
 nothing on the other end.
+
+**No connectors between tiles.** They read as a sequence the row isn't; the
+spacing carries the grouping on its own.
 
 **The right edge is masked** — the last 34px fade out, so a tile the rail has
 run out of room for trails off instead of being sliced. When the row fits, that

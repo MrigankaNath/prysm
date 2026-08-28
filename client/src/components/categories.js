@@ -46,3 +46,30 @@ export const CATEGORY_ORDER = [
   "qa",
   "discussions",
 ];
+
+/* One gradient per content type.
+ *
+ * Every category icon used to stroke itself with the single prism gradient,
+ * which meant Research Papers, Discussions and Podcasts were all the same
+ * pink-violet-amber sweep — nine icons that could not be told apart at the
+ * size they are actually drawn. Each now leads with a hue of its own, and the
+ * second stop is a lighter tint of it rather than a different colour, so the
+ * identity survives at 16px where a two-hue blend just muddies.
+ * The defs live in PrismGradientDefs (components/Icons.jsx). */
+export const CATEGORY_GRADIENTS = {
+  overview: ["#8b5cf6", "#c4b5fd"],
+  articles: ["#3b82f6", "#93c5fd"],
+  videos: ["#ec4899", "#f9a8d4"],
+  podcasts: ["#f59e0b", "#fcd34d"],
+  books: ["#10b981", "#6ee7b7"],
+  code: ["#06b6d4", "#67e8f9"],
+  papers: ["#6366f1", "#a5b4fc"],
+  qa: ["#84cc16", "#bef264"],
+  discussions: ["#14b8a6", "#5eead4"],
+};
+
+/** The `stroke` a category icon should be given. Pass it as a prop — the icon
+ *  components spread props after their defaults, so it wins. */
+export function categoryStroke(key) {
+  return CATEGORY_GRADIENTS[key] ? `url(#cat-grad-${key})` : undefined;
+}

@@ -25,11 +25,13 @@ const BANDS = [
    the overview is a primer, not the article — the first line should say what
    the topic is and the rest should be reachable, not unavoidable. */
 const COLLAPSED_LINES = 3;
-const MAX_MARKS = 9;
-/* Minimum characters between plates. Small enough that the opening carries a
-   couple of marks straight away — the first line is what most people read —
-   but not so small they run together. */
-const MARK_GAP = 42;
+/* Two plates, not nine. The overview is three lines now, and nine coloured
+   marks across three lines is not emphasis — it is confetti. Two lets the eye
+   land on the subject without the block looking speckled. */
+const MAX_MARKS = 2;
+/* Minimum characters between plates, so the two that survive distribute
+   instead of sitting next to each other in the opening clause. */
+const MARK_GAP = 60;
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -45,20 +47,23 @@ function bandFor(term) {
   return BANDS[hash % BANDS.length];
 }
 
-/* Emphasis is woven through the whole summary rather than front-loaded.
-   A single bold opening followed by an all-grey tail reads as two blocks;
-   alternating shorter runs keeps the eye moving and the block feeling light.
-   Clauses are the unit because Tavily usually returns one long sentence. */
-const CLAUSE_SPLIT = /(?<=[.;:—])\s+|(?<=,)\s+(?=(?:and|but|which|while|using|such|so|to|from|where)\b)/;
+/* Sentences, not clauses.
+ *
+ * Emphasis used to alternate every third clause, on the theory that a bold
+ * opening over a grey tail reads as two slabs. In practice, on a two-sentence
+ * definition, alternating mid-sentence is what reads as random: the weight
+ * changes at commas, where the meaning doesn't. Splitting on sentences means
+ * the break lands where the thought does. */
+const SENTENCE_SPLIT = /(?<=[.!?])\s+/;
 
 function toClauses(text) {
-  const parts = text.split(CLAUSE_SPLIT).filter(Boolean);
+  const parts = text.split(SENTENCE_SPLIT).filter(Boolean);
   if (parts.length < 2) return [text];
 
-  // Merge runts into their neighbour so no clause is a stray word or two.
+  // Merge runts into their neighbour so no run is a stray word or two.
   const merged = [];
   for (const part of parts) {
-    if (merged.length && merged[merged.length - 1].length < 28) {
+    if (merged.length && merged[merged.length - 1].length < 40) {
       merged[merged.length - 1] += " " + part;
     } else {
       merged.push(part);
@@ -67,10 +72,10 @@ function toClauses(text) {
   return merged;
 }
 
-/** Strong on the opening, then every third clause — enough rhythm to read as a
- *  mixture, regular enough not to look random. */
+/** The first sentence carries the definition, so it is the one set in white.
+ *  Everything after it is context and steps down to grey. */
 function isStrong(index) {
-  return index === 0 || index % 3 === 0;
+  return index === 0;
 }
 
 /* Long words are almost always the domain terms worth marking —
@@ -189,13 +194,22 @@ function Prose({ text, topic }) {
   if (!clean) return null;
 
   const clauses = toClauses(clean);
+  /* The topic's own words first, and only those if they appear. Plating
+     whatever happened to be long — "environments", "interactions" — is what
+     made the marks look scattered: they landed on words with no particular
+     claim to the reader's attention. Proper nouns and long terms stay as a
+     fallback for a summary that never names its own subject. */
+  const topicTerms = [
+    String(topic || "").trim(),
+    ...String(topic || "").split(/\s+/).filter((w) => w.length > 3),
+  ].filter((t) => t && new RegExp(escapeRegExp(t), "i").test(clean));
+
   const terms = [
-    ...new Set([
-      String(topic || "").trim(),
-      ...String(topic || "").split(/\s+/).filter((w) => w.length > 3),
-      ...properNouns(clean),
-      ...longTerms(clean),
-    ]),
+    ...new Set(
+      topicTerms.length
+        ? topicTerms
+        : [...properNouns(clean), ...longTerms(clean)],
+    ),
   ]
     .filter(Boolean)
     .sort((a, b) => b.length - a.length);

@@ -3554,10 +3554,11 @@ nav {
 }
 
 /* --- the rail — a connected strip of tiles ------------------------------------------------------
-   One row of tiles, each with its name underneath, joined left to right by a
-   hairline so the row reads as one instrument rather than a handful of loose
-   buttons. Explore uses it for categories, Spectrum for topics — same strip at
-   two sizes, so the two pages are visibly the same product.
+   One row of tiles, each with its name underneath. Explore uses it for
+   categories, Spectrum for topics — same strip at two sizes, so the two pages
+   are visibly the same product.
+   The tiles were joined by a hairline connector; it read as a sequence the row
+   isn't, so the spacing carries the grouping on its own now.
 
    It scrolls rather than wraps. A wrapped row cannot be connected: the first
    tile on the second line is not :first-child, so it draws a connector into
@@ -3641,16 +3642,6 @@ nav {
     box-shadow 0.28s var(--ease-settle);
 }
 
-/* The connector, drawn into the gap to the tile's left. */
-.rail-item + .rail-item .rail-tile::before {
-  content: "";
-  position: absolute;
-  right: 100%;
-  width: 26px;
-  height: 1px;
-  background: var(--line-bold);
-}
-
 .rail-tile svg {
   width: 30px;
   height: 30px;
@@ -3729,10 +3720,6 @@ nav {
     width: 25px;
     height: 25px;
   }
-
-  .rail-item + .rail-item .rail-tile::before {
-    width: 18px;
-  }
 }
 
 
@@ -3750,10 +3737,6 @@ nav {
   width: 178px;
   height: 158px;
   border-radius: 28px;
-}
-
-.rail.is-lg .rail-item + .rail-item .rail-tile::before {
-  width: 30px;
 }
 
 .rail.is-lg .rail-tile .topic-icon {
@@ -3791,10 +3774,6 @@ nav {
   .rail.is-lg .rail-tile {
     height: 128px;
     border-radius: 22px;
-  }
-
-  .rail.is-lg .rail-item + .rail-item .rail-tile::before {
-    width: 20px;
   }
 }
 

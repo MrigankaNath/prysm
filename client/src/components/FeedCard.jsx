@@ -1,7 +1,7 @@
 import { BookmarkButton } from "./ResultCard";
 import { recordVisit } from "../lib/library";
 import { hostOf, formatSignal, venueChip } from "../lib/result";
-import { CATEGORY_ICONS, CATEGORY_LABELS } from "./categories";
+import { CATEGORY_ICONS, CATEGORY_LABELS, categoryStroke } from "./categories";
 import { lighten, topicColor } from "../lib/topicIcon";
 import { IconPlay } from "./Icons";
 
@@ -58,7 +58,7 @@ function FeedCard({ item, topic, category, compact = false }) {
       <div className="fcard-body">
         <div className="fcard-top">
           <span className="fcard-kind">
-            <Icon />
+            <Icon stroke={categoryStroke(category)} />
             {CATEGORY_LABELS[category] || "Articles"}
           </span>
           {topic && <span className="fcard-topic">{topic}</span>}

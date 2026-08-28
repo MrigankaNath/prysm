@@ -4,6 +4,7 @@ import {
   CATEGORY_ICONS,
   CATEGORY_LABELS,
   CATEGORY_ORDER,
+  categoryStroke,
 } from "../components/categories";
 import ResultCard from "../components/ResultCard";
 import Prose from "../components/Prose";
@@ -13,8 +14,11 @@ import { IconChevronDown, IconGrid, IconChevronRight } from "../components/Icons
 import TopicIcon from "../components/TopicIcon";
 import { lighten, topicColor } from "../lib/topicIcon";
 
-// How many results a category shows before "Show more".
-const COLLAPSED_COUNT = 3;
+/* How many results a category shows before "Show more". Four, not three: the
+   lanes render in two columns, so an odd number always leaves a dangling row
+   with a gap beside it. The expander can reveal an odd remainder — that only
+   happens once, at the bottom. */
+const COLLAPSED_COUNT = 4;
 
 /* One hue per category, so the row reads as a colour key rather than a list of
    identical pills. Order matches CATEGORY_ORDER. */
@@ -47,7 +51,7 @@ function RailItem({ id, label, count, hue, active, onSelect }) {
       aria-pressed={active}
     >
       <span className="rail-tile">
-        <Icon />
+        <Icon stroke={categoryStroke(id)} />
         <span className="rail-count">{count}</span>
       </span>
       <span className="rail-label">{label}</span>
@@ -94,7 +98,9 @@ function CategorySection({ category, items, topic, index }) {
       style={{ "--stagger": `${Math.min(index, 6) * 60}ms` }}
     >
       <header className="cat-head">
-        <span className="cat-head-icon">{Icon && <Icon />}</span>
+        <span className="cat-head-icon">
+          {Icon && <Icon stroke={categoryStroke(category)} />}
+        </span>
         <h3 className="cat-head-title">{CATEGORY_LABELS[category] || category}</h3>
         <span className="cat-head-count">{items.length}</span>
       </header>
@@ -230,10 +236,15 @@ function ExploreTopic() {
       .finally(() => setLoading(false));
   }, [topic]);
 
-  /* Tavily's overview is the good version, but it is one metered call that can
-     fail, rate-limit, or come back empty — and when it did, the page lost its
-     description entirely. Fall back to the best available snippet so there is
-     always something to read at the top. */
+  /* The server already falls back to Wikipedia when Tavily has no answer, so
+     by the time it gets here an overview is either a real definition or
+     genuinely unavailable.
+     The last resort is an article snippet and *only* an article snippet. It
+     used to reach into papers, books and Q&A too, which is how a research
+     abstract ended up set at display scale as the page's opening line — text
+     that starts mid-argument ("...are described, and their study justified")
+     reads as gibberish in the one place that has to make sense. Better to open
+     with nothing than with that. */
   const overview = useMemo(() => {
     if (!categories) return null;
     const direct = Array.isArray(categories.overview)
@@ -241,11 +252,9 @@ function ExploreTopic() {
       : categories.overview;
     if (direct?.snippet || direct?.title) return direct;
 
-    for (const key of ["articles", "papers", "books", "qa"]) {
-      const first = (categories[key] || []).find((i) => i?.snippet?.length > 90);
-      if (first) return first;
-    }
-    return null;
+    return (
+      (categories.articles || []).find((i) => i?.snippet?.length > 90) || null
+    );
   }, [categories]);
 
   const sections = useMemo(() => {

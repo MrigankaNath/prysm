@@ -7,6 +7,7 @@ const pool = require("./db");
 const { requireAuth } = require("./db/supabase");
 const { getCached, setCached } = require("./db/topicCache");
 const { getQuota, consumeTopic } = require("./db/usage");
+const { fetchWikipediaOverview } = require("./sources/wikipedia");
 const { fetchHackerNews } = require("./sources/hackerNews");
 const { fetchOverview } = require("./sources/overview");
 const { fetchStackExchange } = require("./sources/stackExchange");
@@ -803,6 +804,15 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
     second.forEach(([name], i) => {
       categories[name] = secondResults[i];
     });
+
+    /* Out of quota still gets a definition. Wikipedia is free and keyless, so
+       withholding it would save nothing and cost the page the one thing it
+       most needs to open with.
+       Deliberately not cached: the row would then serve for a month and shut
+       out the better Tavily answer the next person with quota pays for. */
+    if (!metered) {
+      categories.overview = await fetchWikipediaOverview(topic).catch(() => null);
+    }
 
     res.json({
       topic,
