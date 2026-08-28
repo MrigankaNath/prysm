@@ -1,16 +1,13 @@
-/* Wikipedia's one-line definition — the free safety net under the overview.
+/* Wikipedia writes the definition.
  *
- * Tavily writes the better primer when it answers, but it does not always
- * answer: a niche topic can come back with an empty `answer`, and a user out
- * of quota never gets to ask. Both cases used to fall through to whatever
- * snippet was longest, which meant a research paper's abstract set at display
- * scale — text that opens mid-argument ("...are described, and their study
- * justified") and reads as gibberish where a definition should be.
+ * It leads rather than backs up Tavily for one reason above the others: it can
+ * be *cited*. The overview is the first thing anyone reads, and an unattributed
+ * paragraph asks to be trusted where a linked encyclopaedia entry earns it.
+ * Free, keyless and effectively unlimited, so it costs nothing to prefer.
  *
- * This is free, keyless and effectively unlimited, so it can run in either
- * case. It is deliberately only the *fallback*: the REST summary is an
- * encyclopaedia opening, which is accurate but drier than the primer Tavily
- * writes, and preferring it wholesale would undo a decision made earlier.
+ * Tavily's `include_answer` stays as the fallback for topics Wikipedia has no
+ * article on. It rides along on a search already being made, so it is free too
+ * — this ordering saves no credits, it buys a source line.
  */
 
 const REST = "https://en.wikipedia.org/api/rest_v1/page/summary";
@@ -31,14 +28,25 @@ async function bestTitle(topic) {
   return data?.query?.search?.[0]?.title || null;
 }
 
-/** Two sentences at most, to match what the page has room to show. */
+/* The page clamps the overview at three lines of display type, which is about
+   240 characters. A second sentence is kept only when it fits inside that —
+   otherwise the clamp cuts it mid-word and the "read more" reveals a sentence
+   fragment rather than a thought. */
+const ROOM = 240;
+
 function trim(text) {
   const clean = String(text || "").replace(/\s+/g, " ").trim();
   if (!clean) return "";
 
   const sentences = clean.match(/[^.!?]+[.!?]+/g);
-  if (!sentences) return clean.slice(0, 300);
-  return sentences.slice(0, 2).join(" ").trim();
+  if (!sentences) return clean.slice(0, ROOM);
+
+  let out = sentences[0].trim();
+  for (const next of sentences.slice(1, 3)) {
+    if (out.length + next.length > ROOM) break;
+    out += " " + next.trim();
+  }
+  return out;
 }
 
 async function fetchWikipediaOverview(topic) {

@@ -379,6 +379,16 @@ export function IconEyeOff(props) {
   );
 }
 
+/* Wikipedia's W, drawn rather than fetched — it attributes the definition, so
+   it has to render even when an external image wouldn't. */
+export function IconWikipedia(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+      <path d="M22.9 6.3h-4.6v.7c.9.1 1.3.4 1.3.9 0 .3-.1.6-.3 1l-2.6 5.6-2.4-5.6c-.2-.4-.3-.7-.3-1 0-.6.4-.8 1.3-.9v-.7H9.6v.7c.8.1 1.2.4 1.6 1.3l.6 1.3-2.2 4.7-2.7-6c-.1-.3-.2-.5-.2-.7 0-.4.4-.6 1.3-.6v-.7H1.1v.7c.9.1 1.2.4 1.7 1.5l4.6 10.2h.8l3.1-6.5 2.9 6.5h.8L19.6 8c.6-1.2.9-1.4 1.9-1.5l1.4-.2z" />
+    </svg>
+  );
+}
+
 export function IconAlert(props) {
   return (
     <svg {...base} {...props}>

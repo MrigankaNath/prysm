@@ -172,6 +172,22 @@ appears on arXiv before it appears anywhere else, so the point is to let the
 reader judge, not to bury it. A paper whose status the index doesn't record
 gets no chip rather than a guess.
 
+**Books are a shelf and papers are documents.** Two lanes hold objects rather
+than links, so they are drawn as objects.
+
+*Books:* every board is the same 2:3 size — a real jacket where Open Library
+has one, a typeset one where it doesn't. Half of what it returns has no cover,
+and as rows of thumbnails the lane alternated between an entry with a picture
+and one with a gap. The spine is drawn down the left and the cut pages down the
+right, and the board pivots on its binding (`transform-origin: left center`) so
+hover reads as pulling it off a shelf rather than sliding it.
+
+*Papers:* the two facts that decide whether one is worth opening — where it was
+published and how often it has been cited — were the smallest text on the row.
+The venue now sits in the header where a masthead would, and the citation count
+is set as a figure. A bound left edge in the category's colour, not a full
+border, so the lane doesn't read like the feed.
+
 **Videos and podcasts are tiles**, because both ship a real image and a
 thumbnail reads better leading a card than sitting beside text. Thumbnails sit
 in a padded plate so the image never touches the type, and each category keeps
@@ -184,6 +200,12 @@ render in two columns, and an odd number always leaves a dangling row with a gap
 beside it. The expander can reveal an odd remainder — that only happens once, at
 the bottom.
 
+**`categoryStroke()` never returns undefined.** Props are spread *after* an
+icon's own defaults, so `stroke={undefined}` doesn't fall through to the
+default — it overwrites it, React drops the attribute, and SVG's initial
+`stroke: none` draws nothing. That is what emptied the "Everything" tile, which
+has no category of its own; it takes the full prism sweep instead.
+
 **Each content type strokes its icon with its own gradient**
 (`CATEGORY_GRADIENTS`). They all shared the single prism gradient, which made
 Research Papers, Discussions and Podcasts the same pink-violet-amber sweep —
@@ -192,6 +214,18 @@ with a hue of its own, and the second stop is a lighter tint of that hue rather
 than a different colour, because a two-hue blend just muddies at 16px.
 
 ## The overview
+
+**Wikipedia writes it; Tavily is the fallback.** Not to save credits — the
+Tavily answer rides along on a search already being made, so both are free —
+but because a definition can then be *cited*. It is the first thing anyone
+reads, and a linked encyclopaedia entry earns trust where an unattributed
+paragraph only asks for it. The source line renders **only** for Wikipedia: a
+synthesised answer has no single page to point at, and inventing one would be
+worse than none.
+
+Trimmed to ~240 characters server-side, which is what three lines of display
+type holds. A second sentence is kept only if it fits — otherwise the clamp
+cuts it mid-word and "read more" reveals a fragment rather than a thought.
 
 Set as type, not boxed. One size, hard-capped at five lines with a Read more.
 Hierarchy comes from **weight and colour, not scale**: emphasis is woven

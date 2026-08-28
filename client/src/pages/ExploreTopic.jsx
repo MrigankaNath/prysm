@@ -5,12 +5,20 @@ import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   categoryStroke,
+  CATEGORY_GRADIENTS,
 } from "../components/categories";
 import ResultCard from "../components/ResultCard";
+import BookCard from "../components/BookCard";
+import PaperCard from "../components/PaperCard";
 import Prose from "../components/Prose";
 import { recordTopic } from "../lib/library";
 import { apiFetch, apiJson } from "../lib/api";
-import { IconChevronDown, IconGrid, IconChevronRight } from "../components/Icons";
+import {
+  IconChevronDown,
+  IconGrid,
+  IconChevronRight,
+  IconWikipedia,
+} from "../components/Icons";
 import TopicIcon from "../components/TopicIcon";
 import { lighten, topicColor } from "../lib/topicIcon";
 
@@ -91,11 +99,19 @@ function CategorySection({ category, items, topic, index }) {
   const visible = expanded ? items : items.slice(0, COLLAPSED_COUNT);
   const hidden = items.length - visible.length;
   const isMediaGrid = category === "videos" || category === "podcasts";
+  /* Two lanes are objects rather than links and are laid out as such — a shelf
+     of books, a stack of papers. The rest stay rows, which is right for them:
+     an article or a thread is a link and nothing more. */
+  const layout =
+    category === "books" ? "books" : category === "papers" ? "papers" : null;
 
   return (
     <section
-      className="cat-section"
-      style={{ "--stagger": `${Math.min(index, 6) * 60}ms` }}
+      className={`cat-section cat-${category}`}
+      style={{
+        "--stagger": `${Math.min(index, 6) * 60}ms`,
+        "--cat": (CATEGORY_GRADIENTS[category] || [])[0] || "#a1a1aa",
+      }}
     >
       <header className="cat-head">
         <span className="cat-head-icon">
@@ -105,16 +121,34 @@ function CategorySection({ category, items, topic, index }) {
         <span className="cat-head-count">{items.length}</span>
       </header>
 
-      <div className={isMediaGrid ? "cat-grid" : "cat-cols"}>
-        {visible.map((item, i) => (
-          <ResultCard
-            key={`${item.url}-${i}`}
-            item={item}
-            topic={topic}
-            category={category}
-          />
-        ))}
-      </div>
+      {layout === "books" && (
+        <div className="book-shelf">
+          {visible.map((item, i) => (
+            <BookCard key={`${item.url}-${i}`} item={item} topic={topic} />
+          ))}
+        </div>
+      )}
+
+      {layout === "papers" && (
+        <div className="paper-stack">
+          {visible.map((item, i) => (
+            <PaperCard key={`${item.url}-${i}`} item={item} topic={topic} />
+          ))}
+        </div>
+      )}
+
+      {!layout && (
+        <div className={isMediaGrid ? "cat-grid" : "cat-cols"}>
+          {visible.map((item, i) => (
+            <ResultCard
+              key={`${item.url}-${i}`}
+              item={item}
+              topic={topic}
+              category={category}
+            />
+          ))}
+        </div>
+      )}
 
       {hidden > 0 && (
         <button
@@ -178,9 +212,35 @@ function QuotaNotice({ usage }) {
 function Overview({ overview, topic }) {
   if (!overview) return null;
 
+  const wiki = /(^|\.)wikipedia\.org$/i.test(
+    (() => {
+      try {
+        return new URL(overview.url || "").hostname;
+      } catch {
+        return "";
+      }
+    })(),
+  );
+
   return (
     <section className="overview">
       <Prose text={overview.snippet || overview.title} topic={topic} />
+
+      {/* An unattributed paragraph asks to be trusted; a linked one earns it.
+          Only rendered for Wikipedia — a synthesised answer has no single
+          page to point at, and inventing one would be worse than none. */}
+      {wiki && overview.url && (
+        <a
+          className="overview-source"
+          href={overview.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <IconWikipedia className="overview-source-mark" />
+          Wikipedia
+          <IconChevronRight className="overview-source-go" />
+        </a>
+      )}
 
       <div className="overview-foot" style={{ "--delay": "420ms" }}>
         <span className="overview-cue" aria-hidden="true">

@@ -69,7 +69,19 @@ export const CATEGORY_GRADIENTS = {
 };
 
 /** The `stroke` a category icon should be given. Pass it as a prop — the icon
- *  components spread props after their defaults, so it wins. */
+ *  components spread props after their defaults, so it wins.
+ *
+ *  Never returns undefined. Props are spread *after* the icon's own defaults,
+ *  so `stroke={undefined}` doesn't fall through to the default — it overwrites
+ *  it, React drops the attribute, and SVG's initial `stroke: none` draws
+ *  nothing. That is what emptied the "Everything" tile, which has no category
+ *  of its own. */
 export function categoryStroke(key) {
-  return CATEGORY_GRADIENTS[key] ? `url(#cat-grad-${key})` : undefined;
+  return CATEGORY_GRADIENTS[key]
+    ? `url(#cat-grad-${key})`
+    : `url(#${ALL_GRADIENT_ID})`;
 }
+
+/** The lane that isn't a category. Keeps the full prism sweep, since
+ *  "Everything" is exactly what the whole spectrum stands for. */
+export const ALL_GRADIENT_ID = "prism-gradient";

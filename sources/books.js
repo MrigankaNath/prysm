@@ -60,6 +60,11 @@ async function fetchBooks(topic) {
         .filter(Boolean)
         .join(" · "),
       published_at: null,
+      /* Structured as well as joined into the snippet: the books lane sets a
+         typographic cover when Open Library has no image, and that needs the
+         author and year separately rather than parsed back out of a string. */
+      author: doc.author_name?.[0] || null,
+      year: doc.first_publish_year || null,
       thumbnail: doc.cover_i
         ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`
         : null,

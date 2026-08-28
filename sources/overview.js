@@ -1,25 +1,31 @@
-/* The overview is the answer half of the Tavily article search rather than a
- * search of its own. `include_answer` is free on any query, so the separate
- * "What is X?" call this replaces cost a full credit — a quarter of a topic's
- * budget — for one paragraph. See sources/tavily.js for the bundle.
+/* The definition, and where it came from.
  *
- * Tavily does not always answer, though: a niche topic can come back with an
- * empty `answer`, and the page then had nothing to open with. Wikipedia is the
- * free fallback for exactly that case. */
+ * Wikipedia leads. It is free and keyless, so preferring it costs nothing, and
+ * unlike a synthesised answer it can be *cited* — the overview is the first
+ * thing anyone reads, and a linked encyclopaedia entry earns trust where an
+ * unattributed paragraph only asks for it.
+ *
+ * Tavily's answer is the fallback, for topics Wikipedia has no article on. It
+ * is the `include_answer` of a search already being made (sources/tavily.js),
+ * so it is free as well — this ordering buys a source line, not credits.
+ */
 const { fetchTavilyOverview } = require("./tavily");
 const { fetchWikipediaOverview } = require("./wikipedia");
 
 async function fetchOverview(topic) {
-  let answer = null;
   try {
-    answer = await fetchTavilyOverview(topic);
+    const wiki = await fetchWikipediaOverview(topic);
+    if (wiki?.snippet) return wiki;
   } catch (err) {
-    // A dead or rate-limited Tavily shouldn't cost the page its definition.
-    console.error(`overview: tavily failed for topic "${topic}"`, err);
+    console.error(`overview: wikipedia failed for topic "${topic}"`, err);
   }
 
-  if (answer?.snippet) return answer;
-  return fetchWikipediaOverview(topic);
+  try {
+    return await fetchTavilyOverview(topic);
+  } catch (err) {
+    console.error(`overview: tavily failed for topic "${topic}"`, err);
+    return null;
+  }
 }
 
 module.exports = { fetchOverview };
