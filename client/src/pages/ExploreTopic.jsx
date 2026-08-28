@@ -10,6 +10,7 @@ import {
 import ResultCard from "../components/ResultCard";
 import BookCard from "../components/BookCard";
 import PaperCard from "../components/PaperCard";
+import MediaCard from "../components/MediaCard";
 import Prose from "../components/Prose";
 import { recordTopic } from "../lib/library";
 import { apiFetch, apiJson } from "../lib/api";
@@ -98,12 +99,18 @@ function CategorySection({ category, items, topic, index }) {
   const Icon = CATEGORY_ICONS[category];
   const visible = expanded ? items : items.slice(0, COLLAPSED_COUNT);
   const hidden = items.length - visible.length;
-  const isMediaGrid = category === "videos" || category === "podcasts";
-  /* Two lanes are objects rather than links and are laid out as such — a shelf
-     of books, a stack of papers. The rest stay rows, which is right for them:
-     an article or a thread is a link and nothing more. */
+  /* Four lanes hold objects rather than links and are laid out as such: a
+     shelf of books, a stack of papers, and artwork-led cards for the two that
+     ship real images. The rest stay rows, which is right for them — an article
+     or a thread is a link and nothing more. */
   const layout =
-    category === "books" ? "books" : category === "papers" ? "papers" : null;
+    category === "books"
+      ? "books"
+      : category === "papers"
+        ? "papers"
+        : category === "videos" || category === "podcasts"
+          ? "media"
+          : null;
 
   return (
     <section
@@ -137,8 +144,21 @@ function CategorySection({ category, items, topic, index }) {
         </div>
       )}
 
+      {layout === "media" && (
+        <div className="media-grid">
+          {visible.map((item, i) => (
+            <MediaCard
+              key={`${item.url}-${i}`}
+              item={item}
+              topic={topic}
+              category={category}
+            />
+          ))}
+        </div>
+      )}
+
       {!layout && (
-        <div className={isMediaGrid ? "cat-grid" : "cat-cols"}>
+        <div className="cat-cols">
           {visible.map((item, i) => (
             <ResultCard
               key={`${item.url}-${i}`}

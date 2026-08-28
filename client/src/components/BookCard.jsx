@@ -33,16 +33,27 @@ function BookCard({ item, topic, category = "books" }) {
         onClick={() => recordVisit(item, { topic, category })}
         aria-label={item.title}
       >
-        {/* The board. A real jacket sits on top of it; a typeset one is it. */}
-        <span className="book-face">
+        {/* The board, and the page mounted on it.
+            What Open Library returns is almost always a scanned *title page*,
+            not a jacket — cream paper, black type, square edges. Bleeding that
+            to the board's edge looked like a cropped screenshot; inset with a
+            margin it reads as a page sitting on a cover, which is what it is. */}
+        <span className="book-board">
           {showImage ? (
             <img
+              className="book-page"
               src={item.thumbnail}
               alt=""
               loading="lazy"
               decoding="async"
               referrerPolicy="no-referrer"
               onError={() => setBroken(true)}
+              /* Belt and braces for rows cached before ?default=false shipped,
+                 and for any host that answers a missing image with a
+                 placeholder rather than an error. */
+              onLoad={(e) => {
+                if (e.currentTarget.naturalWidth < 10) setBroken(true);
+              }}
             />
           ) : (
             <span className="book-typeset" aria-hidden="true">
@@ -53,11 +64,15 @@ function BookCard({ item, topic, category = "books" }) {
               )}
             </span>
           )}
+
+          {/* The gutter shadow — paper curving into the binding. */}
+          <span className="book-gutter" aria-hidden="true" />
         </span>
-        {/* Spine and page block, drawn rather than imaged: the left edge is
-            where the binding is, the right is the cut pages. */}
+
+        {/* The block of pages, seen edge-on because the board is turned. */}
+        <span className="book-block" aria-hidden="true" />
+        {/* The spine, standing away from the board at the binding. */}
         <span className="book-spine" aria-hidden="true" />
-        <span className="book-pages" aria-hidden="true" />
       </a>
 
       <div className="book-meta">

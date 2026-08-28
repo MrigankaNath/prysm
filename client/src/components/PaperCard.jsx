@@ -36,14 +36,22 @@ function PaperCard({ item, topic, category = "papers" }) {
         {item.title}
       </a>
 
-      {item.snippet && <p className="paper-abstract">{item.snippet}</p>}
+      {/* Labelled, because that is how a paper presents its own summary — and
+          it tells the reader the grey block is the author's abstract rather
+          than something the app wrote about it. */}
+      {item.snippet && (
+        <div className="paper-abstract">
+          <span className="paper-abstract-label">Abstract</span>
+          <p>{item.snippet}</p>
+        </div>
+      )}
 
       <footer className="paper-foot">
         {cites !== null ? (
           <span className="paper-cites">
             <span className="paper-cites-n">{cites.toLocaleString()}</span>
             <span className="paper-cites-label">
-              citation{cites === 1 ? "" : "s"}
+              cited&nbsp;by
             </span>
           </span>
         ) : (

@@ -65,8 +65,12 @@ async function fetchBooks(topic) {
          author and year separately rather than parsed back out of a string. */
       author: doc.author_name?.[0] || null,
       year: doc.first_publish_year || null,
+      /* ?default=false matters: without it Open Library serves a blank 1px
+         image for a cover it doesn't have, instead of a 404. The <img> then
+         "loads" successfully and onError never fires, so the board came up
+         empty rather than falling back to a typeset cover. */
       thumbnail: doc.cover_i
-        ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg`
+        ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg?default=false`
         : null,
     }));
 }

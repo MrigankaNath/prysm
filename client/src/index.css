@@ -1764,79 +1764,146 @@ nav {
 }
 
 /* --------------------------------------------------------------------------
-   Books — a shelf, not a list
+   Books — objects on a shelf
 
    Open Library returns a cover for roughly half of what it finds, so as rows
    of thumbnails the lane alternated between an entry with a picture and one
-   with a gap. Every book here has a board of the same size: a real jacket
+   with a gap. Every book here has a board of the same size: the scanned page
    where there is one, a typeset one where there isn't.
    -------------------------------------------------------------------------- */
 
 .book-shelf {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(154px, 1fr));
-  gap: clamp(22px, 2.6vw, 34px);
+  grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  gap: clamp(26px, 3vw, 40px);
   align-items: start;
+  /* Shared perspective, so every book on the shelf is seen from the same eye
+     point rather than each turning about its own. */
+  perspective: 1400px;
 }
 
 .book {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
-/* The object itself. perspective on the wrapper so the hover tips the board
-   toward the reader rather than just sliding it. */
 .book-object {
   position: relative;
   display: block;
   aspect-ratio: 2 / 3;
-  /* Bound to the spine, so the board pivots on its binding the way a real
-     one does when you pull it off a shelf. */
+  /* Turned slightly, and pivoting on the binding, so the spine and the block
+     of pages are both visible — that is what makes it read as an object
+     rather than a rectangle with a picture in it. */
+  transform: rotateY(-11deg);
   transform-origin: left center;
-  border-radius: 3px 10px 10px 3px;
+  transform-style: preserve-3d;
   text-decoration: none;
-  transition:
-    transform 0.5s var(--ease-bounce),
-    box-shadow 0.4s var(--ease-settle);
-  box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.6),
-    0 16px 34px -22px rgba(0, 0, 0, 0.9);
+  transition: transform 0.55s var(--ease-bounce);
 }
 
-.book-face {
+/* The cover board. The page sits on it with a margin — what comes back from
+   Open Library is nearly always a scanned title page, cream with black type,
+   and bleeding that to the edge looked like a cropped screenshot. */
+.book-board {
   position: absolute;
   inset: 0;
+  display: flex;
   overflow: hidden;
-  border-radius: inherit;
-  background: linear-gradient(
-    150deg,
-    color-mix(in srgb, var(--band) 32%, #0c0c11),
-    color-mix(in srgb, var(--band) 12%, #08080b)
-  );
+  padding: 9px 9px 9px 15px;
+  box-sizing: border-box;
+  border-radius: 2px 7px 7px 2px;
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--band) 34%, #0b0b10),
+      color-mix(in srgb, var(--band) 14%, #08080c) 62%,
+      color-mix(in srgb, var(--band) 22%, #0b0b10)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    0 3px 8px rgba(0, 0, 0, 0.55),
+    0 22px 40px -24px rgba(0, 0, 0, 0.95);
 }
 
-.book-face img {
+.book-page {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top center;
   display: block;
+  border-radius: 1px 2px 2px 1px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
-/* The stand-in jacket. Set as type rather than filled with a placeholder
-   graphic — a book with no cover art still had a title page. */
+/* Paper curving into the binding. Sits over the page, at its left edge. */
+.book-gutter {
+  position: absolute;
+  inset: 0 auto 0 15px;
+  width: 16px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.42),
+    rgba(0, 0, 0, 0.12) 55%,
+    transparent
+  );
+}
+
+/* The cut pages, standing proud of the board on the fore edge. */
+.book-block {
+  position: absolute;
+  inset: 4px -5px 4px auto;
+  left: 100%;
+  width: 6px;
+  border-radius: 0 3px 3px 0;
+  background: repeating-linear-gradient(
+    90deg,
+    #e4e4e7 0 1px,
+    #a1a1aa 1px 2px,
+    #d4d4d8 2px 3px
+  );
+  box-shadow: inset -1px 0 2px rgba(0, 0, 0, 0.4);
+  transform: translateZ(-1px);
+}
+
+/* The spine, at the binding. */
+.book-spine {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 11px;
+  border-radius: 3px 0 0 3px;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--band) 45%, #000) 0%,
+    rgba(255, 255, 255, 0.2) 42%,
+    color-mix(in srgb, var(--band) 30%, #000) 100%
+  );
+  box-shadow: inset -1px 0 3px rgba(0, 0, 0, 0.55);
+}
+
+/* The stand-in jacket, for a book with no scan. */
 .book-typeset {
   display: flex;
   flex-direction: column;
   gap: 9px;
+  width: 100%;
   height: 100%;
-  padding: 18px 15px;
+  padding: 16px 13px;
   box-sizing: border-box;
+  border-radius: 1px 2px 2px 1px;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--band) 26%, #101017),
+    color-mix(in srgb, var(--band) 10%, #0a0a0e)
+  );
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .book-typeset-rule {
-  width: 26px;
+  width: 24px;
   height: 2px;
   border-radius: 2px;
   background: var(--band-lit);
@@ -1849,7 +1916,7 @@ nav {
   line-clamp: 5;
   overflow: hidden;
   font-family: var(--font-display);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   font-weight: 700;
   line-height: 1.25;
   letter-spacing: -0.02em;
@@ -1859,56 +1926,22 @@ nav {
 .book-typeset-author {
   margin-top: auto;
   color: color-mix(in srgb, var(--band-lit) 80%, #a1a1aa);
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
-/* Binding down the left edge. */
-.book-spine {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 9px;
-  border-radius: 3px 0 0 3px;
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.55),
-    rgba(255, 255, 255, 0.14) 55%,
-    rgba(0, 0, 0, 0.42)
-  );
-  pointer-events: none;
-}
-
-/* Cut pages down the right. Repeating hairlines rather than a flat edge, so
-   it reads as a block of paper at any size. */
-.book-pages {
-  position: absolute;
-  inset: 3px 0 3px auto;
-  right: -3px;
-  width: 4px;
-  border-radius: 0 3px 3px 0;
-  background: repeating-linear-gradient(
-    90deg,
-    #d4d4d8,
-    #d4d4d8 1px,
-    #8a8a92 1px,
-    #8a8a92 2px
-  );
-  opacity: 0.5;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-}
-
+/* Opening further, as if taken off the shelf. */
 .book:hover .book-object {
-  transform: rotateY(-14deg) translateX(2px);
-  box-shadow:
-    0 3px 8px rgba(0, 0, 0, 0.6),
-    0 26px 48px -22px color-mix(in srgb, var(--band) 60%, transparent);
+  transform: rotateY(-22deg) translateZ(10px);
 }
 
-.book:hover .book-pages {
-  opacity: 0.75;
+.book:hover .book-board {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 4px 10px rgba(0, 0, 0, 0.6),
+    0 30px 52px -22px color-mix(in srgb, var(--band) 65%, transparent);
 }
 
 .book-meta {
@@ -1952,7 +1985,8 @@ nav {
 .book > .bookmark-btn {
   top: 10px;
   right: 10px;
-  background: rgba(8, 8, 11, 0.7);
+  z-index: 2;
+  background: rgba(8, 8, 11, 0.72);
   backdrop-filter: blur(6px);
   opacity: 0;
   transition: opacity 0.18s ease;
@@ -1965,57 +1999,67 @@ nav {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .book-object,
   .book:hover .book-object {
     transform: none;
   }
 }
 
 /* --------------------------------------------------------------------------
-   Papers — the two facts that decide whether one is worth opening
+   Papers — a sheet, not a link
 
-   Where it was published and how often it has been cited were the smallest
-   text on the row. The venue now sits in the header rule, where a journal's
-   masthead would, and the citation count is set as the figure it is.
+   Where a paper was published and how often it has been cited are what decide
+   whether it is worth opening, and as rows both were the smallest text there.
+   The venue now sits under a rule where a masthead would, the abstract is
+   labelled as one, and the citation count is set as the figure it is.
    -------------------------------------------------------------------------- */
 
+/* Stretched, not start-aligned: each sheet closes with a foot rule, and a row
+   of rules at four different heights reads as misalignment rather than as
+   cards of different lengths. The foot is pushed down by margin-top: auto. */
 .paper-stack {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 20px;
 }
 
 .paper {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 20px 22px 18px;
+  gap: 14px;
+  padding: 22px 24px 18px;
   border: 1px solid var(--line);
+  border-radius: 3px 12px 12px 3px;
   /* The bound edge. A paper is a document, so it gets a margin rule rather
-     than a full border treatment — the lane should not look like the feed. */
-  border-left: 3px solid color-mix(in srgb, var(--cat, #6366f1) 60%, transparent);
-  border-radius: 4px 14px 14px 4px;
+     than a card's full border — the lane should not read like the feed. */
+  border-left: 3px solid color-mix(in srgb, var(--cat, #6366f1) 55%, transparent);
   background: linear-gradient(
     100deg,
-    color-mix(in srgb, var(--cat, #6366f1) 6%, var(--surface)),
-    var(--surface) 60%
+    color-mix(in srgb, var(--cat, #6366f1) 7%, var(--surface)),
+    var(--surface) 55%
   );
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
+    border-left-color 0.2s ease,
+    box-shadow 0.3s var(--ease-settle),
     transform 0.4s var(--ease-bounce);
 }
 
 .paper:hover {
   transform: translateY(-3px);
   border-left-color: var(--cat, #6366f1);
+  box-shadow: 0 0 30px color-mix(in srgb, var(--cat, #6366f1) 14%, transparent);
 }
 
+/* The masthead: venue over a hairline, the way a journal names itself above
+   the article rather than beside it. */
 .paper-head {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
 }
 
 .paper-head .bookmark-btn {
@@ -2033,10 +2077,10 @@ nav {
   line-clamp: 3;
   overflow: hidden;
   font-family: var(--font-display);
-  font-size: 1.06rem;
+  font-size: 1.08rem;
   font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.02em;
+  line-height: 1.28;
+  letter-spacing: -0.022em;
   color: #f4f4f5;
   text-decoration: none;
   transition: color 0.16s ease;
@@ -2046,7 +2090,24 @@ nav {
   color: #ffffff;
 }
 
+/* Indented behind its own label, so the grey block reads as the author's
+   abstract rather than something the app wrote about the paper. */
 .paper-abstract {
+  padding-left: 13px;
+  border-left: 1px solid color-mix(in srgb, var(--cat, #6366f1) 28%, var(--line));
+}
+
+.paper-abstract-label {
+  display: block;
+  margin-bottom: 5px;
+  color: color-mix(in srgb, var(--cat, #6366f1) 45%, #71717a);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.paper-abstract p {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
@@ -2054,8 +2115,8 @@ nav {
   overflow: hidden;
   margin: 0;
   color: var(--text-faint);
-  font-size: 0.86rem;
-  line-height: 1.55;
+  font-size: 0.855rem;
+  line-height: 1.6;
 }
 
 .paper-foot {
@@ -2063,7 +2124,7 @@ nav {
   align-items: baseline;
   gap: 12px;
   margin-top: auto;
-  padding-top: 13px;
+  padding-top: 14px;
   border-top: 1px solid var(--line);
 }
 
@@ -2076,17 +2137,17 @@ nav {
 /* The number is the point, so it is set as one. */
 .paper-cites-n {
   font-family: var(--font-display);
-  font-size: 1.18rem;
+  font-size: 1.24rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.03em;
-  color: color-mix(in srgb, var(--cat, #6366f1) 45%, #fafafa);
+  color: color-mix(in srgb, var(--cat, #6366f1) 42%, #fafafa);
 }
 
 .paper-cites-label,
 .paper-host {
   color: #52525b;
-  font-size: 0.74rem;
+  font-size: 0.73rem;
 }
 
 .paper-host {
@@ -2099,6 +2160,189 @@ nav {
 @media (prefers-reduced-motion: reduce) {
   .paper:hover {
     transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Videos and podcasts — artwork leads
+
+   Both ship a real image, and the image is why you pick one over another. Each
+   keeps the aspect it was made in: a 16:9 still letterboxed into a square, or
+   cover art cropped to widescreen, throws away the part worth showing.
+   -------------------------------------------------------------------------- */
+
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  gap: clamp(20px, 2.4vw, 30px);
+  align-items: start;
+}
+
+.media {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.media-art {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 14px;
+  background: #050507;
+  box-shadow: 0 10px 26px -18px rgba(0, 0, 0, 0.9);
+  transition:
+    transform 0.42s var(--ease-bounce),
+    box-shadow 0.3s var(--ease-settle);
+}
+
+/* Podcast art is a square object with its own edge, so it gets a border the
+   way a record sleeve would; a video still is a frame and doesn't. */
+.media-podcasts .media-art {
+  border: 1px solid var(--line);
+}
+
+.media-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.media-art-fallback {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(70% 90% at 30% 20%, rgba(139, 92, 246, 0.22), transparent 70%),
+    #0d0d12;
+}
+
+.media:hover .media-art {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 38px -20px rgba(0, 0, 0, 0.95);
+}
+
+.media:hover .media-art img {
+  transform: scale(1.05);
+}
+
+.media-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  background: rgba(8, 8, 10, 0.68);
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  color: #fafafa;
+  transition:
+    transform 0.35s var(--ease-bounce),
+    background-color 0.2s ease;
+}
+
+.media-play svg {
+  width: 16px;
+  height: 16px;
+  margin-left: 2px;
+}
+
+.media:hover .media-play {
+  transform: translate(-50%, -50%) scale(1.1);
+  background: rgba(8, 8, 10, 0.82);
+}
+
+.media-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.media-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  color: #ededf0;
+  text-decoration: none;
+  transition: color 0.16s ease;
+}
+
+.media:hover .media-title {
+  color: #ffffff;
+}
+
+.media-sub {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.media-foot {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 3px;
+  color: #52525b;
+  font-size: 0.73rem;
+  white-space: nowrap;
+}
+
+.media-foot > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.media-signal {
+  flex-shrink: 0;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.media > .bookmark-btn {
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  background: rgba(8, 8, 11, 0.72);
+  backdrop-filter: blur(6px);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.media:hover > .bookmark-btn,
+.media > .bookmark-btn:focus-visible,
+.media > .bookmark-btn.saved {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media:hover .media-art,
+  .media:hover .media-art img {
+    transform: none;
+  }
+
+  .media:hover .media-play {
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -3549,26 +3793,26 @@ nav {
 /* Two columns so a long category is scannable at a glance instead of a
    single column you scroll past. Column-count keeps the rows tight without
    forcing equal-height grid cells. */
+/* A grid, not column-count.
+   `column-count` balances by *height*, so three results put one tall item in
+   the left column and two in the right — which is why "From Prysm" came out
+   lopsided. A grid fills row-major, so items land 1-2 / 3-4 and the two sides
+   stay level however many there are. align-items: start keeps each row's cells
+   at their natural height rather than stretching them to match. */
 .cat-cols {
-  column-count: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   column-gap: 44px;
 }
 
-.cat-cols > * {
-  break-inside: avoid;
-  -webkit-column-break-inside: avoid;
-}
-
-/* In column flow :last-child is the last item in DOM order, which lands at the
-   bottom of the *right* column — leaving a dangling rule under the left one.
-   Keep the divider on every row instead, so both columns close evenly. */
 .cat-cols .res:last-child {
   border-bottom: 1px solid #131318;
 }
 
 @media (max-width: 1024px) {
   .cat-cols {
-    column-count: 1;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
