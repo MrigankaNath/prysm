@@ -2129,6 +2129,23 @@ nav {
   }
 }
 
+/* The shelf inside the command palette. Narrower books, three to a row in a
+   620px overlay — the cover is drawn in container units, so it is the same
+   design at this size rather than a squeezed one. */
+.command-shelf {
+  --book-w: 148px;
+  gap: 18px;
+  margin-top: 4px;
+}
+
+.command-shelf .book-meta {
+  gap: 8px;
+}
+
+.command-shelf .book-free {
+  font-size: 0.6rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .book-slab,
   .book:hover .book-slab {

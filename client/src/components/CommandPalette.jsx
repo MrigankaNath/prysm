@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { apiJson } from "../lib/api";
 import { getBookmarks, getHistory, getTopics } from "../lib/library";
 import { SPECTRUM_TOPICS } from "../lib/clusters";
+import BookCard from "./BookCard";
 import {
   IconSearch,
   IconClock,
@@ -27,6 +28,7 @@ const COMMANDS = [
   { key: "spectrum", hint: "topic", label: "Search the Spectrum", scope: "spectrum", to: "/spectrum", go: "Browse the Spectrum" },
   { key: "saved", hint: "title", label: "Search your saved items", scope: "saved", to: "/wavelength", go: "Open your saved items" },
   { key: "feed", hint: "topic", label: "Search your feed", scope: "feed", to: "/", go: "Open your feed" },
+  { key: "books", hint: "topic", label: "Find free books on a topic", scope: "books" },
 ];
 
 /* Scopes answered from what's already on the device — no request, so results
@@ -182,6 +184,7 @@ function CommandPalette({ open, setOpen }) {
   const [results, setResults] = useState(EMPTY_RESULTS);
   const [searching, setSearching] = useState(false);
   const [recents, setRecents] = useState([]);
+  const [books, setBooks] = useState({ items: [], loading: false });
   const inputRef = useRef(null);
   const navigate = useNavigate();
 
@@ -219,11 +222,33 @@ function CommandPalette({ open, setOpen }) {
     };
   }, [open]);
 
+  /* Books are their own request: Open Library is keyless, so the only cost is
+     latency, and the endpoint writes the cache the explore page reads. */
   useEffect(() => {
     const term = query.trim();
 
-    // A local scope reads from this device, so the request would be discarded.
-    if (!term || LOCAL_SCOPES.has(scope?.scope)) {
+    if (scope?.scope !== "books" || term.length < 2) {
+      setBooks({ items: [], loading: false });
+      return;
+    }
+
+    setBooks((b) => ({ ...b, loading: true }));
+    const debounce = setTimeout(() => {
+      apiJson(`/api/books?q=${encodeURIComponent(term)}`, { items: [] })
+        .then((data) =>
+          setBooks({ items: data?.items || [], loading: false }),
+        )
+        .catch(() => setBooks({ items: [], loading: false }));
+    }, 320);
+
+    return () => clearTimeout(debounce);
+  }, [query, scope]);
+
+  useEffect(() => {
+    const term = query.trim();
+
+    // A local scope reads from this device, and /books has its own request.
+    if (!term || LOCAL_SCOPES.has(scope?.scope) || scope?.scope === "books") {
       setResults(EMPTY_RESULTS);
       setSearching(false);
       return;
@@ -279,6 +304,7 @@ function CommandPalette({ open, setOpen }) {
     navigate(to);
   };
 
+  const isBooks = command?.scope === "books";
   const isLocal = LOCAL_SCOPES.has(command?.scope);
   const localRows = isLocal ? localResults(command.scope, query) : [];
 
@@ -343,7 +369,12 @@ function CommandPalette({ open, setOpen }) {
               if (e.key === "Enter" && !showCommandMenu) {
                 // Inside a local scope, Enter takes the first match rather
                 // than abandoning the scope to run a live search.
-                if (isLocal) {
+                if (isBooks) {
+                  if (books.items[0]) {
+                    e.preventDefault();
+                    openContent(books.items[0].url);
+                  }
+                } else if (isLocal) {
                   if (localRows[0]) {
                     e.preventDefault();
                     openRow(localRows[0]);
@@ -478,7 +509,13 @@ function CommandPalette({ open, setOpen }) {
                 </div>
               )}
 
-              {isLocal ? (
+              {isBooks ? (
+                <div className="command-group">
+                  <p className="command-empty">
+                    Type a topic to find books you can read in full, free.
+                  </p>
+                </div>
+              ) : isLocal ? (
                 <LocalRows
                   label={SCOPE_LABELS[command.scope]}
                   rows={localRows}
@@ -497,6 +534,33 @@ function CommandPalette({ open, setOpen }) {
             </>
           )}
 
+          {!showCommandMenu && trimmedQuery && isBooks && (
+            <div className="command-group">
+              <div className="command-group-label">
+                {books.loading
+                  ? "Searching Open Library…"
+                  : `${books.items.length} free to read`}
+              </div>
+              {!books.loading && books.items.length === 0 ? (
+                <p className="command-empty">
+                  Nothing free to read on that. Open Library only carries books
+                  out of copyright or cleared for lending.
+                </p>
+              ) : (
+                <div className="book-shelf command-shelf">
+                  {books.items.slice(0, 6).map((item) => (
+                    <BookCard
+                      key={item.url}
+                      item={item}
+                      topic={trimmedQuery}
+                      category="books"
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {!showCommandMenu && trimmedQuery && isLocal && (
             <LocalRows
               label={SCOPE_LABELS[command.scope]}
@@ -506,7 +570,7 @@ function CommandPalette({ open, setOpen }) {
             />
           )}
 
-          {!showCommandMenu && trimmedQuery && !isLocal && (
+          {!showCommandMenu && trimmedQuery && !isLocal && !isBooks && (
             <>
               {command?.scope !== "prism" && (
               <div className="command-group">

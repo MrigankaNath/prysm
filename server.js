@@ -836,6 +836,38 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
   }
 });
 
+/* Open Library is keyless and free, so this costs nothing but somebody else's
+   bandwidth — which is exactly why it gets its own ceiling. Looser than the
+   live-discovery limiter because the palette searches as you type, tighter
+   than the blanket read limit because each miss is an outbound request. */
+const booksLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many book searches — try again in a few minutes" },
+});
+
+/* Books on their own, for the palette's /books command.
+ *
+ * Goes through loadLiveCategory rather than calling the adapter directly, so a
+ * search here writes the same `topic_cache` row the explore page reads: look a
+ * topic up in the palette and its Books lane is already paid for when someone
+ * opens it, and the other way round. */
+app.get("/api/books", requireAuth, booksLimiter, async (req, res) => {
+  const topic = normaliseTopic(req.query.q || "");
+
+  if (!topic) return res.json({ topic: "", items: [] });
+
+  try {
+    const items = await loadLiveCategory(topic, "books", fetchBooks, []);
+    res.json({ topic, items: Array.isArray(items) ? items : [] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong searching books" });
+  }
+});
+
 app.get("/api/search", requireAuth, async (req, res) => {
   const q = String(req.query.q || "").trim().slice(0, MAX_TOPIC_LENGTH);
 
