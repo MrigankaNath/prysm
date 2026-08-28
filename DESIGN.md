@@ -136,6 +136,11 @@ silently falls back to black. `iconUrl` guards on a hex pattern for that reason.
 Two presentations, and which one applies is decided by the job the screen is
 doing — not by preference.
 
+**The two-column lane is a grid, not `column-count`.** `column-count` balances
+by *height*, so three results put one tall item on the left and two on the
+right — which is what made "From Prysm" look lopsided. A grid fills row-major,
+so the sides stay level however many there are.
+
 **Explore: rows, not cards.** No borders or backgrounds around a result. The
 title *is* the link; on hover it takes colour, an underline, and weight via
 `-webkit-text-stroke` rather than `font-weight`, because changing weight
@@ -175,18 +180,33 @@ gets no chip rather than a guess.
 **Books are a shelf and papers are documents.** Two lanes hold objects rather
 than links, so they are drawn as objects.
 
-*Books:* every board is the same 2:3 size — a real jacket where Open Library
-has one, a typeset one where it doesn't. Half of what it returns has no cover,
-and as rows of thumbnails the lane alternated between an entry with a picture
-and one with a gap. The spine is drawn down the left and the cut pages down the
-right, and the board pivots on its binding (`transform-origin: left center`) so
-hover reads as pulling it off a shelf rather than sliding it.
+*Books:* every board is the same 2:3 size — a scanned page where Open Library
+has one, a typeset cover where it doesn't. The board is **turned**
+(`rotateY(-11deg)`, pivoting on the binding) so the spine and the block of cut
+pages are both visible; that is what makes it an object rather than a rectangle
+with a picture in it. **The page is inset with a margin, not bled to the edge**:
+what comes back is nearly always a scanned *title page*, cream with black type,
+and full-bleed it looked like a cropped screenshot.
+
+**`?default=false` on the cover URL is load-bearing.** Without it Open Library
+answers a missing cover with a blank 1px image and **HTTP 200** — measured — so
+the `<img>` "loads", `onError` never fires, and the board comes up empty instead
+of falling back. An `onLoad` check on `naturalWidth` backs it up for rows cached
+before that shipped.
 
 *Papers:* the two facts that decide whether one is worth opening — where it was
 published and how often it has been cited — were the smallest text on the row.
-The venue now sits in the header where a masthead would, and the citation count
-is set as a figure. A bound left edge in the category's colour, not a full
-border, so the lane doesn't read like the feed.
+The venue sits under a hairline where a masthead would, the abstract is labelled
+as one (so the grey block reads as the author's words, not the app's), and the
+citation count is set as a figure. A bound left edge in the category's colour,
+not a full border, so the lane doesn't read like the feed. Stretched, not
+start-aligned: each sheet closes with a foot rule, and a row of rules at four
+heights reads as misalignment.
+
+*Videos and podcasts:* artwork leads, each at the aspect it was made in — 16:9
+for a still, 1:1 for cover art. Letterboxing one into the other throws away the
+part worth showing. Podcast art gets a border the way a record sleeve would; a
+video still is a frame and doesn't.
 
 **Videos and podcasts are tiles**, because both ship a real image and a
 thumbnail reads better leading a card than sitting beside text. Thumbnails sit
