@@ -375,6 +375,23 @@ band falls on empty space and nothing shows. The mask clips to the rail's box,
 which is why the rail carries vertical padding: without it the active tile's
 glow is sliced flat top and bottom.
 
+## Articles, discussions and Q&A
+
+One tile, in Tailwind (`components/ui/result-tile.jsx`), adapted from a glass
+blog card. The original leads with an image; **none of these three lanes have
+one** — Tavily returns a snippet, Hacker News a thread, Stack Exchange a
+question — so the card leads on what it does have: the source, the claim, and
+how many people engaged. The glass, the badge row and the ruled footer are what
+carried over.
+
+Each lane keeps its own hue through a `--cat` custom property, so one component
+serves three lanes without three variants.
+
+**Entrance animation is content, so it degrades.** `initial={{ opacity: 0 }}`
+means results are invisible until JS has run and rAF has ticked; under
+`useReducedMotion` the tile passes `initial={false}` and renders at full opacity
+immediately rather than serving a shorter version of the same wait.
+
 ## The topic figure
 
 Wikipedia's lead image for the article, framed beside the definition. It is

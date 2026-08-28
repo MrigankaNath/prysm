@@ -11,7 +11,7 @@ import ResultCard from "../components/ResultCard";
 import BookCard from "../components/BookCard";
 import PaperCard from "../components/PaperCard";
 import MediaCard from "../components/MediaCard";
-import GlassCard from "../components/GlassCard";
+import ResultTile from "../components/ui/result-tile";
 import Prose from "../components/Prose";
 import { recordTopic } from "../lib/library";
 import { apiFetch, apiJson } from "../lib/api";
@@ -115,8 +115,10 @@ function CategorySection({ category, items, topic, index }) {
         ? "papers"
         : category === "videos" || category === "podcasts"
           ? "media"
-          : category === "discussions" || category === "qa"
-            ? "glass"
+          : category === "discussions" ||
+              category === "qa" ||
+              category === "articles"
+            ? "tiles"
             : null;
 
   return (
@@ -151,14 +153,15 @@ function CategorySection({ category, items, topic, index }) {
         </div>
       )}
 
-      {layout === "glass" && (
-        <div className="glass-grid">
+      {layout === "tiles" && (
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(288px,1fr))] items-stretch gap-[18px]">
           {visible.map((item, i) => (
-            <GlassCard
+            <ResultTile
               key={`${item.url}-${i}`}
               item={item}
               topic={topic}
               category={category}
+              index={i}
             />
           ))}
         </div>

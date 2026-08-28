@@ -1,3 +1,49 @@
+/* --------------------------------------------------------------------------
+   Tailwind v4 — utilities and theme only, deliberately without preflight.
+
+   Preflight is Tailwind's reset. Importing it into a project that already has
+   four thousand lines of hand-written CSS would restyle every element the
+   existing design depends on — margins, list markers, heading sizes, form
+   controls — to fix nothing. The utilities are what the shadcn components
+   need; the reset is not.
+
+   Unlayered rules beat layered ones, so everything written below this block
+   still wins over a Tailwind utility of the same specificity. That is the
+   right way round: the existing design stays authoritative, and utilities
+   apply where nothing else has an opinion.
+   -------------------------------------------------------------------------- */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* shadcn's token names, pointed at Prysm's own palette — so a component pasted
+   in unedited comes out in this product's colours rather than shadcn's. */
+@theme {
+  --color-background: #000000;
+  --color-foreground: #e4e4e7;
+  --color-card: #0b0b0e;
+  --color-card-foreground: #e4e4e7;
+  --color-popover: #0b0b0e;
+  --color-popover-foreground: #e4e4e7;
+  --color-primary: #a78bfa;
+  --color-primary-foreground: #08080a;
+  --color-secondary: #17171d;
+  --color-secondary-foreground: #e4e4e7;
+  --color-muted: #17171d;
+  --color-muted-foreground: #a1a1aa;
+  --color-accent: #16161c;
+  --color-accent-foreground: #fafafa;
+  --color-destructive: #f43f5e;
+  --color-border: #31313c;
+  --color-input: #1c1c20;
+  --color-ring: #a78bfa;
+
+  --font-display: "Bricolage Grotesque", "Space Grotesk", system-ui, sans-serif;
+  --font-ui: "Space Grotesk", system-ui, sans-serif;
+
+  --radius-card: 18px;
+}
+
 :root {
   /* Two families: a characterful display grotesque for anything large, and a
      quirkier-but-quieter grotesk for UI and body copy. */
@@ -2088,182 +2134,6 @@ nav {
   .book:hover .book-slab {
     transform: none;
     transition: none;
-  }
-}
-
-/* --------------------------------------------------------------------------
-   Discussions and Q&A — conversations on glass
-
-   Neither lane ships an image, so the card can't be led by one. What it is led
-   by is what actually decides whether a thread is worth opening: how many
-   people weighed in, and where it happened. As rows both were the smallest
-   text on the line.
-   -------------------------------------------------------------------------- */
-
-.glass-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 18px;
-  align-items: start;
-}
-
-.glass {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 20px 22px 16px;
-  border: 1px solid var(--line-bold);
-  border-radius: 18px;
-  /* Glass: a translucent plate over the page rather than a solid one. The
-     blur is what separates it from the feed's opaque cards — those sit on the
-     page, these sit above it. */
-  background: color-mix(in srgb, var(--surface) 55%, transparent);
-  backdrop-filter: blur(14px) saturate(130%);
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    transform 0.4s var(--ease-bounce),
-    box-shadow 0.3s var(--ease-settle);
-}
-
-.glass:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--cat, #22d3ee) 46%, var(--line-bold));
-  background: color-mix(in srgb, var(--surface-raised) 75%, transparent);
-  box-shadow: 0 0 30px color-mix(in srgb, var(--cat, #22d3ee) 13%, transparent);
-}
-
-/* Stretched over the card, with the bookmark lifted back above it, so the
-   whole thing is one target and still only one link and one button. */
-.glass-hit {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  border-radius: inherit;
-}
-
-.glass-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.glass-mark {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  border: 1px solid color-mix(in srgb, var(--cat, #22d3ee) 26%, var(--line));
-  border-radius: 9px;
-  background: color-mix(in srgb, var(--cat, #22d3ee) 10%, transparent);
-}
-
-.glass-mark svg {
-  width: 15px;
-  height: 15px;
-}
-
-.glass-host {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--text-faint);
-  font-size: 0.74rem;
-}
-
-.glass-top .bookmark-btn {
-  position: relative;
-  top: auto;
-  right: auto;
-  z-index: 2;
-  margin-left: auto;
-  flex-shrink: 0;
-}
-
-.glass-title {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
-  overflow: hidden;
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.04rem;
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.022em;
-  color: #f4f4f5;
-  transition: color 0.16s ease;
-}
-
-.glass:hover .glass-title {
-  color: #ffffff;
-}
-
-.glass-blurb {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  overflow: hidden;
-  margin: 0;
-  color: var(--text-faint);
-  font-size: 0.85rem;
-  line-height: 1.55;
-}
-
-.glass-foot {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: auto;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
-}
-
-/* The count is the point of a thread, so it is set as one. */
-.glass-signal {
-  font-family: var(--font-display);
-  font-size: 0.92rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-  color: color-mix(in srgb, var(--cat, #22d3ee) 40%, #fafafa);
-}
-
-.glass-go {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  margin-left: auto;
-  color: #52525b;
-  font-size: 0.74rem;
-  font-weight: 600;
-  transition: color 0.16s ease;
-}
-
-.glass-go svg {
-  width: 12px;
-  height: 12px;
-  transition: transform 0.32s var(--ease-bounce);
-}
-
-.glass:hover .glass-go {
-  color: var(--text-dim);
-}
-
-.glass:hover .glass-go svg {
-  transform: translateX(4px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .glass:hover,
-  .glass:hover .glass-go svg {
-    transform: none;
   }
 }
 
