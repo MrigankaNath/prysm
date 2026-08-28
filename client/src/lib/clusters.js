@@ -4,7 +4,7 @@
  * same list — `/spectrum` scopes a query to these topics, and a second copy
  * would drift the moment either one changed.
  *
- * Twenty-five domains, hand-grouped. The shape of the list is a claim about
+ * Twenty-four domains, hand-grouped. The shape of the list is a claim about
  * who the product is for, so it is deliberately wider than the subjects a
  * discovery tool usually ships with: five lean technical, but philosophy,
  * music, food, sport and craft carry the same weight as machine learning, and
@@ -165,13 +165,6 @@ const DOMAINS = [
     label: "Music",
     blurb: "Why it works on us, and how it is put together.",
     topics: ["music theory", "jazz", "sound design", "film scoring", "world music", "acoustics"],
-  },
-  {
-    id: "film",
-    icon: "ph:film-slate-bold",
-    label: "Film and Media",
-    blurb: "Moving pictures, and how to read them.",
-    topics: ["cinematography", "film editing", "documentary", "animation", "screenwriting", "media literacy"],
   },
 
   // --- how people organise ------------------------------------------------

@@ -7,8 +7,6 @@ import { CLUSTERS } from "../lib/clusters";
 
 function Spectrum() {
   const [recent, setRecent] = useState(() => getTopics().slice(0, 6));
-  const [openId, setOpenId] = useState(CLUSTERS[0].id);
-  const open = CLUSTERS.find((c) => c.id === openId) || CLUSTERS[0];
 
   useEffect(() => subscribe(() => setRecent(getTopics().slice(0, 6))), []);
 
@@ -53,21 +51,20 @@ function Spectrum() {
         </section>
       )}
 
-      {/* Twenty-five domains is too many to stack as banner-and-rail sections
-          — that was nine thousand pixels of page and no way to see the map.
-          They are a grid you pick from, and the one you pick opens below. The
-          shape of the list is the point: it should be obvious at a glance that
-          this covers music and cooking as well as compilers. */}
-      <div className="spec-domains" role="tablist" aria-label="Domains">
+      {/* An index, not a tab bar.
+          The first version of this showed one domain at a time and hid the
+          other twenty-three, which is the wrong trade for a page whose whole
+          job is browsing: it put 144 of the 150 topics behind a click, and the
+          panel opened below the grid rather than where the eye was. These jump
+          to a section instead. Everything stays on the page; this is for
+          getting to it quickly. */}
+      <nav className="spec-index" aria-label="Jump to a domain">
         {CLUSTERS.map((cluster) => (
-          <button
+          <a
             key={cluster.id}
-            type="button"
-            role="tab"
-            aria-selected={cluster.id === openId}
-            className={`spec-domain${cluster.id === openId ? " active" : ""}`}
+            href={`#domain-${cluster.id}`}
+            className="spec-domain"
             style={{ "--hue": cluster.hue }}
-            onClick={() => setOpenId(cluster.id)}
           >
             <TopicIcon
               topic={cluster.label}
@@ -75,44 +72,52 @@ function Spectrum() {
               color={cluster.hue}
             />
             <span className="spec-domain-name">{cluster.label}</span>
-          </button>
+          </a>
+        ))}
+      </nav>
+
+      <div className="spec-clusters">
+        {CLUSTERS.map((cluster) => (
+          <section
+            key={cluster.id}
+            id={`domain-${cluster.id}`}
+            className="spec-cluster"
+            style={{ "--hue": cluster.hue }}
+          >
+            <header className="spec-head">
+              <TopicIcon
+                topic={cluster.label}
+                icon={cluster.icon}
+                color={cluster.hue}
+              />
+              <div className="spec-head-copy">
+                <h3 className="spec-cluster-label">{cluster.label}</h3>
+                <p className="spec-cluster-blurb">{cluster.blurb}</p>
+              </div>
+            </header>
+
+            {/* Wraps rather than scrolls. A rail made sense when the tiles
+                were connected and a wrapped row would have drawn a connector
+                into the gutter; without them, a horizontal scroller just hides
+                topics behind a gesture nobody knows is available. */}
+            <div className="spec-grid">
+              {cluster.topics.map((topic) => (
+                <Link
+                  key={topic}
+                  to={`/explore/${encodeURIComponent(topic)}`}
+                  className="rail-item"
+                  style={{ "--hue": cluster.hue }}
+                >
+                  <span className="rail-tile">
+                    <TopicIcon topic={topic} color={cluster.hue} />
+                  </span>
+                  <span className="rail-label">{topic}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
         ))}
       </div>
-
-      <section
-        className="spec-cluster"
-        style={{ "--hue": open.hue }}
-        /* Keyed on the domain so the section animates in again on each pick,
-           rather than the text swapping under a static frame. */
-        key={open.id}
-      >
-        <header className="spec-banner">
-          <TopicIcon topic={open.label} icon={open.icon} color={open.hue} />
-          <div className="spec-banner-copy">
-            <span className="spec-banner-eyebrow">
-              {open.topics.length} topics
-            </span>
-            <h3 className="spec-cluster-label">{open.label}</h3>
-            <p className="spec-cluster-blurb">{open.blurb}</p>
-          </div>
-        </header>
-
-        <div className="rail is-lg">
-          {open.topics.map((topic) => (
-            <Link
-              key={topic}
-              to={`/explore/${encodeURIComponent(topic)}`}
-              className="rail-item"
-              style={{ "--hue": open.hue }}
-            >
-              <span className="rail-tile">
-                <TopicIcon topic={topic} color={open.hue} />
-              </span>
-              <span className="rail-label">{topic}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
 
     </div>
   );

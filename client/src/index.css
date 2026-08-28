@@ -81,6 +81,13 @@
    route below taking the rest. Pages that want to fill the screen ask for
    flex: 1 rather than subtracting a hardcoded nav height — which was wrong the
    moment the nav's padding changed at a breakpoint. */
+/* The Spectrum index jumps between sections; without this they snap. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 #root {
   display: flex;
   flex-direction: column;
@@ -3322,10 +3329,11 @@ nav {
   color: #fafafa;
 }
 
-/* The map: all twenty-five domains at once, so the breadth is visible before
-   you pick anything. Compact rows rather than tiles — the point of this grid
-   is the list of names, and twenty-five illustrated cards would bury them. */
-.spec-domains {
+/* The index. All twenty-four names at once, so the breadth is visible before
+   you scroll — compact rows rather than illustrated cards, because at this
+   count the names are the content and artwork would bury them.
+   These jump to a section; they do not swap one in. */
+.spec-index {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
   gap: 10px;
@@ -3334,6 +3342,7 @@ nav {
 
 .spec-domain {
   display: flex;
+  text-decoration: none;
   align-items: center;
   gap: 11px;
   padding: 11px 13px;
@@ -3375,14 +3384,6 @@ nav {
   color: #fafafa;
 }
 
-.spec-domain.active {
-  border-color: color-mix(in srgb, var(--hue) 62%, transparent);
-  background: color-mix(in srgb, var(--hue) 9%, var(--surface));
-  color: #fafafa;
-  font-weight: 600;
-  box-shadow: 0 0 22px color-mix(in srgb, var(--hue) 15%, transparent);
-}
-
 .spec-domain:focus-visible {
   outline: 2px solid var(--hue);
   outline-offset: 2px;
@@ -3394,9 +3395,85 @@ nav {
   }
 }
 
+.spec-clusters {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(40px, 4.6vw, 64px);
+}
+
 .spec-cluster {
-  animation: fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: var(--stagger, 0ms);
+  /* Lands clear of the fixed nav when the index jumps to it. */
+  scroll-margin-top: 26px;
+}
+
+/* Compact beside the banner the explore page uses: twenty-four of these stack,
+   so the header states the domain and gets out of the way. */
+.spec-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.spec-head .topic-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+}
+
+.spec-head .topic-icon img {
+  width: 20px;
+  height: 20px;
+}
+
+.spec-head-copy {
+  min-width: 0;
+}
+
+/* Wraps rather than scrolls. The rail scrolled because connected tiles cannot
+   wrap — the first tile on a second line would draw a connector into the
+   gutter — and the connectors are gone, so the reason went with them. A
+   horizontal scroller here would hide topics behind a gesture nobody knows is
+   available. */
+.spec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
+  gap: clamp(14px, 1.8vw, 22px);
+  align-items: start;
+}
+
+.spec-grid .rail-item {
+  width: 100%;
+}
+
+.spec-grid .rail-tile {
+  width: 100%;
+  height: 108px;
+  border-radius: 20px;
+}
+
+.spec-grid .rail-tile .topic-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+}
+
+.spec-grid .rail-tile .topic-icon img {
+  width: 24px;
+  height: 24px;
+}
+
+.spec-grid .rail-label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: capitalize;
+}
+
+.spec-grid .rail-item:hover .rail-label {
+  color: #fafafa;
 }
 
 /* A band per cluster, not a hairline bar and a heading: the cluster's icon,

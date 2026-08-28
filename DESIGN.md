@@ -344,13 +344,26 @@ states its subject before any result does.
 
 ## Spectrum
 
-**Twenty-five domains, shown as a map.** They are a compact grid of names you
-pick from, and the one you pick opens below it as a banner and a rail. Stacking
-twenty-five banner-and-rail sections was nine thousand pixels of page with no
-way to see the shape of the list — and the shape *is* the point: it should be
-obvious at a glance that this covers music and cooking as well as compilers.
-Rows rather than illustrated tiles, because at twenty-five the names are what
-matters and the artwork would bury them.
+**Twenty-four domains: an index, then all of them.** The index is a compact
+grid of names that **jumps** to a section; it does not swap one in.
+
+An earlier version made it a tab bar — one domain open, twenty-three hidden.
+That is the wrong trade for a page whose only job is browsing. It put 138 of
+the 144 topics behind a click, so the page showed categories rather than
+content; the panel opened below the whole grid rather than where the click
+was; and seeing everything took twenty-four clicks. Length is not a fault on a
+catalogue page — every large one scrolls — but hiding the catalogue is.
+
+Rows rather than illustrated cards in the index, because at this count the
+names *are* the content and artwork would bury them. Section headers are
+compact for the same reason: twenty-four of them stack, so a header states the
+domain and gets out of the way rather than repeating the explore banner.
+
+**The topic grid wraps rather than scrolls.** The rail scrolled because
+connected tiles cannot wrap — the first tile on a second line draws a connector
+into the gutter with nothing on the other end. The connectors are gone, so the
+reason went with them, and a horizontal scroller would only hide topics behind
+a gesture nobody knows is available.
 
 Hues cycle through the six bands by position, so a domain's colour is stable
 without anyone assigning one.
