@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import { BookmarkButton } from "@/components/ResultCard";
 import { recordVisit } from "@/lib/library";
 import { hostOf, formatSignal } from "@/lib/result";
+import { provenanceOf } from "@/lib/provenance";
 
 /* Articles, discussions and Q&A — the three lanes that are text and a link.
  *
@@ -35,6 +36,7 @@ export function ResultTile({ item, topic, category, index = 0, className }) {
   const { Icon, label } = KIND[category] || KIND.articles;
   const host = hostOf(item.url);
   const signal = formatSignal(item);
+  const mark = provenanceOf(item);
   const blurb =
     item.snippet && !NUMERIC_ONLY.test(item.snippet) ? item.snippet : null;
 
@@ -92,10 +94,14 @@ export function ResultTile({ item, topic, category, index = 0, className }) {
             <Icon className="h-3 w-3" strokeWidth={2.2} />
             {label}
           </span>
-          {item.depth_level && (
-            <span className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-zinc-400">
-              {item.depth_level}
-            </span>
+          {mark ? (
+            <span className={`mark mark-${mark.tone}`}>{mark.label}</span>
+          ) : (
+            item.depth_level && (
+              <span className="rounded-full bg-white/[0.06] px-2.5 py-1 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-zinc-400">
+                {item.depth_level}
+              </span>
+            )
           )}
           <div className="relative z-20 ml-auto">
             <BookmarkButton item={item} topic={topic} category={category} />

@@ -474,6 +474,30 @@ sections above the fold are three readings of the same records:
   point: returning tells you what stuck. This is recall in the form the app can
   honestly offer without generated questions.
 
+## Provenance, not ratings
+
+The tempting version is a number: score everything 0–100 and sort. It doesn't
+survive contact with the data. A paper cited four thousand times, a video with
+two million views and an accepted Stack Overflow answer are **not
+commensurable**, and any single figure claiming they are has invented a
+comparison rather than made one. Worse, a score hides its reasoning exactly
+where the reasoning is the point.
+
+So: **one badge per item, naming the strongest verifiable fact about it.** A
+content farm can fake a headline; it cannot fake a DOI, a citation count or a
+university domain.
+
+Order matters — peer review outranks citation count, because one is a
+judgement by people qualified to make it and the other is a popularity measure
+a wrong paper can also score well on. Colour follows the same logic: green for
+review, blue for a named institution, neutral grey for counts (real
+information, weaker claim), amber for a preprint, which is a caution and not a
+warning.
+
+**It costs nothing.** Every field is already in the payload; `lib/provenance.js`
+is a re-reading of what the adapters return, not a request. Thresholds are
+deliberately high — a badge most items earn is decoration, not a signal.
+
 ## Layout
 
 `#root` is a flex column owning the viewport height; `nav` is `flex-shrink: 0`.

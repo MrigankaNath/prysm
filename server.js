@@ -639,10 +639,17 @@ async function loadLiveCategory(topic, category, fetchFn, emptyValue, ...args) {
 // are actually worth calling.
 const PROBE_CATEGORIES = ["discussions", "papers", "books", "podcasts"];
 
-/* The three that cost money: overview and articles share one round of Tavily
-   searches, videos is 100 YouTube units. Everything else is free and keyless,
-   which is why running out of quota withholds these and nothing else. */
-const METERED_CATEGORIES = ["overview", "articles", "videos"];
+/* What the monthly budget actually pays for: overview and articles, which
+   share one round of Tavily searches.
+ *
+ * Videos used to be in here and shouldn't have been. The per-account quota
+ * exists to protect Tavily's 1,000 credits a month; YouTube is a completely
+ * separate allowance (10,000 units a day, 100 per search) that Tavily spending
+ * does not touch. Gating one on the other meant videos vanished whenever the
+ * Tavily budget ran out — and videos is the lane with the broadest coverage of
+ * any, so it was the worst possible one to drop. It now runs like every other
+ * free source and fails on its own quota if it ever hits it. */
+const METERED_CATEGORIES = ["overview", "articles"];
 
 /* Articles stands in for "has anyone paid for this topic yet". It shares a
    fetch with the overview and expires on the same schedule, so if its row is
@@ -796,6 +803,7 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
        rather than an error. There is real content either way. */
     const second = [
       ...(metered ? METERED_CATEGORIES.map((name) => [name]) : []),
+      ["videos"],
       ["qa", qaPool(topic, profile)],
       ...(demandsCode(topic) ? [["code"]] : []),
     ];

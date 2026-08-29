@@ -6125,3 +6125,52 @@ nav {
   width: 12px;
   height: 12px;
 }
+
+/* --- provenance ----------------------------------------------------------
+   One badge per item, naming the strongest verifiable fact about it rather
+   than scoring it. A score would imply a paper, a video and an answer are
+   commensurable; they are not, and the reasoning is the point.
+
+   Colour separates a judgement from a count: green for something a qualified
+   person reviewed, blue for a named institution, neutral for popularity —
+   which is real information but not the same kind. Amber for a preprint,
+   which is a caution rather than a warning. */
+
+.mark {
+  flex-shrink: 0;
+  max-width: 22ch;
+  overflow: hidden;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mark-reviewed {
+  background: rgba(16, 185, 129, 0.14);
+  color: #6ee7b7;
+}
+
+.mark-institutional {
+  background: rgba(59, 130, 246, 0.14);
+  color: #93c5fd;
+}
+
+.mark-preprint {
+  background: rgba(245, 158, 11, 0.13);
+  color: #fbbf24;
+}
+
+/* Counts are popularity, not quality — real information, but a weaker claim
+   than review or provenance, so they carry less colour. */
+.mark-cited,
+.mark-used,
+.mark-answered,
+.mark-discussed {
+  background: rgba(255, 255, 255, 0.06);
+  color: #a1a1aa;
+}

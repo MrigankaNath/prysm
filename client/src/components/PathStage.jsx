@@ -2,6 +2,7 @@ import { Check } from "lucide-react";
 import { recordVisit } from "../lib/library";
 import { hostOf } from "../lib/result";
 import { CATEGORY_LABELS } from "./categories";
+import { provenanceOf } from "../lib/provenance";
 
 /* One stage of a path, and the items in it.
  *
@@ -30,6 +31,7 @@ function PathStage({ stage, topic, doneUrls, onToggle }) {
         {stage.items.map((item) => {
           const done = doneUrls.includes(item.url);
           const host = hostOf(item.url);
+          const mark = provenanceOf(item);
 
           return (
             <li key={item.url} className={`step${done ? " is-done" : ""}`}>
@@ -60,6 +62,12 @@ function PathStage({ stage, topic, doneUrls, onToggle }) {
                   {CATEGORY_LABELS[item.category] || item.category}
                 </span>
                 {host && <span className="step-host">{host}</span>}
+                {/* One badge, naming the strongest verifiable fact. A score
+                    would imply a paper and a video are commensurable; this
+                    says what is actually true about each. */}
+                {mark && (
+                  <span className={`mark mark-${mark.tone}`}>{mark.label}</span>
+                )}
               </span>
             </li>
           );
