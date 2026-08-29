@@ -1,4 +1,5 @@
-import { Check } from "lucide-react";
+import { useState } from "react";
+import { Check, ChevronDown } from "lucide-react";
 import { recordVisit } from "../lib/library";
 import { hostOf } from "../lib/result";
 import { CATEGORY_LABELS } from "./categories";
@@ -12,7 +13,16 @@ import { provenanceOf } from "../lib/provenance";
  * something done and opening it are different intentions — you tick things off
  * that you read yesterday.
  */
+/* A stage is a shortlist. Beyond about five the reader is scanning a list
+   again rather than following a route, which is the thing this view exists to
+   avoid — so the rest is one click away instead of on the page. */
+const VISIBLE = 5;
+
 function PathStage({ stage, topic, doneUrls, onToggle }) {
+  const [expanded, setExpanded] = useState(false);
+  const shown = expanded ? stage.items : stage.items.slice(0, VISIBLE);
+  const hidden = stage.items.length - shown.length;
+
   return (
     <section className="stage" style={{ "--stage": stage.hue }}>
       <header className="stage-head">
@@ -28,7 +38,7 @@ function PathStage({ stage, topic, doneUrls, onToggle }) {
       </header>
 
       <ol className="stage-list">
-        {stage.items.map((item) => {
+        {shown.map((item) => {
           const done = doneUrls.includes(item.url);
           const host = hostOf(item.url);
           const mark = provenanceOf(item);
@@ -73,6 +83,28 @@ function PathStage({ stage, topic, doneUrls, onToggle }) {
           );
         })}
       </ol>
+
+      {hidden > 0 && (
+        <button
+          type="button"
+          className="stage-more"
+          onClick={() => setExpanded(true)}
+        >
+          Show {hidden} more
+          <ChevronDown className="stage-more-icon" />
+        </button>
+      )}
+
+      {expanded && stage.items.length > VISIBLE && (
+        <button
+          type="button"
+          className="stage-more"
+          onClick={() => setExpanded(false)}
+        >
+          Show less
+          <ChevronDown className="stage-more-icon up" />
+        </button>
+      )}
     </section>
   );
 }

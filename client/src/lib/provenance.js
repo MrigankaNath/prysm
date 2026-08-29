@@ -11,6 +11,12 @@
  * content farm can fake a headline; it cannot fake a DOI, a citation count or
  * a university domain.
  *
+ * The badge is a *category*, never a number. "1,827 points" is not information
+ * at a glance — the reader has no idea whether that is a lot, and the answer
+ * differs by source and by community. "Much discussed" is the claim the number
+ * was standing in for, and it means the same thing everywhere. Counts still
+ * appear in the meta line, where a number is what you actually want.
+ *
  * Costs nothing. Every field read here is already in the payload — this is a
  * re-reading of what the adapters return, not a new request.
  */
@@ -32,13 +38,6 @@ const MUCH_WATCHED = 100000;
    the only durable fact iTunes gives, and longevity is the honest reading of
    it — not quality, but not nothing either. */
 const LONG_RUNNING = 100;
-
-/** 11,577,274 reads worse than 12M in a badge that has to stay one line. */
-function compact(n) {
-  if (n >= 1e6) return `${(n / 1e6).toFixed(n < 1e7 ? 1 : 0)}M`;
-  if (n >= 1e3) return `${Math.round(n / 1e3)}k`;
-  return String(n);
-}
 
 function hostOf(url) {
   try {
@@ -69,11 +68,11 @@ export function provenanceOf(item) {
   }
 
   if (item.source === "openalex" && n >= HIGHLY_CITED) {
-    return { label: `${n.toLocaleString()} citations`, tone: "cited" };
+    return { label: "Widely cited", tone: "cited" };
   }
 
   if (item.source === "github" && n >= WIDELY_USED) {
-    return { label: `${compact(n)} stars`, tone: "used" };
+    return { label: "Widely used", tone: "used" };
   }
 
   /* Ranked above the vote thresholds on purpose: acceptance is a judgement by
@@ -84,19 +83,19 @@ export function provenanceOf(item) {
   }
 
   if (item.source === "stackexchange" && n >= WELL_ANSWERED) {
-    return { label: `${n.toLocaleString()} votes`, tone: "answered" };
+    return { label: "Well answered", tone: "answered" };
   }
 
   if (item.source === "hackernews" && n >= MUCH_DISCUSSED) {
-    return { label: `${n.toLocaleString()} points`, tone: "discussed" };
+    return { label: "Much discussed", tone: "discussed" };
   }
 
   if (item.source === "youtube" && n >= MUCH_WATCHED) {
-    return { label: `${compact(n)} views`, tone: "watched" };
+    return { label: "Widely watched", tone: "watched" };
   }
 
   if (item.source === "podcasts" && n >= LONG_RUNNING) {
-    return { label: `${compact(n)} episodes`, tone: "running" };
+    return { label: "Long running", tone: "running" };
   }
 
   /* Every book in this lane is readable in full, for free, right now — Open

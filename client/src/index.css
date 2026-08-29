@@ -6183,3 +6183,36 @@ nav {
   background: rgba(16, 185, 129, 0.12);
   color: #6ee7b7;
 }
+
+.stage-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 10px 0 0 12px;
+  padding: 8px 16px;
+  border: 1px solid var(--line-bold);
+  border-radius: 999px;
+  background: none;
+  color: var(--text-faint);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.stage-more:hover {
+  color: #fafafa;
+  border-color: color-mix(in srgb, var(--stage) 50%, var(--line-bold));
+}
+
+.stage-more-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.stage-more-icon.up {
+  transform: rotate(180deg);
+}

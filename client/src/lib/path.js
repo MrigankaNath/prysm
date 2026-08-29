@@ -16,6 +16,8 @@
  * already has.
  */
 
+import { provenanceOf } from "./provenance";
+
 export const STAGES = [
   {
     id: "orient",
@@ -107,12 +109,37 @@ export function buildPath(categories, order = []) {
     }
   }
 
-  return STAGES.map((stage) => ({ ...stage, items: byStage[stage.id] })).filter(
-    (stage) => stage.items.length > 0,
-  );
+  return STAGES.map((stage) => ({
+    ...stage,
+    items: rankStageItems(byStage[stage.id], provenanceOf),
+  })).filter((stage) => stage.items.length > 0);
 }
 
 /** Every item in a path, in order — what progress is counted against. */
+/* Ordering inside a stage. A stage is a shortlist, not a dump, so what leads
+   it should be whatever has the strongest claim to be there: reviewed and
+   institutional work above popularity, popularity above the unverifiable. Raw
+   signal only breaks ties inside a band. */
+const RANK = {
+  reviewed: 0,
+  institutional: 1,
+  answered: 2,
+  cited: 3,
+  used: 4,
+  watched: 5,
+  running: 6,
+  free: 7,
+  preprint: 8,
+};
+
+export function rankStageItems(items, provenanceOf) {
+  return [...items].sort((a, b) => {
+    const ra = RANK[provenanceOf(a)?.tone] ?? 9;
+    const rb = RANK[provenanceOf(b)?.tone] ?? 9;
+    return ra - rb || (b.signal || 0) - (a.signal || 0);
+  });
+}
+
 export function pathItems(path) {
   return path.flatMap((stage) => stage.items);
 }

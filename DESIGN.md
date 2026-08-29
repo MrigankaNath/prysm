@@ -487,6 +487,12 @@ So: **one badge per item, naming the strongest verifiable fact about it.** A
 content farm can fake a headline; it cannot fake a DOI, a citation count or a
 university domain.
 
+**The badge is a category, never a number.** "1,827 points" is not information
+at a glance — the reader has no idea whether that is a lot, and the answer
+differs by source and community. "Much discussed" is the claim the number was
+standing in for, and it means the same thing everywhere. Counts stay in the
+meta line, where a number is what you actually want.
+
 Order matters — peer review outranks citation count, because one is a
 judgement by people qualified to make it and the other is a popularity measure
 a wrong paper can also score well on. Colour follows the same logic: green for
