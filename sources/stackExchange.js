@@ -51,6 +51,12 @@ async function searchSite(topic, site) {
       source: "stackexchange",
       type: "qa",
       score: item.score,
+      /* A verifiable fact independent of vote count, and independent of which
+         site it came from — 100 votes is routine on Stack Overflow and
+         exceptional on philosophy.stackexchange, so a single vote threshold
+         flatters the busy sites and buries the good answers on the quiet
+         ones. Acceptance doesn't have that problem. */
+      accepted: Boolean(item.is_answered),
       snippet: `${item.score} votes · ${item.answer_count} answer${
         item.answer_count === 1 ? "" : "s"
       }${item.is_answered ? " · accepted" : ""}`,

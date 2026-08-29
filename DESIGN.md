@@ -494,7 +494,18 @@ review, blue for a named institution, neutral grey for counts (real
 information, weaker claim), amber for a preprint, which is a caution and not a
 warning.
 
-**It costs nothing.** Every field is already in the payload; `lib/provenance.js`
+**Every lane carries one.** Peer-reviewed venue, institution, citations, stars,
+accepted answer, points, views, episodes, full text — and *no badge is a
+meaningful state*, not a gap. It says the item is relevant and nothing stronger
+can be verified about it, which is the honest thing to say about most of the
+open web and the reason the badges elsewhere mean anything.
+
+**Q&A uses acceptance, not votes.** A hundred votes is routine on Stack
+Overflow and exceptional on philosophy.stackexchange, so one threshold flatters
+the busy sites and buries good answers on the quiet ones. Acceptance is a
+judgement by the person who asked and means the same thing everywhere.
+
+**It costs nothing** (except the 1-unit YouTube stats call). Every field is already in the payload; `lib/provenance.js`
 is a re-reading of what the adapters return, not a request. Thresholds are
 deliberately high — a badge most items earn is decoration, not a signal.
 

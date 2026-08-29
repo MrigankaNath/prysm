@@ -6170,7 +6170,16 @@ nav {
 .mark-cited,
 .mark-used,
 .mark-answered,
-.mark-discussed {
+.mark-discussed,
+.mark-watched,
+.mark-running {
   background: rgba(255, 255, 255, 0.06);
   color: #a1a1aa;
+}
+
+/* Readable in full, right now — a claim about access rather than quality, so
+   it takes the same green the book cards already use for it. */
+.mark-free {
+  background: rgba(16, 185, 129, 0.12);
+  color: #6ee7b7;
 }

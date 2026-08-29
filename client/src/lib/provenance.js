@@ -25,8 +25,20 @@ const INSTITUTIONAL =
    signal, it's decoration — these mark the exceptional, not the adequate. */
 const HIGHLY_CITED = 500;
 const WIDELY_USED = 5000;
-const WELL_ANSWERED = 100;
+const WELL_ANSWERED = 60;
 const MUCH_DISCUSSED = 200;
+const MUCH_WATCHED = 100000;
+/* A show that has run this long has been doing it for years. Episode count is
+   the only durable fact iTunes gives, and longevity is the honest reading of
+   it — not quality, but not nothing either. */
+const LONG_RUNNING = 100;
+
+/** 11,577,274 reads worse than 12M in a badge that has to stay one line. */
+function compact(n) {
+  if (n >= 1e6) return `${(n / 1e6).toFixed(n < 1e7 ? 1 : 0)}M`;
+  if (n >= 1e3) return `${Math.round(n / 1e3)}k`;
+  return String(n);
+}
 
 function hostOf(url) {
   try {
@@ -61,7 +73,14 @@ export function provenanceOf(item) {
   }
 
   if (item.source === "github" && n >= WIDELY_USED) {
-    return { label: `${(n / 1000).toFixed(0)}k stars`, tone: "used" };
+    return { label: `${compact(n)} stars`, tone: "used" };
+  }
+
+  /* Ranked above the vote thresholds on purpose: acceptance is a judgement by
+     the person who asked, which is a stronger claim than a count — and unlike
+     a count it means the same thing on every Stack Exchange site. */
+  if (item.source === "stackexchange" && item.accepted) {
+    return { label: "Accepted answer", tone: "reviewed" };
   }
 
   if (item.source === "stackexchange" && n >= WELL_ANSWERED) {
@@ -72,11 +91,31 @@ export function provenanceOf(item) {
     return { label: `${n.toLocaleString()} points`, tone: "discussed" };
   }
 
+  if (item.source === "youtube" && n >= MUCH_WATCHED) {
+    return { label: `${compact(n)} views`, tone: "watched" };
+  }
+
+  if (item.source === "podcasts" && n >= LONG_RUNNING) {
+    return { label: `${compact(n)} episodes`, tone: "running" };
+  }
+
+  /* Every book in this lane is readable in full, for free, right now — Open
+     Library is filtered to `ebook_access:public` and the adapter re-checks it.
+     Universal within the lane, but a strong claim about a book in general:
+     most of them you cannot open. */
+  if (item.category === "books" || item.source === "openlibrary") {
+    return { label: "Full text", tone: "free" };
+  }
+
   /* A preprint is not a flaw — most of the strongest work in ML appears there
      first — but the reader is entitled to know which one they're looking at. */
   if (item.peer_reviewed === false) {
     return { label: "Preprint", tone: "preprint" };
   }
 
+  /* No badge is a meaningful state, not a gap. It says the item is relevant
+     and nothing stronger can be verified about it — which is the honest thing
+     to say about most of the open web, and the reason the badges elsewhere
+     mean anything. */
   return null;
 }
