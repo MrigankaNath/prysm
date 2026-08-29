@@ -13,7 +13,15 @@ import PaperCard from "../components/PaperCard";
 import MediaCard from "../components/MediaCard";
 import ResultTile from "../components/ui/result-tile";
 import Prose from "../components/Prose";
-import { recordTopic } from "../lib/library";
+import {
+  recordTopic,
+  getProgress,
+  toggleDone,
+  recordPathSize,
+  subscribe,
+} from "../lib/library";
+import { buildPath, pathItems } from "../lib/path";
+import PathStage from "../components/PathStage";
 import { apiFetch, apiJson } from "../lib/api";
 import {
   IconChevronDown,
@@ -328,6 +336,10 @@ function ExploreTopic() {
   const [failed, setFailed] = useState(false);
   const [active, setActive] = useState("all");
   const [usage, setUsage] = useState(null);
+  /* The path is the default view; "Everything" is still there for anyone who
+     wants the raw lanes, but a sequence is what the page is now for. */
+  const [view, setView] = useState("path");
+  const [done, setDone] = useState([]);
 
   useEffect(() => {
     if (!topic) return;
@@ -385,6 +397,20 @@ function ExploreTopic() {
     );
   }, [categories]);
 
+  useEffect(() => {
+    setDone(getProgress(topic));
+    return subscribe(() => setDone(getProgress(topic)));
+  }, [topic]);
+
+  const path = useMemo(() => buildPath(categories, order), [categories, order]);
+
+  /* Recorded so the feed can say "4 of 11" without rebuilding the path, which
+     would mean refetching the topic. */
+  useEffect(() => {
+    const total = pathItems(path).length;
+    if (total) recordPathSize(topic, total);
+  }, [path, topic]);
+
   const sections = useMemo(() => {
     if (!categories) return [];
     return order
@@ -398,6 +424,9 @@ function ExploreTopic() {
   }, [categories, order]);
 
   const total = sections.reduce((sum, s) => sum + s.items.length, 0);
+  const steps = pathItems(path);
+  const pathTotal = steps.length;
+  const pathDone = steps.filter((i) => done.includes(i.url)).length;
   const shown =
     active === "all" ? sections : sections.filter((s) => s.key === active);
 
@@ -471,24 +500,88 @@ function ExploreTopic() {
             </section>
           )}
 
-          {sections.length > 1 && (
-            <CategoryRail
-              sections={sections}
-              active={active}
-              onSelect={setActive}
-              total={total}
-            />
+          {/* Two ways to read the same results. The path is the default and the
+              reason the page exists; Everything is the raw lanes, for when you
+              know what you're looking for and want the shelf, not the route. */}
+          {path.length > 0 && (
+            <div className="view-switch" role="tablist" aria-label="How to read this topic">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === "path"}
+                className={`view-tab${view === "path" ? " active" : ""}`}
+                onClick={() => setView("path")}
+              >
+                The path
+                <span className="view-tab-count">
+                  {pathDone}/{pathTotal}
+                </span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={view === "all"}
+                className={`view-tab${view === "all" ? " active" : ""}`}
+                onClick={() => setView("all")}
+              >
+                Everything
+                <span className="view-tab-count">{total}</span>
+              </button>
+            </div>
           )}
 
-          {shown.map(({ key, items }, i) => (
-            <CategorySection
-              key={key}
-              category={key}
-              items={items}
-              topic={topic}
-              index={i}
-            />
-          ))}
+          {view === "path" && path.length > 0 && (
+            <div className="path">
+              {/* One bar for the whole topic, so the answer to "how far in am
+                  I" doesn't require adding up three stages. */}
+              <div className="path-bar" aria-hidden="true">
+                <span
+                  className="path-bar-fill"
+                  style={{ width: `${pathTotal ? (pathDone / pathTotal) * 100 : 0}%` }}
+                />
+              </div>
+
+              {path.map((stage) => (
+                <PathStage
+                  key={stage.id}
+                  stage={stage}
+                  topic={topic}
+                  doneUrls={done}
+                  onToggle={(url) => toggleDone(topic, url)}
+                />
+              ))}
+
+              {pathTotal > 0 && pathDone === pathTotal && (
+                <p className="path-done">
+                  That&rsquo;s the path. Everything on {topic} is below if you
+                  want to keep going.
+                </p>
+              )}
+            </div>
+          )}
+
+          {(view === "all" || path.length === 0) && (
+            <>
+              {sections.length > 1 && (
+                <CategoryRail
+                  sections={sections}
+                  active={active}
+                  onSelect={setActive}
+                  total={total}
+                />
+              )}
+
+              {shown.map(({ key, items }, i) => (
+                <CategorySection
+                  key={key}
+                  category={key}
+                  items={items}
+                  topic={topic}
+                  index={i}
+                />
+              ))}
+            </>
+          )}
 
           {total === 0 && curated.length === 0 && (
             <p className="explore-error">

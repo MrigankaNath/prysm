@@ -5749,3 +5749,379 @@ nav {
 .pdeck-illo:has(.is-brand)::before {
   display: none;
 }
+
+/* ==========================================================================
+   The path — a topic as a sequence, not a shelf
+
+   The one thing here a search engine structurally cannot do. It has no idea
+   whether you already know the subject and no reason to care whether you
+   finish; both of those are the whole point of this view.
+   ========================================================================== */
+
+.view-switch {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: clamp(26px, 3vw, 38px);
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.view-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--text-faint);
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color 0.16s ease,
+    background-color 0.2s ease;
+}
+
+.view-tab.active {
+  background: var(--surface-raised);
+  color: #fafafa;
+  box-shadow: inset 0 0 0 1px var(--line-bold);
+}
+
+.view-tab-count {
+  color: #52525b;
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.view-tab.active .view-tab-count {
+  color: var(--text-dim);
+}
+
+.path {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(30px, 3.6vw, 46px);
+}
+
+/* One bar for the topic, so "how far in am I" doesn't mean adding up stages. */
+.path-bar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #16161c;
+}
+
+.path-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6 52%, #10b981);
+  transition: width 0.5s var(--ease-settle);
+}
+
+.stage-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+/* The number carries the order. Stages are a sequence — this is the one place
+   in the app where a numbered marker states something true rather than
+   decorating a list. */
+.stage-n {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid color-mix(in srgb, var(--stage) 45%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--stage) 12%, transparent);
+  color: var(--stage);
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.stage-copy {
+  min-width: 0;
+}
+
+.stage-label {
+  margin: 0 0 3px;
+  font-family: var(--font-display);
+  font-size: 1.16rem;
+  font-weight: 700;
+  letter-spacing: -0.026em;
+  color: #fafafa;
+}
+
+.stage-blurb {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.87rem;
+}
+
+.stage-count {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: #52525b;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 4px 14px;
+  padding: 13px 16px 13px 12px;
+  border-radius: 14px;
+  transition: background-color 0.16s ease;
+}
+
+.step:hover {
+  background: var(--surface);
+}
+
+/* A real control beside the link, not the row itself: marking something done
+   and opening it are different intentions, and you tick off things you read
+   yesterday. */
+.step-tick {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  grid-row: span 2;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1.5px solid var(--line-bold);
+  border-radius: 8px;
+  background: none;
+  color: transparent;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    color 0.16s ease;
+}
+
+.step-tick:hover {
+  border-color: #52525b;
+  color: #3f3f46;
+}
+
+.step-tick-mark {
+  width: 13px;
+  height: 13px;
+}
+
+.step.is-done .step-tick {
+  border-color: color-mix(in srgb, var(--stage) 70%, transparent);
+  background: color-mix(in srgb, var(--stage) 22%, transparent);
+  color: var(--stage);
+}
+
+.step-link {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  color: #ededf0;
+  text-decoration: none;
+  text-underline-offset: 4px;
+  transition: color 0.16s ease;
+}
+
+.step-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+/* Done items stay legible — this is a record of what you read, not a list of
+   things to dismiss. They step back rather than grey out. */
+.step.is-done .step-link {
+  color: var(--text-faint);
+}
+
+.step-meta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #52525b;
+  font-size: 0.75rem;
+}
+
+.step-kind {
+  color: color-mix(in srgb, var(--stage) 42%, #71717a);
+  font-weight: 600;
+}
+
+.path-done {
+  margin: 0;
+  padding: 18px 20px;
+  border: 1px dashed #2a2a33;
+  border-radius: var(--radius-xl);
+  color: var(--text-dim);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+@media (max-width: 620px) {
+  .step {
+    padding: 12px 10px;
+  }
+
+  .step-link {
+    font-size: 0.96rem;
+  }
+}
+
+/* --- the loop, on the feed ------------------------------------------------
+   A half-finished path is the one thing on the feed genuinely waiting for
+   you, so it is the widest and the first. */
+
+.resume-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: 14px;
+}
+
+.resume {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  padding: 16px 18px 18px;
+  border: 1.5px solid var(--line-bold);
+  border-bottom-width: 4px;
+  border-bottom-color: #3d3d49;
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  text-decoration: none;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.42s var(--ease-bounce);
+}
+
+.resume:hover {
+  transform: translateY(-3px);
+  background: var(--surface-raised);
+  border-color: color-mix(in srgb, var(--band) 44%, var(--line-bold));
+  border-bottom-color: color-mix(in srgb, var(--band) 60%, #3d3d49);
+}
+
+.resume .topic-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+.resume .topic-icon img {
+  width: 21px;
+  height: 21px;
+}
+
+.resume-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.resume-name {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: -0.022em;
+  color: #f4f4f5;
+  text-transform: capitalize;
+}
+
+.resume-count {
+  color: var(--text-faint);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Along the bottom edge, where the thicker border already draws the eye. */
+.resume-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 4px;
+}
+
+.resume-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--band-lit);
+  transition: width 0.5s var(--ease-settle);
+}
+
+/* --- the map -------------------------------------------------------------- */
+
+.cover-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cover {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 15px;
+  border: 1px solid color-mix(in srgb, var(--hue) 30%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--hue) 8%, transparent);
+  color: var(--text-dim);
+  font-size: 0.84rem;
+  text-decoration: none;
+  transition:
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.cover:hover {
+  border-color: color-mix(in srgb, var(--hue) 60%, transparent);
+  color: #fafafa;
+}
+
+.cover-count {
+  color: color-mix(in srgb, var(--hue) 50%, #71717a);
+  font-size: 0.76rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.revisit-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #6ee7b7;
+}
+
+.revisit-done svg {
+  width: 12px;
+  height: 12px;
+}

@@ -433,6 +433,47 @@ on one image: 330 and 500 return 200, while 400, 640 and 800 all return 400 —
 even though the original is 1600px. So the URL is used exactly as the API gave
 it, and the frame is sized to suit rather than the width being rewritten.
 
+## The path
+
+The one thing here a search engine structurally cannot do. It hands you forty
+links ranked by relevance, has no idea whether you already know the subject,
+and no reason to care whether you finish. All three are the point of this view.
+
+**The ordering already existed and was being thrown away.** The Tavily adapter
+fires three depth-tagged queries per topic, so a dozen articles arrive labelled
+beginner / intermediate / advanced. Those labels are the spine. Everything else
+attaches to a stage by *what it is* — a video is how most people start, a
+thread is where people compare notes halfway, a paper is what you read once the
+ground is solid — which is a rule about kind, not a guess about difficulty.
+`lib/path.js` fetches nothing; it is a re-reading of data the page already has.
+
+**The tick is the product.** Every other surface is a link you follow and
+forget. It is a real control beside the link rather than the row itself,
+because marking something done and opening it are different intentions — you
+tick off what you read yesterday. Done items step back in colour rather than
+grey out: this is a record of what you read, not a list to dismiss.
+
+**Numbered markers, and this is the one place they belong.** Stages are a
+sequence; the number states something true rather than decorating a list.
+
+**Everything is still one click away.** The path is the default view, not the
+only one — someone who knows what they want should get the shelf, not a route.
+
+## The loop
+
+Progress is what makes visit twenty better than visit one, and the three feed
+sections above the fold are three readings of the same records:
+
+- **Pick up where you left off** — a half-finished path is the only thing on
+  the feed genuinely waiting for you, so it outranks anything the app merely
+  thinks you might like.
+- **Where you've been** — domain coverage across the twenty-four bands. Not a
+  prerequisite graph; that needs the AI layer. Matched by substring both ways,
+  because an explored topic is free text.
+- **Worth revisiting** — a finished path, after a fortnight. The gap is the
+  point: returning tells you what stuck. This is recall in the form the app can
+  honestly offer without generated questions.
+
 ## Layout
 
 `#root` is a flex column owning the viewport height; `nav` is `flex-shrink: 0`.

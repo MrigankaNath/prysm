@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getBookmarks, getHistory, getTopics, subscribe } from "../lib/library";
+import { inProgress, worthRevisiting, domainCoverage } from "../lib/journey";
+import { IconCheck } from "../components/Icons";
 import FeedCard from "../components/FeedCard";
 import TopicIcon from "../components/TopicIcon";
 import { lighten, topicColor } from "../lib/topicIcon";
@@ -10,6 +12,7 @@ import {
   IconHistory,
   IconCompass,
   IconChevronRight,
+  IconGrid,
 } from "../components/Icons";
 
 /* Every topic card carries its own band of the spectrum: the base hue drives
@@ -76,6 +79,9 @@ function Feed({ session }) {
     bookmarks: getBookmarks(),
     history: getHistory(),
     topics: getTopics(),
+    started: inProgress(),
+    revisit: worthRevisiting(),
+    coverage: domainCoverage(),
   }));
 
   useEffect(
@@ -85,6 +91,9 @@ function Feed({ session }) {
           bookmarks: getBookmarks(),
           history: getHistory(),
           topics: getTopics(),
+          started: inProgress(),
+          revisit: worthRevisiting(),
+          coverage: domainCoverage(),
         }),
       ),
     [],
@@ -101,7 +110,8 @@ function Feed({ session }) {
       .finally(() => setLoading(false));
   }, [session]);
 
-  const { bookmarks, history, topics } = library;
+  const { bookmarks, history, topics, started, revisit, coverage } = library;
+  const touchedDomains = coverage.filter((d) => d.covered > 0);
   const isEmpty =
     !loading &&
     bookmarks.length === 0 &&
@@ -148,6 +158,103 @@ function Feed({ session }) {
             <IconChevronRight />
           </Link>
         </div>
+      )}
+
+      {/* The loop. A half-finished path is the one thing on this page that is
+          genuinely waiting for you — so it goes first, above anything the app
+          merely thinks you might like. */}
+      {started.length > 0 && (
+        <section className="feed-section">
+          <h3 className="feed-section-head">
+            <IconCompass className="feed-section-icon" />
+            Pick up where you left off
+          </h3>
+          <div className="resume-row">
+            {started.map(({ topic, done, total }) => (
+              <Link
+                key={topic}
+                to={`/explore/${encodeURIComponent(topic)}`}
+                className="resume"
+                style={bandStyle(topic)}
+              >
+                <TopicIcon topic={topic} />
+                <span className="resume-body">
+                  <span className="resume-name">{topic}</span>
+                  <span className="resume-count">
+                    {done} of {total} done
+                  </span>
+                </span>
+                <span className="resume-bar" aria-hidden="true">
+                  <span
+                    className="resume-bar-fill"
+                    style={{ width: `${(done / total) * 100}%` }}
+                  />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* The map. Not a prerequisite graph — that needs the AI layer — but a
+          true one: which bands you have actually been into. It reads the same
+          progress records the paths write. */}
+      {touchedDomains.length > 0 && (
+        <section className="feed-section">
+          <h3 className="feed-section-head">
+            <IconGrid className="feed-section-icon" />
+            Where you&rsquo;ve been
+            <Link to="/spectrum" className="feed-section-link">
+              {touchedDomains.length} of {coverage.length} domains
+            </Link>
+          </h3>
+          <div className="cover-row">
+            {touchedDomains.map((d) => (
+              <Link
+                key={d.id}
+                to={`/spectrum#domain-${d.id}`}
+                className="cover"
+                style={{ "--hue": d.hue }}
+              >
+                <span className="cover-name">{d.label}</span>
+                <span className="cover-count">
+                  {d.covered}/{d.of}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Recall, in the form the app can honestly offer without generated
+          questions: a finished path, surfaced again after a fortnight. The gap
+          is the point — coming back tells you what stuck. */}
+      {revisit.length > 0 && (
+        <section className="feed-section">
+          <h3 className="feed-section-head">
+            <IconHistory className="feed-section-icon" />
+            Worth revisiting
+          </h3>
+          <div className="feed-topic-row">
+            {revisit.map(({ topic, total }) => (
+              <Link
+                key={topic}
+                to={`/explore/${encodeURIComponent(topic)}`}
+                className="feed-topic-card"
+                style={bandStyle(topic)}
+              >
+                <TopicIcon topic={topic} />
+                <span className="feed-topic-name">{topic}</span>
+                <span className="feed-topic-foot">
+                  <span className="revisit-done">
+                    <IconCheck /> {total} done
+                  </span>
+                  <IconChevronRight />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
 
       {lead && (
