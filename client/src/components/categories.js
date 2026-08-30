@@ -84,4 +84,4 @@ export function categoryStroke(key) {
 
 /** The lane that isn't a category. Keeps the full prism sweep, since
  *  "Everything" is exactly what the whole spectrum stands for. */
-export const ALL_GRADIENT_ID = "prism-gradient";
+const ALL_GRADIENT_ID = "prism-gradient";

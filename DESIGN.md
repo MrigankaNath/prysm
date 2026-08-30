@@ -515,6 +515,17 @@ judgement by the person who asked and means the same thing everywhere.
 is a re-reading of what the adapters return, not a request. Thresholds are
 deliberately high — a badge most items earn is decoration, not a signal.
 
+## What's where
+
+| lane | component | treatment |
+|---|---|---|
+| books | `BookCard` | turned 3D board, typeset cover, cloth grain |
+| papers | `PaperCard` | sheet with masthead, labelled abstract, citation figure |
+| videos, podcasts | `MediaCard` | artwork leads, native aspect per kind |
+| articles, discussions, Q&A | `ui/result-tile` | Tailwind glass card |
+| code, curated, everything else | `ResultCard` | rows — the title is the link |
+| the path | `PathStage` | numbered stages, tick per item, five with an expander |
+
 ## Layout
 
 `#root` is a flex column owning the viewport height; `nav` is `flex-shrink: 0`.

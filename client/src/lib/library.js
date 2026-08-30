@@ -176,9 +176,6 @@ export function getProgress(topic) {
   return readProgress()[topicKey(topic)]?.done || [];
 }
 
-export function isDone(topic, url) {
-  return getProgress(topic).includes(url);
-}
 
 /** Toggle one item, and remember when the topic was last worked on. */
 export function toggleDone(topic, url) {

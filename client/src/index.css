@@ -547,18 +547,6 @@ nav {
   }
 }
 
-.prisms-header {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-
-@media (max-width: 520px) {
-
-}
-
 /* Animatable angle for the rainbow gradients; degrades to a static gradient
    if @property is unsupported. */
 @property --rainbow-angle {
@@ -1402,19 +1390,10 @@ nav {
   border-radius: var(--radius-xl);
 }
 
-.illo-slot-overview {
-  width: 150px;
-  height: 150px;
-  align-self: center;
-}
-
 .illo-slot-banner {
   width: 100%;
   height: 190px;
   margin-top: 30px;
-}
-
-@media (max-width: 760px) {
 }
 
 /* ==========================================================================
@@ -3476,54 +3455,6 @@ nav {
   color: #fafafa;
 }
 
-/* A band per cluster, not a hairline bar and a heading: the cluster's icon,
-   how many topics it holds, its name and its blurb, in one block that states
-   the section before any tile does. Same treatment as the explore banner, so
-   a band on Spectrum and a topic on Explore are recognisably the same thing. */
-.spec-banner {
-  display: flex;
-  align-items: center;
-  gap: clamp(16px, 2vw, 24px);
-  margin-bottom: clamp(20px, 2.4vw, 30px);
-  padding: clamp(18px, 2.2vw, 26px) clamp(20px, 2.6vw, 30px);
-  border: 1.5px solid color-mix(in srgb, var(--hue) 30%, var(--line-bold));
-  border-bottom-width: 4px;
-  border-bottom-color: color-mix(in srgb, var(--hue) 46%, #3d3d49);
-  border-radius: var(--radius-xl);
-  background:
-    radial-gradient(
-      90% 160% at 4% 0%,
-      color-mix(in srgb, var(--hue) 13%, transparent),
-      transparent 60%
-    ),
-    var(--surface);
-}
-
-.spec-banner .topic-icon {
-  width: clamp(48px, 5vw, 62px);
-  height: clamp(48px, 5vw, 62px);
-  border-radius: 18px;
-}
-
-.spec-banner .topic-icon img {
-  width: 52%;
-  height: 52%;
-}
-
-.spec-banner-copy {
-  min-width: 0;
-}
-
-.spec-banner-eyebrow {
-  display: block;
-  margin-bottom: 7px;
-  color: var(--text-faint);
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.13em;
-}
-
 .spec-cluster-label {
   font-family: var(--font-display);
   margin: 0 0 5px;
@@ -3546,7 +3477,6 @@ nav {
     gap: 16px;
   }
 }
-
 
 
 /* ==========================================================================
@@ -3725,18 +3655,6 @@ nav {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 /* --- Prism detail --- */
 
 .prism-back {
@@ -3778,21 +3696,6 @@ nav {
   color: #52525b;
   font-size: 0.76rem;
   font-weight: 700;
-}
-
-.depth-dot-beginner {
-  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.5);
-  color: #6ee7b7;
-}
-
-.depth-dot-intermediate {
-  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.5);
-  color: #93c5fd;
-}
-
-.depth-dot-advanced {
-  box-shadow: inset 0 0 0 1px rgba(236, 72, 153, 0.5);
-  color: #f9a8d4;
 }
 
 .prism-stage {
@@ -4158,12 +4061,6 @@ nav {
   }
 }
 
-.cat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 30px 24px;
-}
-
 .res {
   position: relative;
   display: flex;
@@ -4220,13 +4117,6 @@ nav {
   transform: translateX(5px);
 }
 
-.cat-grid .res {
-  flex-direction: column;
-  gap: 0;
-  padding: 0 0 4px;
-  border-bottom: none;
-}
-
 .res-body {
   flex: 1;
   min-width: 0;
@@ -4263,11 +4153,6 @@ nav {
   text-decoration-color: rgba(167, 139, 250, 0.55);
   -webkit-text-stroke: 0.4px #a78bfa;
   outline: none;
-}
-
-.cat-grid .res-link {
-  margin-top: 14px;
-  font-size: 1.02rem;
 }
 
 .res-avatar {
@@ -4404,14 +4289,6 @@ nav {
   aspect-ratio: 2 / 3;
 }
 
-.cat-grid .res-plate {
-  padding: 8px;
-}
-
-.cat-grid .plate-videos .res-thumb {
-  width: 100%;
-}
-
 .res-thumb img {
   width: 100%;
   height: 100%;
@@ -4508,13 +4385,6 @@ nav {
 
 .bookmark-btn.saved svg {
   fill: rgba(245, 158, 11, 0.3);
-}
-
-.cat-grid .bookmark-btn {
-  top: 16px;
-  right: 16px;
-  background: rgba(8, 8, 11, 0.72);
-  backdrop-filter: blur(6px);
 }
 
 @media (max-width: 520px) {
@@ -5438,7 +5308,6 @@ nav {
 }
 
 .pdeck-counter-sep { opacity: 0.5; }
-
 
 
 /* --- responsive: fewer pixels, same three-card composition --------------- */

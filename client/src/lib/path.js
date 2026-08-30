@@ -18,7 +18,7 @@
 
 import { provenanceOf } from "./provenance";
 
-export const STAGES = [
+const STAGES = [
   {
     id: "orient",
     n: 1,
@@ -132,7 +132,7 @@ const RANK = {
   preprint: 8,
 };
 
-export function rankStageItems(items, provenanceOf) {
+function rankStageItems(items, provenanceOf) {
   return [...items].sort((a, b) => {
     const ra = RANK[provenanceOf(a)?.tone] ?? 9;
     const rb = RANK[provenanceOf(b)?.tone] ?? 9;

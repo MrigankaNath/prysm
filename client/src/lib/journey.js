@@ -17,7 +17,7 @@ export function inProgress(limit = 6) {
 }
 
 /** Paths finished, most recent first. */
-export function completed() {
+function completed() {
   return getAllProgress().filter((p) => p.total > 0 && p.done >= p.total);
 }
 
