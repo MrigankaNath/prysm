@@ -526,6 +526,12 @@ function ExploreTopic() {
      Everything else is deliberately quiet — one lit marker is a direction, a
      page of them is a list again. */
   const next = steps.find((i) => !done.includes(i.url));
+  /* Exactly one marker is lit, and which one depends on whether you have
+     asked. With nothing selected the light points at the next unread stop;
+     the moment you open one it moves there, because a marker whose card is
+     on screen and which looks like every other marker is the selection
+     failing to confirm itself. */
+  const litUrl = openStop || next?.url;
   const shown =
     active === "all" ? sections : sections.filter((s) => s.key === active);
 
@@ -652,7 +658,7 @@ function ExploreTopic() {
                     stage={stage}
                     topic={topic}
                     doneUrls={done}
-                    nextUrl={next?.url}
+                    litUrl={litUrl}
                     openUrl={openStop}
                     onOpen={setOpenStop}
                     onToggle={(url) => toggleDone(topic, url)}

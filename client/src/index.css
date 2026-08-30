@@ -6299,6 +6299,17 @@ nav {
   z-index: 30;
 }
 
+/* A selected stop is lit by becoming the lit one — litUrl follows the
+   selection — except when it is already read, which keeps its check. That
+   case still needs to confirm which marker the open card belongs to, so it
+   takes the ring without the rest of the treatment. */
+.stop.is-done.is-open .stop-node-face {
+  border-color: color-mix(in srgb, var(--type) 62%, transparent);
+  box-shadow:
+    0 6px 0 color-mix(in srgb, var(--type) 20%, #000),
+    0 0 0 5px color-mix(in srgb, var(--type) 13%, transparent);
+}
+
 .stop-marker {
   position: relative;
   display: grid;

@@ -128,7 +128,7 @@ function PathStage({
   stage,
   topic,
   doneUrls,
-  nextUrl,
+  litUrl,
   openUrl,
   onOpen,
   onToggle,
@@ -162,7 +162,7 @@ function PathStage({
             state={
               doneUrls.includes(item.url)
                 ? "done"
-                : item.url === nextUrl
+                : item.url === litUrl
                   ? "next"
                   : "ahead"
             }
