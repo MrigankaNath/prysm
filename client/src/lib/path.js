@@ -118,30 +118,56 @@ export function buildPath(categories, order = []) {
     .map((stage, i) => ({ ...stage, n: i + 1 }));
 }
 
-/** Every item in a path, in order — what progress is counted against. */
-/* Ordering inside a stage. A stage is a shortlist, not a dump, so what leads
-   it should be whatever has the strongest claim to be there: reviewed and
-   institutional work above popularity, popularity above the unverifiable. Raw
-   signal only breaks ties inside a band. */
+/* Ordering inside a stage, and the order of these two keys is the point.
+ *
+ * A stage is a ramp, not a bag. Sorting a stage by badge strength alone put a
+ * cited paper above the video that explains it — both correctly inside "go to
+ * the source", but the wrong way round to actually read. Kind settles the
+ * ramp, because effort is a property of the medium: you watch before you read,
+ * and you read a thread before you read the paper it argues about.
+ *
+ * Provenance then decides which of two videos leads, which is the question it
+ * can answer. It was never a difficulty measure — "widely cited" says a paper
+ * matters, not that it is a good third thing to open. */
+const KIND_ORDER = {
+  videos: 0,
+  articles: 1,
+  qa: 2,
+  discussions: 3,
+  podcasts: 4,
+  code: 5,
+  books: 6,
+  papers: 7,
+};
+
+/* Reviewed and institutional work above popularity, popularity above the
+   unverifiable. Raw signal only breaks ties inside a band. */
 const RANK = {
   reviewed: 0,
   institutional: 1,
   answered: 2,
   cited: 3,
   used: 4,
-  watched: 5,
-  running: 6,
-  free: 7,
-  preprint: 8,
+  discussed: 5,
+  watched: 6,
+  running: 7,
+  free: 8,
+  preprint: 9,
 };
 
 function rankStageItems(items, provenanceOf) {
   return [...items].sort((a, b) => {
-    const ra = RANK[provenanceOf(a)?.tone] ?? 9;
-    const rb = RANK[provenanceOf(b)?.tone] ?? 9;
+    const ka = KIND_ORDER[a.category] ?? 8;
+    const kb = KIND_ORDER[b.category] ?? 8;
+    if (ka !== kb) return ka - kb;
+
+    const ra = RANK[provenanceOf(a)?.tone] ?? 10;
+    const rb = RANK[provenanceOf(b)?.tone] ?? 10;
     return ra - rb || (b.signal || 0) - (a.signal || 0);
   });
 }
+
+/** Every item in a path, in order — what progress is counted against. */
 
 export function pathItems(path) {
   return path.flatMap((stage) => stage.items);

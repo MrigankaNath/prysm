@@ -15,6 +15,7 @@ import ResultTile from "../components/ui/result-tile";
 import Prose from "../components/Prose";
 import {
   recordTopic,
+  recordVisit,
   getProgress,
   toggleDone,
   recordPathSize,
@@ -327,6 +328,78 @@ function Overview({ overview, topic }) {
   );
 }
 
+/* The panel beside the route.
+ *
+ * It deliberately doesn't repeat the banner. The banner says which topic this
+ * is; this says how long the route is, how far in you are, and what the next
+ * thing to open is — the three questions the roadmap itself can only answer by
+ * being scrolled. It sticks because "where am I" should survive scrolling to
+ * the bottom of a nine-stop route.
+ */
+function RouteCard({ topic, path, doneUrls, total, doneCount, next }) {
+  const pct = total ? Math.round((doneCount / total) * 100) : 0;
+
+  return (
+    <aside className="route">
+      <div className="route-card">
+        <span className="route-eyebrow">Your route</span>
+        <h2 className="route-title">{topic}</h2>
+        <p className="route-blurb">
+          {total} stops, ordered the way they&rsquo;re best met — the lightest
+          way in first, primary sources last.
+        </p>
+
+        <div className="route-progress">
+          <div className="route-bar" aria-hidden="true">
+            <span className="route-bar-fill" style={{ width: `${pct}%` }} />
+          </div>
+          <span className="route-count">
+            {doneCount} of {total} read
+          </span>
+        </div>
+
+        <ol className="route-stages">
+          {path.map((stage) => {
+            const readHere = stage.items.filter((i) =>
+              doneUrls.includes(i.url),
+            ).length;
+            const cleared = readHere === stage.items.length;
+
+            return (
+              <li
+                key={stage.id}
+                className={`route-stage${cleared ? " is-cleared" : ""}`}
+                style={{ "--stage": stage.hue }}
+              >
+                <span className="route-stage-dot" aria-hidden="true" />
+                <span className="route-stage-label">{stage.label}</span>
+                <span className="route-stage-count">
+                  {readHere}/{stage.items.length}
+                </span>
+              </li>
+            );
+          })}
+        </ol>
+
+        {next ? (
+          <a
+            className="route-go"
+            href={next.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => recordVisit(next, { topic, category: next.category })}
+          >
+            {doneCount ? "Continue" : "Start"}
+            <IconChevronRight className="route-go-icon" />
+          </a>
+        ) : (
+          <p className="route-cleared">Route complete.</p>
+        )}
+      </div>
+    </aside>
+  );
+}
+
 function ExploreTopic() {
   const { topic = "" } = useParams();
   const [curated, setCurated] = useState([]);
@@ -427,6 +500,10 @@ function ExploreTopic() {
   const steps = pathItems(path);
   const pathTotal = steps.length;
   const pathDone = steps.filter((i) => done.includes(i.url)).length;
+  /* The first thing not yet read, which is the only stop the roadmap lights.
+     Everything else is deliberately quiet — one lit marker is a direction, a
+     page of them is a list again. */
+  const next = steps.find((i) => !done.includes(i.url));
   const shown =
     active === "all" ? sections : sections.filter((s) => s.key === active);
 
@@ -531,32 +608,35 @@ function ExploreTopic() {
           )}
 
           {view === "path" && path.length > 0 && (
-            <div className="path">
-              {/* One bar for the whole topic, so the answer to "how far in am
-                  I" doesn't require adding up three stages. */}
-              <div className="path-bar" aria-hidden="true">
-                <span
-                  className="path-bar-fill"
-                  style={{ width: `${pathTotal ? (pathDone / pathTotal) * 100 : 0}%` }}
-                />
+            <div className="roadmap">
+              <RouteCard
+                topic={topic}
+                path={path}
+                doneUrls={done}
+                total={pathTotal}
+                doneCount={pathDone}
+                next={next}
+              />
+
+              <div className="path">
+                {path.map((stage) => (
+                  <PathStage
+                    key={stage.id}
+                    stage={stage}
+                    topic={topic}
+                    doneUrls={done}
+                    nextUrl={next?.url}
+                    onToggle={(url) => toggleDone(topic, url)}
+                  />
+                ))}
+
+                {pathTotal > 0 && pathDone === pathTotal && (
+                  <p className="path-done">
+                    That&rsquo;s the route. Everything on {topic} is under
+                    Everything if you want to keep going.
+                  </p>
+                )}
               </div>
-
-              {path.map((stage) => (
-                <PathStage
-                  key={stage.id}
-                  stage={stage}
-                  topic={topic}
-                  doneUrls={done}
-                  onToggle={(url) => toggleDone(topic, url)}
-                />
-              ))}
-
-              {pathTotal > 0 && pathDone === pathTotal && (
-                <p className="path-done">
-                  That&rsquo;s the path. Everything on {topic} is below if you
-                  want to keep going.
-                </p>
-              )}
             </div>
           )}
 

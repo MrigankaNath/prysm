@@ -453,8 +453,31 @@ because marking something done and opening it are different intentions — you
 tick off what you read yesterday. Done items step back in colour rather than
 grey out: this is a record of what you read, not a list to dismiss.
 
+**The plate is the tick.** A stop is drawn on a plate carrying its content
+type's icon, and that plate is the control. Still two intentions, still two
+controls — the tick has moved onto the marker that was already stating the
+same fact, so there is one thing on screen instead of two saying it.
+
 **Numbered markers, and this is the one place they belong.** Stages are a
-sequence; the number states something true rather than decorating a list.
+sequence; the number states something true rather than decorating a list. It
+is a position in what rendered, never a constant — an empty stage is dropped,
+and a stage that kept its own number opened the path at "Stage 2".
+
+**One lit stop.** The next unread item glows; everything else is quiet. A
+single marker is a direction, and a page of them is the list this view exists
+to replace.
+
+**Nothing is locked, and the styling may not imply otherwise.** A dimmed stop
+means unread, not unavailable — every one of them opens, in any order. The
+games this layout borrows from grey a node to mean gated; the path is coverage,
+not a prerequisite graph, and claiming that ordering would be a lie about what
+the app knows.
+
+**A stage is a ramp.** Within one stage, order is by medium before merit: you
+watch before you read, and read a thread before the paper it argues about.
+Provenance decides between two of the same kind — it was never a difficulty
+measure. "Widely cited" says a paper matters, not that it is a good third
+thing to open.
 
 **Everything is still one click away.** The path is the default view, not the
 only one — someone who knows what they want should get the shelf, not a route.
