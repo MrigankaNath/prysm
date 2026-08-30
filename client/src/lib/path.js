@@ -18,24 +18,25 @@
 
 import { provenanceOf } from "./provenance";
 
+/* Stages carry no number of their own. An empty stage is dropped — a thin
+   topic has nothing to orient with — and a hardcoded `n` then survived the
+   drop, so a path missing its first stage opened at "2". The number is a
+   position in what actually rendered, so it is assigned after the filter. */
 const STAGES = [
   {
     id: "orient",
-    n: 1,
     label: "Get oriented",
     blurb: "What it is, and why it matters.",
     hue: "#3b82f6",
   },
   {
     id: "work",
-    n: 2,
     label: "Work through it",
     blurb: "How it actually works, and where people get stuck.",
     hue: "#8b5cf6",
   },
   {
     id: "source",
-    n: 3,
     label: "Go to the source",
     blurb: "The primary material, once the ground is solid.",
     hue: "#10b981",
@@ -112,7 +113,9 @@ export function buildPath(categories, order = []) {
   return STAGES.map((stage) => ({
     ...stage,
     items: rankStageItems(byStage[stage.id], provenanceOf),
-  })).filter((stage) => stage.items.length > 0);
+  }))
+    .filter((stage) => stage.items.length > 0)
+    .map((stage, i) => ({ ...stage, n: i + 1 }));
 }
 
 /** Every item in a path, in order — what progress is counted against. */
