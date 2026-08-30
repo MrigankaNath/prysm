@@ -603,7 +603,12 @@ function ExploreTopic() {
               reason the page exists; Everything is the raw lanes, for when you
               know what you're looking for and want the shelf, not the route. */}
           {path.length > 0 && (
-            <div className="view-switch" role="tablist" aria-label="How to read this topic">
+            <div
+              className="view-switch"
+              data-view={view}
+              role="tablist"
+              aria-label="How to read this topic"
+            >
               <button
                 type="button"
                 role="tab"

@@ -2316,11 +2316,23 @@ nav {
   align-items: start;
 }
 
+/* The art used to run to the card's own edge, so a still with a bright or
+   pale border bled into the page and the card had no outline of its own.
+   Framed on three sides it reads as something mounted rather than pasted. */
 .media {
   position: relative;
   display: flex;
   flex-direction: column;
   gap: 13px;
+  padding: 12px 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+  transition: border-color 0.22s var(--ease-settle);
+}
+
+.media:hover {
+  border-color: var(--line-strong);
 }
 
 .media-art {
@@ -2458,8 +2470,8 @@ nav {
 }
 
 .media > .bookmark-btn {
-  top: 10px;
-  right: 10px;
+  top: 22px;
+  right: 22px;
   z-index: 2;
   background: rgba(8, 8, 11, 0.72);
   backdrop-filter: blur(6px);
@@ -2474,6 +2486,10 @@ nav {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .view-switch::before {
+    transition: none;
+  }
+
   .media:hover .media-art,
   .media:hover .media-art img {
     transform: none;
@@ -5926,8 +5942,14 @@ nav {
    finish; both of those are the whole point of this view.
    ========================================================================== */
 
+/* Both tracks are 1fr in an auto-width grid, which sizes them to the wider
+   label — so the active pill can travel by exactly its own width instead of
+   measuring content in JS to move a two-option switch. */
 .view-switch {
-  display: inline-flex;
+  position: relative;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
   gap: 4px;
   margin-bottom: clamp(26px, 3vw, 38px);
   padding: 4px;
@@ -5936,9 +5958,30 @@ nav {
   background: var(--surface);
 }
 
+.view-switch::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 6px);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 1px var(--line-bold);
+  transition: transform 0.34s var(--ease-settle);
+}
+
+.view-switch[data-view="all"]::before {
+  transform: translateX(calc(100% + 4px));
+}
+
 .view-tab {
+  position: relative;
+  z-index: 1;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 9px 18px;
   border: none;
@@ -5948,16 +5991,13 @@ nav {
   font-family: inherit;
   font-size: 0.86rem;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
-  transition:
-    color 0.16s ease,
-    background-color 0.2s ease;
+  transition: color 0.2s var(--ease-settle);
 }
 
 .view-tab.active {
-  background: var(--surface-raised);
   color: #fafafa;
-  box-shadow: inset 0 0 0 1px var(--line-bold);
 }
 
 .view-tab-count {
@@ -6229,13 +6269,142 @@ nav {
   line-height: 1.45;
 }
 
+/* Holds the run and the hollow beside it. */
+.stage-run {
+  --gutter: 0px;
+  position: relative;
+  padding-left: var(--gutter);
+}
+
+/* The hollow the weave leaves. Only opened where there is width to spare —
+   below this the trail needs the space back and the glyph is dropped. */
+@media (min-width: 900px) {
+  .stage-run {
+    --gutter: 150px;
+  }
+}
+
 .stage-trail {
   display: flex;
   flex-direction: column;
-  gap: clamp(18px, 2.2vw, 30px);
+  /* The run was reading as a stack rather than a route: at the old spacing a
+     marker's glow reached the one below it and the whole stage looked packed.
+     A route needs to feel walked, which means air between the stops. */
+  gap: clamp(30px, 3.6vw, 52px);
   margin: 0;
   padding: 0 0 4px;
   list-style: none;
+}
+
+/* --- the prism in the hollow -------------------------------------------- */
+
+.pglyph {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  display: none;
+  place-items: center;
+  width: var(--gutter);
+  height: 150px;
+  margin-top: -75px;
+  pointer-events: none;
+}
+
+@media (min-width: 900px) {
+  .pglyph {
+    display: grid;
+  }
+}
+
+.pglyph-halo {
+  position: absolute;
+  width: 190px;
+  height: 190px;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--glyph) 18%, transparent),
+    transparent 70%
+  );
+  filter: blur(18px);
+}
+
+.pglyph-body {
+  --clip: polygon(50% 2%, 98% 96%, 2% 96%);
+  position: relative;
+  width: 78px;
+  height: 70px;
+  filter:
+    drop-shadow(0 0 20px color-mix(in srgb, var(--glyph) 42%, transparent))
+    drop-shadow(0 0 8px rgba(255, 255, 255, 0.18));
+  animation: pglyph-turn 14s ease-in-out infinite;
+}
+
+.pglyph-face {
+  position: absolute;
+  inset: 0;
+  clip-path: var(--clip);
+  background: linear-gradient(
+    146deg,
+    #ffffff 0%,
+    color-mix(in srgb, var(--glyph) 90%, transparent) 32%,
+    color-mix(in srgb, #8b5cf6 70%, transparent) 64%,
+    #ffffff 100%
+  );
+}
+
+.pglyph-core {
+  position: absolute;
+  inset: 2px;
+  clip-path: var(--clip);
+  background: #08080d;
+}
+
+.pglyph-refract {
+  position: absolute;
+  inset: 2px;
+  clip-path: var(--clip);
+  background: linear-gradient(
+    122deg,
+    color-mix(in srgb, var(--glyph) 62%, transparent) 0%,
+    rgba(0, 0, 0, 0) 48%,
+    color-mix(in srgb, #ec4899 58%, transparent) 100%
+  );
+  filter: blur(3px);
+  mix-blend-mode: screen;
+}
+
+.pglyph-underlight {
+  position: absolute;
+  inset: 2px;
+  clip-path: var(--clip);
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 54%,
+    color-mix(in srgb, var(--glyph) 38%, transparent) 84%,
+    rgba(255, 255, 255, 0.6) 100%
+  );
+  filter: blur(6px);
+  mix-blend-mode: screen;
+}
+
+/* Slow enough to be something you notice only if you stop and look at it.
+   A placeholder should hold the space, not compete for the eye with the one
+   lit marker on the trail. */
+@keyframes pglyph-turn {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-8deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(9deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pglyph-body {
+    animation: none;
+  }
 }
 
 /* Each stop leans off the column by its own --lean, set from a sine in the
@@ -6296,10 +6465,12 @@ nav {
   place-items: center;
   width: 74px;
   height: 74px;
-  border: 1.5px solid #2a2a33;
+  border: 1.5px solid #3c3c49;
   border-radius: 50%;
-  background: linear-gradient(180deg, #17171e, #0e0e13);
-  box-shadow: 0 6px 0 #08080b;
+  /* Was two near-blacks on a black page, which made an unread marker a hole
+     rather than an object. It has to read as unlit, not as absent. */
+  background: linear-gradient(180deg, #26262f, #16161d);
+  box-shadow: 0 6px 0 #0b0b0f;
   transition:
     box-shadow 0.2s var(--ease-bounce),
     background 0.28s var(--ease-settle),
@@ -6307,11 +6478,12 @@ nav {
 }
 
 .stop-node:hover .stop-node-face {
-  box-shadow: 0 8px 0 #08080b;
+  border-color: #4e4e5e;
+  box-shadow: 0 8px 0 #0b0b0f;
 }
 
 .stop-node:active .stop-node-face {
-  box-shadow: 0 2px 0 #08080b;
+  box-shadow: 0 2px 0 #0b0b0f;
 }
 
 .stop-node-icon {
@@ -6327,11 +6499,11 @@ nav {
 
 /* Ahead of you. Quiet, never disabled — every stop opens, in any order. */
 .stop.is-ahead .stop-node-icon {
-  opacity: 0.55;
+  opacity: 0.9;
 }
 
 .stop.is-ahead .stop-name {
-  color: var(--text-dim);
+  color: #d4d4dc;
 }
 
 /* Read. Kept in its own hue but stepped well back: a record of what you read,
@@ -6342,10 +6514,10 @@ nav {
   border-color: color-mix(in srgb, var(--type) 34%, transparent);
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--type) 44%, #0e0e14),
-    color-mix(in srgb, var(--type) 26%, #0a0a0e)
+    color-mix(in srgb, var(--type) 58%, #16161d),
+    color-mix(in srgb, var(--type) 36%, #101016)
   );
-  box-shadow: 0 6px 0 color-mix(in srgb, var(--type) 20%, #000);
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--type) 26%, #000);
 }
 
 .stop.is-done .stop-node:hover .stop-node-face {
@@ -6357,7 +6529,7 @@ nav {
 }
 
 .stop.is-done .stop-name {
-  color: #5c5c68;
+  color: #85858f;
 }
 
 /* The one lit marker on the page. A single glow is a direction; a page of
@@ -6434,7 +6606,7 @@ nav {
 .stop-type {
   display: block;
   margin-bottom: 5px;
-  color: color-mix(in srgb, var(--type) 62%, #8a8a96);
+  color: color-mix(in srgb, var(--type-lit) 72%, #c2c2ce);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.14em;
