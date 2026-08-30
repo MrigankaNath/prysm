@@ -71,6 +71,49 @@ const LANE_TAKE = {
   books: 3,
 };
 
+/* Per depth tier, not per topic — articles are the spine and appear in all
+   three stages, so this is three of each. */
+const ARTICLE_TAKE = 3;
+
+/* What earns a place on the path.
+ *
+ * "Everything" is the shelf: whatever the adapters returned. The path is a
+ * stronger claim — that these are the things worth your time on this topic and
+ * this is the order to meet them — and it gets read by people actually
+ * researching something. Taking the first two or three of each lane made that
+ * claim about whatever happened to sort highest, which on a topic with a
+ * popular homonym meant a match report and a gardening blog.
+ *
+ * These are admission floors, not badges. They sit deliberately below the
+ * thresholds in provenance.js, which mark the exceptional — this only asks
+ * whether an item is substantial enough to be worth someone's research time.
+ *
+ * A lane where nothing clears the bar contributes nothing, and that is the
+ * right outcome. A short honest path beats a padded one, everything dropped is
+ * still one click away, and the same reasoning already governs the podcast
+ * lane on the server: no result is a fact, three wrong ones is a lie.
+ */
+const ADMITS = {
+  // Either someone with the problem marked it solved, or the site voted it up.
+  qa: (item) => item.accepted === true || (item.signal || 0) >= 15,
+  // This lane exists because people argued about it. No replies, no lane.
+  discussions: (item) => (item.signal || 0) >= 40,
+  // A repo nobody uses is a reference for nothing.
+  code: (item) => (item.signal || 0) >= 300,
+  videos: (item) => (item.signal || 0) >= 15000,
+  /* arXiv is already relevance-gated and is a research index in its own right,
+     so a preprint is admitted on being indexed there. Everything else in this
+     lane comes from OpenAlex, which covers all of publishing — including a lot
+     that was never reviewed and never cited. */
+  papers: (item) =>
+    item.source === "arxiv" || item.peer_reviewed === true || (item.signal || 0) >= 10,
+};
+
+/* Articles, books and podcasts carry no floor. Articles are the depth-tagged
+   spine and have no signal to floor; books are already gated on catalogued
+   subjects and are readable in full; podcasts are already relevance-gated at
+   the source. */
+
 const DEPTH_STAGE = {
   beginner: "orient",
   intermediate: "work",
@@ -93,10 +136,21 @@ export function buildPath(categories, order = []) {
   const byStage = { orient: [], work: [], source: [] };
 
   /* Articles first, so the depth-tagged spine claims its places before the
-     lanes attach around it. */
+     lanes attach around it.
+     Capped and sorted per tier like every other lane. They used to go in
+     whole, which meant a stage could be four articles deep and that the
+     weakest of them was in the path purely for having a depth tag — the
+     gardening blog that "cosmos" returns outranked nothing, it was simply
+     never asked to compete. */
+  const byDepth = { orient: [], work: [], source: [] };
   for (const item of asArray(categories.articles)) {
     const stage = DEPTH_STAGE[item.depth_level];
-    if (stage) byStage[stage].push({ ...item, category: "articles" });
+    if (stage) byDepth[stage].push({ ...item, category: "articles" });
+  }
+  for (const stage of Object.keys(byDepth)) {
+    byStage[stage].push(
+      ...byDepth[stage].sort(byStrength).slice(0, ARTICLE_TAKE),
+    );
   }
 
   /* Lanes in the server's own ranked order, so a topic where videos are the
@@ -105,14 +159,25 @@ export function buildPath(categories, order = []) {
   for (const lane of lanes) {
     const stage = LANE_STAGE[lane];
     if (!stage) continue;
-    for (const item of asArray(categories[lane]).slice(0, LANE_TAKE[lane] || 2)) {
-      byStage[stage].push({ ...item, category: lane });
-    }
+
+    const admits = ADMITS[lane];
+
+    /* Sorted before it is sliced, which is the whole difference between the
+       best few of a lane and the first few. The adapters rank by their own
+       relevance, which answers "is this about the topic" and says nothing
+       about whether it is any good. */
+    const picked = asArray(categories[lane])
+      .map((item) => ({ ...item, category: lane }))
+      .filter((item) => !admits || admits(item))
+      .sort(byStrength)
+      .slice(0, LANE_TAKE[lane] || 2);
+
+    byStage[stage].push(...picked);
   }
 
   return STAGES.map((stage) => ({
     ...stage,
-    items: rankStageItems(byStage[stage.id], provenanceOf),
+    items: rankStageItems(byStage[stage.id]),
   }))
     .filter((stage) => stage.items.length > 0)
     .map((stage, i) => ({ ...stage, n: i + 1 }));
@@ -155,15 +220,24 @@ const RANK = {
   preprint: 9,
 };
 
-function rankStageItems(items, provenanceOf) {
+/** How strong an item's claim on a place is, ignoring what kind of thing it
+ *  is. Lower is stronger. */
+function strengthOf(item) {
+  return RANK[provenanceOf(item)?.tone] ?? 10;
+}
+
+/** Strongest first, raw signal only breaking ties inside a band. */
+function byStrength(a, b) {
+  return strengthOf(a) - strengthOf(b) || (b.signal || 0) - (a.signal || 0);
+}
+
+function rankStageItems(items) {
   return [...items].sort((a, b) => {
     const ka = KIND_ORDER[a.category] ?? 8;
     const kb = KIND_ORDER[b.category] ?? 8;
     if (ka !== kb) return ka - kb;
 
-    const ra = RANK[provenanceOf(a)?.tone] ?? 10;
-    const rb = RANK[provenanceOf(b)?.tone] ?? 10;
-    return ra - rb || (b.signal || 0) - (a.signal || 0);
+    return byStrength(a, b);
   });
 }
 
