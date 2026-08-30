@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { apiJson } from "../lib/api";
 import { IconChevronRight } from "../components/Icons";
 import TopicIcon from "../components/TopicIcon";
+import PrismLoader from "../components/PrismLoader";
 
 /* One band of the spectrum per Prism. */
 const BANDS = [
@@ -299,11 +300,7 @@ function Prisms({ session }) {
 
   return (
     <div className="prisms-stage">
-      {loading && (
-        <div className="pdeck pdeck-skeleton" aria-hidden="true">
-          <div className="pdeck-ghost" />
-        </div>
-      )}
+      {loading && <PrismLoader />}
 
       {!loading && count === 0 && (
         <p className="wl-empty">

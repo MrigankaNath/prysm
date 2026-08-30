@@ -5387,19 +5387,318 @@ nav {
   border-color: color-mix(in srgb, var(--scope) 75%, transparent);
 }
 
-/* Deck-shaped placeholder, so the Prisms page doesn't jump from a line of text
-   to a full deck once the fetch lands. */
-.pdeck-skeleton {
-  pointer-events: none;
+/* --- the falling prism loader --------------------------------------------
+   A four-second loop, authored as three scenes and kept to their timings:
+   Descend to 37.5%, Refract to 77.5%, Dissolve to the end.
+
+   Everything the prism drags with it — the shaft above, the bloom around it,
+   the haze either side — lives inside .pl-fall and travels with it, so there
+   is one animated transform rather than four kept in sync. */
+
+.prism-loader {
+  --pl-size: clamp(104px, 19vh, 176px);
+  position: relative;
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 1160px;
+  min-height: 300px;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
 }
 
-.pdeck-ghost {
-  width: var(--card-w);
-  height: 390px;
-  border-radius: 24px;
-  background: linear-gradient(100deg, #0b0b0e 30%, #15151b 50%, #0b0b0e 70%);
-  background-size: 220% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
+.pl-sky {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, #080a14 0%, #05060b 60%, #020308 100%);
+}
+
+/* A slow breath in and out across the loop, so the frame is never quite
+   still. Matches the source's camera, which is a sine over the whole take. */
+.pl-cam {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 46%;
+  animation: pl-cam 4s ease-in-out infinite;
+}
+
+.pl-fall {
+  position: absolute;
+  inset: 0;
+  animation: pl-fall 4s linear infinite;
+}
+
+/* --- the light it falls through ----------------------------------------- */
+
+.pl-shaft {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 180px;
+  height: 1400px;
+  margin-left: -90px;
+  background: linear-gradient(
+    to bottom,
+    rgba(200, 225, 255, 0) 0%,
+    rgba(200, 225, 255, 0.09) 100%
+  );
+  filter: blur(34px);
+  mix-blend-mode: screen;
+  animation: pl-appear 4s linear infinite;
+}
+
+.pl-bloom {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 420px;
+  height: 420px;
+  margin: -210px 0 0 -210px;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, #06b6d4 34%, transparent),
+    color-mix(in srgb, #8b5cf6 12%, transparent) 44%,
+    transparent 74%
+  );
+  filter: blur(30px);
+  mix-blend-mode: screen;
+  animation: pl-flare 4s ease-in-out infinite;
+}
+
+/* --- spectral haze ------------------------------------------------------ */
+
+.pl-haze {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  animation: pl-flare 4s ease-in-out infinite;
+}
+
+.pl-puff {
+  position: absolute;
+  left: calc(var(--x) - var(--w) / 2);
+  top: calc(-1 * var(--lift) - var(--h) / 2);
+  width: var(--w);
+  height: var(--h);
+  background: radial-gradient(
+    closest-side,
+    color-mix(in srgb, var(--hue) 78%, transparent),
+    color-mix(in srgb, var(--hue) 26%, transparent) 42%,
+    transparent 76%
+  );
+  filter: blur(var(--blur));
+  opacity: var(--o);
+  mix-blend-mode: screen;
+}
+
+/* --- the prism ---------------------------------------------------------- */
+
+.pl-prism {
+  --clip: polygon(50% 2%, 98% 96%, 2% 96%);
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: var(--pl-size);
+  height: calc(var(--pl-size) * 0.9);
+  margin: calc(var(--pl-size) * -0.45) 0 0 calc(var(--pl-size) / -2);
+  filter:
+    drop-shadow(0 0 34px color-mix(in srgb, #06b6d4 42%, transparent))
+    drop-shadow(0 0 14px rgba(255, 255, 255, 0.3));
+  animation:
+    pl-spin 4s cubic-bezier(0.165, 0.84, 0.44, 1) infinite,
+    pl-appear 4s linear infinite;
+}
+
+/* The lit edge of the glass. The dark core sits 3px inside it, which is what
+   draws the prism as an outline rather than a filled triangle. */
+.pl-face {
+  position: absolute;
+  inset: 0;
+  clip-path: var(--clip);
+  background: linear-gradient(
+    146deg,
+    #ffffff 0%,
+    color-mix(in srgb, #06b6d4 90%, transparent) 30%,
+    color-mix(in srgb, #8b5cf6 75%, transparent) 60%,
+    #ffffff 100%
+  );
+}
+
+.pl-core {
+  position: absolute;
+  inset: 3px;
+  clip-path: var(--clip);
+  background: #05060b;
+}
+
+.pl-refract {
+  position: absolute;
+  inset: 3px;
+  clip-path: var(--clip);
+  background: linear-gradient(
+    122deg,
+    color-mix(in srgb, #06b6d4 70%, transparent) 0%,
+    rgba(0, 0, 0, 0) 46%,
+    color-mix(in srgb, #ec4899 70%, transparent) 100%
+  );
+  filter: blur(3px);
+  mix-blend-mode: screen;
+  animation: pl-flare 4s ease-in-out infinite;
+}
+
+.pl-underlight {
+  position: absolute;
+  inset: 3px;
+  clip-path: var(--clip);
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 52%,
+    color-mix(in srgb, #8b5cf6 40%, transparent) 82%,
+    rgba(255, 255, 255, 0.7) 100%
+  );
+  filter: blur(8px);
+  mix-blend-mode: screen;
+  animation: pl-flare 4s ease-in-out infinite;
+}
+
+/* --- frame -------------------------------------------------------------- */
+
+.pl-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    108% 82% at 50% 48%,
+    transparent 40%,
+    rgba(2, 3, 8, 0.92) 100%
+  );
+}
+
+.pl-caption {
+  position: absolute;
+  bottom: clamp(20px, 5%, 44px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  color: #6f6f7a;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+/* --- the loop ----------------------------------------------------------- */
+
+/* Per-segment easing, exactly as authored: out-cubic into frame, in-out-sine
+   through the middle, in-quart out of the bottom. */
+@keyframes pl-fall {
+  0% {
+    transform: translateY(-34%);
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  34% {
+    transform: translateY(33%);
+    animation-timing-function: cubic-bezier(0.445, 0.05, 0.55, 0.95);
+  }
+  76% {
+    transform: translateY(73%);
+    animation-timing-function: cubic-bezier(0.895, 0.03, 0.685, 0.22);
+  }
+  100% {
+    transform: translateY(138%);
+  }
+}
+
+@keyframes pl-spin {
+  from {
+    transform: rotate(-20deg);
+  }
+  to {
+    transform: rotate(194deg);
+  }
+}
+
+@keyframes pl-appear {
+  0% {
+    opacity: 0;
+  }
+  15%,
+  87% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Dark until Refract begins, brightest through it, gone before the loop
+   restarts so the seam never shows. */
+@keyframes pl-flare {
+  0%,
+  24% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.9;
+  }
+  97%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes pl-cam {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-18px) scale(1.05);
+  }
+}
+
+/* The haze is authored in pixels against a 1600-wide frame. Left alone on a
+   phone those puffs are wider than the viewport, so the effect stops being
+   smoke either side of the fall and becomes a wash over everything. */
+@media (max-width: 620px) {
+  .pl-haze {
+    transform: scale(0.6);
+  }
+
+  .pl-bloom {
+    transform: scale(0.72);
+  }
+
+  .pl-shaft {
+    width: 120px;
+    margin-left: -60px;
+  }
+}
+
+/* A loop this long reads as drifting rather than pulsing, but it is still
+   sustained motion filling the frame — so it holds on one lit frame instead. */
+@media (prefers-reduced-motion: reduce) {
+  .pl-cam,
+  .pl-fall,
+  .pl-shaft,
+  .pl-bloom,
+  .pl-haze,
+  .pl-prism,
+  .pl-refract,
+  .pl-underlight {
+    animation: none;
+  }
+
+  .pl-fall {
+    transform: translateY(38%);
+  }
+
+  .pl-prism {
+    transform: rotate(14deg);
+  }
 }
 
 /* --- video + podcast tiles ----------------------------------------------

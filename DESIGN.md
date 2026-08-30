@@ -95,6 +95,13 @@ way down reads as a control that didn't register the click.
 Durations past ~0.7s read as lag as soon as an interaction is repeated. Every
 animation is disabled under `prefers-reduced-motion`.
 
+**The exception is a loader, which is watched rather than triggered.** The
+falling prism on the Prisms page is a 4s loop in three scenes — Descend,
+Refract, Dissolve — and the long duration is the point: it drifts instead of
+pulsing, and the loop restarts from black so the seam never shows. It is the
+only sustained looping animation in the app, and it is still cut under reduced
+motion, where it holds one lit frame.
+
 **A dragged element must track the pointer 1:1 with no transition.** Any easing
 during a drag reads as the interface lagging behind the finger; the easing
 belongs on release.
