@@ -413,6 +413,10 @@ function ExploreTopic() {
      wants the raw lanes, but a sequence is what the page is now for. */
   const [view, setView] = useState("path");
   const [done, setDone] = useState([]);
+  /* Which stop has its detail open. Lifted to the page so only one can be —
+     two popovers on one trail is the clutter this view is escaping. */
+  const [openStop, setOpenStop] = useState(null);
+  const [openStages, setOpenStages] = useState({});
 
   useEffect(() => {
     if (!topic) return;
@@ -474,6 +478,24 @@ function ExploreTopic() {
     setDone(getProgress(topic));
     return subscribe(() => setDone(getProgress(topic)));
   }, [topic]);
+
+  /* Escape, or a click anywhere that isn't the popover or the marker that
+     opened it. Registered once for the page rather than once per stage. */
+  useEffect(() => {
+    if (!openStop) return;
+
+    const onKey = (e) => e.key === "Escape" && setOpenStop(null);
+    const onDown = (e) => {
+      if (!e.target.closest(".stop-pop, .stop-node")) setOpenStop(null);
+    };
+
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, [openStop]);
 
   const path = useMemo(() => buildPath(categories, order), [categories, order]);
 
@@ -626,7 +648,13 @@ function ExploreTopic() {
                     topic={topic}
                     doneUrls={done}
                     nextUrl={next?.url}
+                    openUrl={openStop}
+                    onOpen={setOpenStop}
                     onToggle={(url) => toggleDone(topic, url)}
+                    expanded={Boolean(openStages[stage.id])}
+                    onExpand={() =>
+                      setOpenStages((s) => ({ ...s, [stage.id]: !s[stage.id] }))
+                    }
                   />
                 ))}
 

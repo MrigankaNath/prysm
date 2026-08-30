@@ -1,122 +1,156 @@
-import { useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, ArrowUpRight } from "lucide-react";
 import { recordVisit } from "../lib/library";
 import { hostOf } from "../lib/result";
-import { CATEGORY_ICONS, CATEGORY_LABELS, categoryStroke } from "./categories";
+import {
+  CATEGORY_ICONS,
+  CATEGORY_LABELS,
+  CATEGORY_GRADIENTS,
+  categoryStroke,
+} from "./categories";
 import { provenanceOf } from "../lib/provenance";
 
 /* One stage of the roadmap, and the stops along it.
  *
- * The roadmap is not a metaphor laid over a list — the plate a stop is drawn
- * on *is* the record of whether you read it. Duolingo greys a node to mean
- * locked; nothing here is locked, and pretending otherwise would be a lie
- * about a path that is coverage rather than a prerequisite graph. So a stop
- * ahead of you is quiet, not disabled, and every one of them opens.
+ * The trail carries almost no text. A stop is a marker, its type icon and a
+ * name — everything else about it (what it is, where it's from, what can be
+ * verified about it) is a click away on the marker itself. The previous
+ * version put all of that on the trail at once, which answered questions
+ * nobody had asked yet and buried the one thing the view is for: what to open
+ * next.
  *
- * The plate is also the tick, which is the one control this view exists for.
- * That still honours the rule it came from — marking something read and
- * opening it are different intentions, so they stay different controls — the
- * tick has simply moved onto the marker that was already stating the same
- * fact. One thing on screen, one thing to click, no duplicated state.
+ * Nothing here is locked. The games this layout borrows from grey a marker to
+ * mean gated, and a tooltip explains what you must finish first. The path is
+ * coverage, not a prerequisite graph — a quiet marker means unread, every one
+ * of them opens, and no copy anywhere may suggest otherwise.
  */
 /* A stage is a shortlist. Past about five the reader is scanning a list again
    rather than following a route, which is the thing this view exists to
    avoid — so the rest is one click away instead of on the page. */
 const VISIBLE = 5;
 
-/* How far each stop leans off the column. A roadmap that runs dead straight
-   reads as a list with round bullets; the weave is what says "route". It is a
-   sine rather than a zigzag so the drift is gradual, and it is bounded to
-   40px because the titles beside it are real headlines, not "Unit 3" — a
-   Duolingo-scale stagger would drag them out of a readable column. */
+/* How far each stop leans off the column. Bigger than it could be when the
+   trail carried descriptions: names are short and clamped now, so the weave
+   can be wide enough to actually read as a route. */
 function leanOf(index) {
-  return Math.round(Math.sin(index * 0.85) * 20 + 20);
+  return Math.round(Math.sin(index * 0.95) * 34 + 34);
 }
 
-function Stop({ item, index, state, topic, onToggle }) {
+function Stop({ item, index, state, topic, open, onOpen, onToggle }) {
   const Icon = CATEGORY_ICONS[item.category];
+  const [hue, lit] = CATEGORY_GRADIENTS[item.category] || ["#8b5cf6", "#c4b5fd"];
   const host = hostOf(item.url);
   const mark = provenanceOf(item);
   const kind = CATEGORY_LABELS[item.category] || item.category;
   const done = state === "done";
 
+  const visit = () => recordVisit(item, { topic, category: item.category });
+
   return (
     <li
-      className={`stop is-${state}`}
-      style={{ "--lean": `${leanOf(index)}px` }}
+      className={`stop is-${state}${open ? " is-open" : ""}`}
+      style={{ "--lean": `${leanOf(index)}px`, "--type": hue, "--type-lit": lit }}
     >
-      <button
-        type="button"
-        className="stop-plate"
-        aria-pressed={done}
-        aria-label={
-          done ? `Mark ${item.title} as unread` : `Mark ${item.title} as read`
-        }
-        onClick={() => onToggle(item.url)}
-      >
-        {done ? (
-          <Check className="stop-plate-check" strokeWidth={3.2} />
-        ) : (
-          Icon && (
-            <Icon className="stop-plate-icon" stroke={categoryStroke(item.category)} />
-          )
-        )}
-      </button>
+      <div className="stop-marker">
+        <button
+          type="button"
+          className="stop-node"
+          aria-expanded={open}
+          aria-label={`${kind}: ${item.title}. Show details`}
+          onClick={() => onOpen(open ? null : item.url)}
+        >
+          <span className="stop-node-face">
+            {done ? (
+              <Check className="stop-node-check" strokeWidth={3.4} />
+            ) : (
+              Icon && (
+                <Icon
+                  className="stop-node-icon"
+                  stroke={categoryStroke(item.category)}
+                />
+              )
+            )}
+          </span>
+        </button>
+      </div>
 
-      <div className="stop-body">
-        <span className="stop-kind">{kind}</span>
-
+      <div className="stop-label">
+        <span className="stop-type">{kind}</span>
         <a
-          className="stop-title"
+          className="stop-name"
           href={item.url}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => recordVisit(item, { topic, category: item.category })}
+          onClick={visit}
         >
           {item.title}
         </a>
-
-        {/* What you are about to open, before you open it. The adapters
-            already return a snippet; the path was throwing it away and asking
-            people to judge a link by its title alone. */}
-        {item.snippet && <p className="stop-note">{item.snippet}</p>}
-
-        <span className="stop-meta">
-          {host && <span className="stop-host">{host}</span>}
-          {mark && <span className={`mark mark-${mark.tone}`}>{mark.label}</span>}
-        </span>
-
-        {state === "next" && (
-          <a
-            className="stop-go"
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => recordVisit(item, { topic, category: item.category })}
-          >
-            Start here
-          </a>
-        )}
       </div>
+
+      {open && (
+        <div className="stop-pop" role="dialog" aria-label={item.title}>
+          <span className="stop-pop-type">{kind}</span>
+          <h4 className="stop-pop-title">{item.title}</h4>
+
+          {item.snippet && <p className="stop-pop-note">{item.snippet}</p>}
+
+          <div className="stop-pop-meta">
+            {host && <span className="stop-pop-host">{host}</span>}
+            {mark && <span className={`mark mark-${mark.tone}`}>{mark.label}</span>}
+          </div>
+
+          <div className="stop-pop-actions">
+            <a
+              className="stop-pop-go"
+              href={item.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={visit}
+            >
+              Open
+              <ArrowUpRight className="stop-pop-go-icon" />
+            </a>
+            <button
+              type="button"
+              className="stop-pop-tick"
+              aria-pressed={done}
+              onClick={() => onToggle(item.url)}
+            >
+              {done ? "Read" : "Mark read"}
+            </button>
+          </div>
+        </div>
+      )}
     </li>
   );
 }
 
-function PathStage({ stage, topic, doneUrls, nextUrl, onToggle }) {
-  const [expanded, setExpanded] = useState(false);
+function PathStage({
+  stage,
+  topic,
+  doneUrls,
+  nextUrl,
+  openUrl,
+  onOpen,
+  onToggle,
+  expanded,
+  onExpand,
+}) {
   const shown = expanded ? stage.items : stage.items.slice(0, VISIBLE);
   const hidden = stage.items.length - shown.length;
-  const doneHere = stage.items.filter((i) => doneUrls.includes(i.url)).length;
 
   return (
     <section className="stage" style={{ "--stage": stage.hue }}>
+      {/* The level plate. Once the stops are staggered this is the only thing
+          separating one run from the next, so it is a bordered block rather
+          than a line of text — and the number belongs on it, because stages
+          really are a sequence.
+
+          It carries no count: the route panel already lists every stage with
+          one, and saying it twice is the clutter this view is escaping. */}
       <header className="stage-head">
         <span className="stage-n">Stage {stage.n}</span>
         <h3 className="stage-label">{stage.label}</h3>
         <p className="stage-blurb">{stage.blurb}</p>
-        <span className="stage-count">
-          {doneHere} of {stage.items.length} read
-        </span>
       </header>
 
       <ol className="stage-trail">
@@ -133,30 +167,17 @@ function PathStage({ stage, topic, doneUrls, nextUrl, onToggle }) {
                   : "ahead"
             }
             topic={topic}
+            open={openUrl === item.url}
+            onOpen={onOpen}
             onToggle={onToggle}
           />
         ))}
       </ol>
 
-      {hidden > 0 && (
-        <button
-          type="button"
-          className="stage-more"
-          onClick={() => setExpanded(true)}
-        >
-          Show {hidden} more
-          <ChevronDown className="stage-more-icon" />
-        </button>
-      )}
-
-      {expanded && stage.items.length > VISIBLE && (
-        <button
-          type="button"
-          className="stage-more"
-          onClick={() => setExpanded(false)}
-        >
-          Show less
-          <ChevronDown className="stage-more-icon up" />
+      {(hidden > 0 || expanded) && (
+        <button type="button" className="stage-more" onClick={onExpand}>
+          {hidden > 0 ? `Show ${hidden} more` : "Show less"}
+          <ChevronDown className={`stage-more-icon${expanded ? " up" : ""}`} />
         </button>
       )}
     </section>

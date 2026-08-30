@@ -447,16 +447,35 @@ thread is where people compare notes halfway, a paper is what you read once the
 ground is solid — which is a rule about kind, not a guess about difficulty.
 `lib/path.js` fetches nothing; it is a re-reading of data the page already has.
 
-**The tick is the product.** Every other surface is a link you follow and
-forget. It is a real control beside the link rather than the row itself,
-because marking something done and opening it are different intentions — you
-tick off what you read yesterday. Done items step back in colour rather than
-grey out: this is a record of what you read, not a list to dismiss.
+**The trail carries almost nothing.** A stop is a marker, its content type and
+a name clamped to two lines. Not the description, not the host, not the badge —
+those answer questions you have not asked yet, and putting all of them on every
+row at once buried the only question the view exists for: what do I open next.
+Density is the failure mode here, not sparseness.
 
-**The plate is the tick.** A stop is drawn on a plate carrying its content
-type's icon, and that plate is the control. Still two intentions, still two
-controls — the tick has moved onto the marker that was already stating the
-same fact, so there is one thing on screen instead of two saying it.
+**The marker is the way in.** Clicking it opens that stop's detail — what it
+is, where it's from, what can be verified about it, an Open button and the
+tick. Information on request, in one place, instead of permanently on display.
+Only one can be open at a time; two popovers on a trail is the clutter this is
+escaping.
+
+**The tick is still the product**, it has just moved into the detail. Every
+other surface is a link you follow and forget. Marking something read and
+opening it stay different controls, because they are different intentions —
+you tick off what you read yesterday. Read stops step back in colour rather
+than grey out: a record of what you read, not a list to dismiss. Filled at
+full saturation they became the brightest things on the page, which puts the
+loudest marker on the one stop that needs nothing from you.
+
+**Markers are struck, not drawn.** A solid bottom edge in a deeper tone of the
+marker's own hue, so it reads as something with thickness; hover lifts it and
+the edge grows, press drops it and the edge shrinks. Darkening the underside —
+the usual way to fake depth — is invisible on a black page.
+
+**Two colour questions, kept separate.** A marker takes its *content type's*
+hue and the level plate takes its *stage's*. Which stage you are in and what
+kind of thing you are looking at are different facts, and one palette answering
+both would collapse them.
 
 **Numbered markers, and this is the one place they belong.** Stages are a
 sequence; the number states something true rather than decorating a list. It
