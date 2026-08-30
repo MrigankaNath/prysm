@@ -124,6 +124,31 @@ function asArray(value) {
   return Array.isArray(value) ? value : value ? [value] : [];
 }
 
+/* One resource, one stop.
+ *
+ * A URL can arrive twice over: a paper that was also posted to Hacker News, a
+ * repo that is also the accepted answer, or the same link submitted to one
+ * site more than once. A stop is *identified* by its URL — that is how the
+ * open popover, the React key and the read record all find it — so a duplicate
+ * opened two popovers at once, collided as a key, and ticked itself off twice.
+ *
+ * Filtered as it fills rather than afterwards, so a lane that turns out to be
+ * three copies of one thing still contributes its full share of distinct
+ * items instead of spending the slots and dropping them later.
+ */
+function pickUnique(items, limit, seen) {
+  const picked = [];
+
+  for (const item of items) {
+    if (picked.length >= limit) break;
+    if (!item.url || seen.has(item.url)) continue;
+    seen.add(item.url);
+    picked.push(item);
+  }
+
+  return picked;
+}
+
 /**
  * Build the three stages for a topic from its live-discovery categories.
  *
@@ -142,6 +167,8 @@ export function buildPath(categories, order = []) {
      weakest of them was in the path purely for having a depth tag — the
      gardening blog that "cosmos" returns outranked nothing, it was simply
      never asked to compete. */
+  const seen = new Set();
+
   const byDepth = { orient: [], work: [], source: [] };
   for (const item of asArray(categories.articles)) {
     const stage = DEPTH_STAGE[item.depth_level];
@@ -149,7 +176,7 @@ export function buildPath(categories, order = []) {
   }
   for (const stage of Object.keys(byDepth)) {
     byStage[stage].push(
-      ...byDepth[stage].sort(byStrength).slice(0, ARTICLE_TAKE),
+      ...pickUnique(byDepth[stage].sort(byStrength), ARTICLE_TAKE, seen),
     );
   }
 
@@ -166,13 +193,12 @@ export function buildPath(categories, order = []) {
        best few of a lane and the first few. The adapters rank by their own
        relevance, which answers "is this about the topic" and says nothing
        about whether it is any good. */
-    const picked = asArray(categories[lane])
+    const eligible = asArray(categories[lane])
       .map((item) => ({ ...item, category: lane }))
       .filter((item) => !admits || admits(item))
-      .sort(byStrength)
-      .slice(0, LANE_TAKE[lane] || 2);
+      .sort(byStrength);
 
-    byStage[stage].push(...picked);
+    byStage[stage].push(...pickUnique(eligible, LANE_TAKE[lane] || 2, seen));
   }
 
   return STAGES.map((stage) => ({

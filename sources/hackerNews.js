@@ -14,6 +14,29 @@ const { isRelevant } = require("./relevance");
  */
 const MIN_POINTS = 25;
 
+/* The same link is submitted to Hacker News more than once — a well-known
+ * paper picks up a fresh submission every few years, and Algolia returns all
+ * of them as separate hits. They are one resource behind one URL, so they
+ * collapse to the best-attended submission: the URL is what the reader opens,
+ * and the points are what this lane is ranked on.
+ *
+ * Left in, they cost the path two stops for one thing and broke the page: a
+ * stop is identified by its URL, so two of them opened two popovers at once
+ * and collided as React keys. Map.set on an existing key keeps the original
+ * insertion position, so Algolia's relevance order survives this.
+ */
+function bestPerUrl(hits) {
+  const best = new Map();
+
+  for (const hit of hits) {
+    const key = hit.url || `hn:${hit.objectID}`;
+    const prev = best.get(key);
+    if (!prev || (hit.points || 0) > (prev.points || 0)) best.set(key, hit);
+  }
+
+  return [...best.values()];
+}
+
 async function fetchHackerNews(topic) {
   const url = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(topic)}&tags=story`;
   const res = await fetch(url);
@@ -24,10 +47,12 @@ async function fetchHackerNews(topic) {
 
   const data = await res.json();
 
-  return data.hits
-    .filter((hit) => hit.title)
-    .filter((hit) => isRelevant(hit.title, topic))
-    .filter((hit) => (hit.points || 0) >= MIN_POINTS)
+  return bestPerUrl(
+    data.hits
+      .filter((hit) => hit.title)
+      .filter((hit) => isRelevant(hit.title, topic))
+      .filter((hit) => (hit.points || 0) >= MIN_POINTS),
+  )
     /* Algolia's own relevance order is kept rather than re-sorting by points:
        sorting a loose match by popularity is exactly what put `rust-lang/rust`
        fifth on GitHub. The path does its own ranking downstream. */
