@@ -489,11 +489,6 @@ hole in the page rather than an object sitting on it, and the type label under
 it was the dimmest text anywhere. Quiet is a step down from lit, not a step
 toward the background.
 
-**The weave leaves a hollow, and it is held rather than left over.** The stops
-lean right, which opens a void down the left of every run; a prism turns slowly
-in it. That is a placeholder — real artwork goes there — but the space is part
-of the layout either way, and it closes on narrow screens where the trail needs
-it back.
 
 **Numbered markers, and this is the one place they belong.** Stages are a
 sequence; the number states something true rather than decorating a list. It

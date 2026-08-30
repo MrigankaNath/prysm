@@ -8,7 +8,6 @@ import {
   categoryStroke,
 } from "./categories";
 import { provenanceOf } from "../lib/provenance";
-import PrismGlyph from "./PrismGlyph";
 
 /* One stage of the roadmap, and the stops along it.
  *
@@ -154,32 +153,26 @@ function PathStage({
         <p className="stage-blurb">{stage.blurb}</p>
       </header>
 
-      {/* The glyph is a sibling of the list, not a child of it: an <ol> takes
-          list items and nothing else. */}
-      <div className="stage-run">
-        <PrismGlyph hue={stage.hue} />
-
-        <ol className="stage-trail">
-          {shown.map((item, i) => (
-            <Stop
-              key={item.url}
-              item={item}
-              index={i}
-              state={
-                doneUrls.includes(item.url)
-                  ? "done"
-                  : item.url === nextUrl
-                    ? "next"
-                    : "ahead"
-              }
-              topic={topic}
-              open={openUrl === item.url}
-              onOpen={onOpen}
-              onToggle={onToggle}
-            />
-          ))}
-        </ol>
-      </div>
+      <ol className="stage-trail">
+        {shown.map((item, i) => (
+          <Stop
+            key={item.url}
+            item={item}
+            index={i}
+            state={
+              doneUrls.includes(item.url)
+                ? "done"
+                : item.url === nextUrl
+                  ? "next"
+                  : "ahead"
+            }
+            topic={topic}
+            open={openUrl === item.url}
+            onOpen={onOpen}
+            onToggle={onToggle}
+          />
+        ))}
+      </ol>
 
       {(hidden > 0 || expanded) && (
         <button type="button" className="stage-more" onClick={onExpand}>
