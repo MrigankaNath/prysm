@@ -167,15 +167,22 @@ that decide whether an item is worth a click. The card spends its extra space
 on exactly those, as a single eyebrow line: category glyph and label, then the
 topic in its own band.
 
-**Only videos get a thumbnail on the feed.** A 16:9 still is the shape of a
-full-bleed band, so it crops to nothing; square podcast art and 2:3 book covers
-have to be cut in half to fit one. The grid is `align-items: start` for the
-same reason — with the default stretch, one card carrying an image gives its
-whole row that height, and a card whose interior is half empty reads as broken
-where a shorter card with space beneath it reads as a staggered grid.
+**Only videos get a real thumbnail on the feed** — a 16:9 still is the shape of
+a full-bleed band, so it crops to nothing, while square podcast art and 2:3
+book covers have to be cut in half to fit one. **Every other card fills that
+same band with its category glyph** on the card's own topic hue. Leaving it
+empty was the earlier answer and it was wrong: a row is as tall as its tallest
+card either way, so the choice was never between tall and short cards, it was
+between a card with a header and a card with a hole in it. The glyph is kept
+low-contrast so it reads as a header and never competes with the title.
 
 Hover draws a band of spectral light across the row and drifts the text 5px —
 refraction, not a rule.
+
+**A feed card lights up where it stands.** It carries no coloured rule along
+its top edge and does not lift on hover — on a dense grid that read as the row
+twitching. The glow says the same thing, on every side, without moving
+anything.
 
 **A paper says how it was published.** A chip in the meta row — emerald with
 the journal name when the work was peer reviewed, amber reading *Preprint* when

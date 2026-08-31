@@ -126,7 +126,10 @@ function Feed({ session }) {
     ? discover.topics.map((topic) => ({ topic, total: null }))
     : topics.map(({ topic, total }) => ({ topic, total }));
 
-  const [lead, ...restTopics] = topicList.slice(0, 9);
+  /* One lead and four beside it. Past five the row stops reading as "where
+     you left off" and becomes a second Spectrum — which is what the All topics
+     link is for. */
+  const [lead, ...restTopics] = topicList.slice(0, 5);
   const visibleItems = showAll ? discover.items : discover.items.slice(0, 8);
 
   return (

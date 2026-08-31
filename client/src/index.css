@@ -2687,40 +2687,25 @@ nav {
   transition:
     border-color 0.2s ease,
     background-color 0.2s ease,
-    transform 0.42s var(--ease-bounce),
     box-shadow 0.28s var(--ease-settle);
 }
 
 /* One beam entering from the left and dispersing — the motif, at 2px. It is
    the only decoration on the card, and it doubles as the topic's colour key. */
-.fcard::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--band, #a1a1aa) 70%, transparent),
-    var(--band-lit, #a1a1aa) 50%,
-    color-mix(in srgb, var(--band, #a1a1aa) 70%, transparent)
-  );
-  opacity: 0.55;
-  transition: opacity 0.24s ease;
-}
 
+/* Lights up where it stands. The card used to lift on hover as well, which
+   on a dense grid read as the row twitching; the glow alone says the same
+   thing and says it on every side. */
 .fcard:hover {
-  transform: translateY(-4px);
   background: var(--surface-raised);
-  border-color: color-mix(in srgb, var(--band, #a1a1aa) 44%, var(--line-bold));
+  border-color: color-mix(in srgb, var(--band, #a1a1aa) 50%, var(--line-bold));
   border-bottom-color: color-mix(in srgb, var(--band, #a1a1aa) 60%, #3d3d49);
   box-shadow:
-    0 0 26px color-mix(in srgb, var(--band, #000) 22%, transparent),
-    0 0 64px color-mix(in srgb, var(--band, #000) 12%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--band, #000) 26%, transparent),
+    0 0 22px color-mix(in srgb, var(--band, #000) 30%, transparent),
+    0 0 60px color-mix(in srgb, var(--band, #000) 16%, transparent);
 }
 
-.fcard:hover::before {
-  opacity: 1;
-}
 
 .fcard:focus-within {
   border-color: color-mix(in srgb, var(--band, #a1a1aa) 55%, var(--line-bold));
@@ -2734,6 +2719,29 @@ nav {
   aspect-ratio: 16 / 9;
   overflow: hidden;
   background: #050507;
+}
+
+/* Stands in for artwork on every card that has none, so a row of mixed
+   categories is a row of cards rather than one image and a column of
+   half-empty boxes. It is the card's own band, kept low so it reads as a
+   header and never competes with the title under it. */
+.fcard-thumb.is-glyph {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(
+      120% 140% at 50% 0%,
+      color-mix(in srgb, var(--band, #a1a1aa) 20%, transparent),
+      transparent 72%
+    ),
+    #0a0a0e;
+  border-bottom: 1px solid var(--line);
+}
+
+.fcard-thumb.is-glyph svg {
+  width: 34px;
+  height: 34px;
+  opacity: 0.5;
 }
 
 .fcard-thumb img {

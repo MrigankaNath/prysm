@@ -30,6 +30,11 @@ function FeedCard({ item, topic, category, compact = false }) {
   const signal = formatSignal(item);
   const venue = venueChip(item);
   const showThumb = !compact && THUMBED.has(category) && item.thumbnail;
+  /* Everything else fills the same band with its category glyph.
+     Leaving it out is what made a podcast sitting next to a video look
+     stretched: the row is as tall as its tallest card either way, so the
+     choice is between a card with a header and a card with a hole in it. */
+  const showGlyph = !compact && !showThumb;
 
   return (
     <article
@@ -53,6 +58,12 @@ function FeedCard({ item, topic, category, compact = false }) {
             </span>
           )}
         </a>
+      )}
+
+      {showGlyph && (
+        <span className="fcard-thumb is-glyph" aria-hidden="true">
+          <Icon stroke={categoryStroke(category)} />
+        </span>
       )}
 
       <div className="fcard-body">
