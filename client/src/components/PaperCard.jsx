@@ -50,9 +50,12 @@ function PaperCard({ item, topic, category = "papers" }) {
         {cites !== null ? (
           <span className="paper-cites">
             <span className="paper-cites-n">{cites.toLocaleString()}</span>
-            <span className="paper-cites-label">
-              cited&nbsp;by
-            </span>
+            {/* Not "cited by": that reads as "5,656 cited by ___" with the
+                object missing. The field is OpenAlex's cited_by_count — how
+                many works cite this one — so the plain noun is the honest
+                label, and it keeps the number first where the design wants
+                it. */}
+            <span className="paper-cites-label">citations</span>
           </span>
         ) : (
           signal && <span className="paper-cites-label">{signal}</span>
