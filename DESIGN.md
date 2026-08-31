@@ -194,20 +194,6 @@ gets no chip rather than a guess.
 **Books are a shelf and papers are documents.** Two lanes hold objects rather
 than links, so they are drawn as objects.
 
-*Papers:* a **first page** beside the record. A light sheet — the one thing in
-the lane you cannot mistake for a link — carrying the paper's real title, its
-venue and year, and two ruled columns standing in for body text. It is drawn,
-not fetched: arXiv would allow a real render (open CORS, range requests
-honoured) but only the arXiv half of the lane has a reachable PDF, the files
-run to 9MB, pdf.js is another ~400kB, and at 108px a real first page is an
-unreadable grey rectangle. The title is the only part legible at this size, so
-the title is the part that is real. The body is ruled rather than set, because
-type this small rounds to mush.
-
-**The whole paper card is the link** — a stretched `::after` on the title
-anchor, bookmark lifted back above it — so the sheet is a click target rather
-than decoration beside one.
-
 *Books:* a **banded cover** on a slab. A panel of the topic's colour over a
 dark plate that carries the type, with a fore-edge panel stood on end
 (`rotateY(90deg)`) and a back board at `translateZ(-29cqw)`. **The front board

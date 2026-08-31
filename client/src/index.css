@@ -2160,10 +2160,9 @@ nav {
 
 .paper {
   position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 18px;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   padding: 22px 24px 18px;
   border: 1px solid var(--line);
   border-radius: 3px 12px 12px 3px;
@@ -2207,108 +2206,6 @@ nav {
   right: auto;
   margin-left: auto;
   flex-shrink: 0;
-}
-
-/* The column the card used to be. */
-.paper-main {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  min-width: 0;
-}
-
-/* --- the first page ------------------------------------------------------
-   A rendering of the paper's opening page, built from the record we already
-   hold. See PaperCard.jsx for why this is drawn rather than fetched. */
-
-.paper-page {
-  display: block;
-}
-
-.paper-page-sheet {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 108px;
-  aspect-ratio: 1 / 1.32;
-  padding: 9px 8px 8px;
-  overflow: hidden;
-  border-radius: 2px 3px 3px 2px;
-  /* Paper is light, and on a black page that is the point: it is the one
-     thing in the lane you cannot mistake for a link. */
-  background: linear-gradient(170deg, #f4f4f6, #d9d9e0);
-  color: #17171c;
-  box-shadow:
-    0 8px 20px -8px rgba(0, 0, 0, 0.85),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.55);
-}
-
-.paper-page-title {
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  font-family: var(--font-display);
-  font-size: 6.5px;
-  font-weight: 700;
-  line-height: 1.24;
-  text-align: center;
-  letter-spacing: -0.01em;
-}
-
-.paper-page-meta {
-  overflow: hidden;
-  font-size: 4.5px;
-  line-height: 1.2;
-  text-align: center;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  opacity: 0.55;
-}
-
-.paper-page-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px;
-  flex: 1;
-  margin-top: 2px;
-  min-height: 0;
-}
-
-/* Ruled body text. 1px of ink every 3px reads as a set column at this scale
-   and stays crisp, where real type would not. */
-.paper-page-col {
-  background: repeating-linear-gradient(
-    to bottom,
-    currentColor 0 1px,
-    transparent 1px 3px
-  );
-  opacity: 0.3;
-}
-
-/* The whole card is the link. The bookmark sits back above it, so the card
-   stays one link and one button rather than nesting a control inside an
-   anchor. */
-.paper-title::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-}
-
-.paper .bookmark-btn {
-  position: relative;
-  z-index: 2;
-}
-
-@media (max-width: 620px) {
-  .paper {
-    gap: 14px;
-  }
-
-  .paper-page-sheet {
-    width: 84px;
-  }
 }
 
 .paper-title {
