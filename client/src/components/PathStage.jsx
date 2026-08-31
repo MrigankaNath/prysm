@@ -28,14 +28,26 @@ import { provenanceOf } from "../lib/provenance";
    avoid — so the rest is one click away instead of on the page. */
 const VISIBLE = 5;
 
-/* How far each stop leans off the column. Bigger than it could be when the
-   trail carried descriptions: names are short and clamped now, so the weave
-   can be wide enough to actually read as a route. */
-function leanOf(index) {
-  return Math.round(Math.sin(index * 0.95) * 34 + 34);
+/* How far each stop leans off the column.
+ *
+ * One arc across the whole run, anchored at both ends: the first and last
+ * stops sit on the column and the middle bulges out. Normalising by the
+ * stage's own length is what makes a three-stop stage curve as clearly as a
+ * nine-stop one.
+ *
+ * The previous version was a running sine on the index alone, which is why
+ * short stages looked wrong — at three stops it produced 34, 62, 66: a drift
+ * to the right that flattened out, reading as a crooked line rather than a
+ * curve. Two points cannot describe a curve at all, so they stack straight.
+ */
+const LEAN = 76;
+
+function leanOf(index, count) {
+  if (count < 3) return 0;
+  return Math.round(Math.sin((Math.PI * index) / (count - 1)) * LEAN);
 }
 
-function Stop({ item, index, state, topic, open, onOpen, onToggle }) {
+function Stop({ item, index, count, state, topic, open, onOpen, onToggle }) {
   const Icon = CATEGORY_ICONS[item.category];
   const [hue, lit] = CATEGORY_GRADIENTS[item.category] || ["#8b5cf6", "#c4b5fd"];
   const host = hostOf(item.url);
@@ -48,7 +60,7 @@ function Stop({ item, index, state, topic, open, onOpen, onToggle }) {
   return (
     <li
       className={`stop is-${state}${open ? " is-open" : ""}`}
-      style={{ "--lean": `${leanOf(index)}px`, "--type": hue, "--type-lit": lit }}
+      style={{ "--lean": `${leanOf(index, count)}px`, "--type": hue, "--type-lit": lit }}
     >
       <div className="stop-marker">
         <button
@@ -159,6 +171,7 @@ function PathStage({
             key={item.url}
             item={item}
             index={i}
+            count={shown.length}
             state={
               doneUrls.includes(item.url)
                 ? "done"

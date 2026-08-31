@@ -6225,6 +6225,11 @@ nav {
 }
 
 .stage {
+  /* The plate's width and the run's alignment are the same measurement, so
+     they are one token. They were separate before and it showed: the plate
+     centred itself while the markers stayed pinned to the far left of the
+     column, which read as two unrelated elements. */
+  --plate: 560px;
   min-width: 0;
 }
 
@@ -6232,9 +6237,14 @@ nav {
    heading over a list, and the run beneath it is centred on a weaving column
    rather than flush to a margin. */
 .stage-head {
+  /* border-box, so --plate is the plate's real width. Without it the 26px of
+     padding and 2px of border sit outside the max-width, the plate renders 56px
+     wider than the token says, and the run below it aligns to a left edge the
+     plate does not actually have. */
+  box-sizing: border-box;
   margin: 0 auto clamp(30px, 3.4vw, 44px);
   padding: 18px 26px 20px;
-  max-width: 560px;
+  max-width: var(--plate);
   border: 2px solid color-mix(in srgb, var(--stage) 52%, transparent);
   border-radius: 22px;
   background:
@@ -6282,7 +6292,10 @@ nav {
      A route needs to feel walked, which means air between the stops. */
   gap: clamp(30px, 3.6vw, 52px);
   margin: 0;
-  padding: 0 0 4px;
+  /* Starts where the plate starts. The arc then bulges right from there, so
+     the whole run reads as hanging off the plate above it rather than sitting
+     beside it. Labels are free to run past the plate's right edge. */
+  padding: 0 0 4px max(0px, calc((100% - var(--plate)) / 2));
   list-style: none;
 }
 
