@@ -77,6 +77,12 @@ stepping at them.
 to a display-scale summary; at 1.22rem in Bricolage the two halves of the page
 share a voice.
 
+**The roadmap's stops are the exception, and set in the UI face.** Bricolage is
+an editorial voice — right for one page title, too much character repeated
+down fifteen stops, where it made the run look busier than it is. The stage
+plates keep the display face, so the two are still ranked. The stop's measure
+is capped as well: a title is a line of type, not a line across the page.
+
 ## Motion
 
 One easing for anything that settles: `--ease-settle`,

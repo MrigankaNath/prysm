@@ -6304,12 +6304,15 @@ nav {
    markers are this size the stagger carries the route on its own — a line
    through them would only be something else to look at. */
 .stop {
+  /* The arc's widest point. The marker column is this plus the marker itself,
+     so the column is a constant width and the marker slides inside it. */
+  --lean-max: 76px;
+  --mark: 74px;
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: calc(var(--lean-max) + var(--mark)) minmax(0, 1fr);
   gap: 22px;
   align-items: center;
-  padding-left: var(--lean, 0px);
 }
 
 /* The open stop and its popover sit above everything after them. */
@@ -6328,10 +6331,16 @@ nav {
     0 0 0 5px color-mix(in srgb, var(--type) 13%, transparent);
 }
 
+/* The lean lives here, not on the row. It used to shift the whole stop, which
+   carried the label along with it — so every title began at a different x and
+   the left edge of the text jittered down the page with the curve. The marker
+   arcs; the text stays in its column. */
 .stop-marker {
   position: relative;
   display: grid;
   place-items: center;
+  justify-self: start;
+  margin-left: var(--lean, 0px);
 }
 
 .stop-node {
@@ -6504,6 +6513,10 @@ nav {
 
 .stop-label {
   min-width: 0;
+  /* A line of title, not a line across the page. Unbounded it ran the full
+     width of the column, which is far past the measure anything is
+     comfortably read at. */
+  max-width: 480px;
 }
 
 .stop-type {
@@ -6524,11 +6537,15 @@ nav {
   -webkit-box-orient: vertical;
   overflow: hidden;
   color: var(--text);
-  font-family: var(--font-display);
-  font-size: 1.08rem;
-  font-weight: 600;
-  line-height: 1.34;
-  letter-spacing: -0.02em;
+  /* The one place the UI face is used at title size. Bricolage is an
+     editorial voice — right for a page title, too much character for fifteen
+     stops in a row, where it made the run look busier than it is. Space
+     Grotesk is the plainer of the two and lets the markers carry the page. */
+  font-family: var(--font-ui);
+  font-size: 1.06rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.008em;
   text-decoration: none;
   transition: color 0.16s var(--ease-settle);
 }
@@ -6709,8 +6726,13 @@ nav {
 
 @media (max-width: 620px) {
   .stop {
+    --lean-max: 38px;
+    --mark: 60px;
     gap: 16px;
-    padding-left: calc(var(--lean, 0px) * 0.45);
+  }
+
+  .stop-marker {
+    margin-left: calc(var(--lean, 0px) * 0.5);
   }
 
   .stop-node-face {
