@@ -23,7 +23,7 @@ const TECH_HINT =
    Keys are matched as whole words against the topic. */
 const CONCEPTS = [
   [["quantum", "particle", "quark", "atom", "atomic", "physics", "relativity", "string theory", "boson", "fermion", "thermodynamics"], "ph:atom-bold"],
-  [["space", "astro", "astrophysics", "cosmology", "cosmos", "planet", "galaxy", "star", "orbit", "universe", "nasa"], "ph:planet-bold"],
+  [["space", "astro", "astronomy", "astrophysics", "cosmology", "cosmos", "planet", "galaxy", "star", "orbit", "universe", "nasa", "nebula", "supernova", "comet", "asteroid", "meteor", "telescope", "exoplanet", "black hole", "milky way", "solar system", "celestial"], "ph:planet-bold"],
   [["rocket", "spaceflight", "propulsion", "aerospace"], "ph:rocket-launch-bold"],
   [["chemistry", "chemical", "molecule", "molecular", "reaction", "compound", "polymer"], "ph:flask-bold"],
   [["biology", "genetics", "gene", "dna", "genome", "evolution", "cell", "microbiology", "virus", "bacteria"], "ph:dna-bold"],
@@ -44,11 +44,11 @@ const CONCEPTS = [
   [["language", "linguistics", "grammar", "etymology", "translation", "writing", "rhetoric"], "ph:translate-bold"],
   [["law", "legal", "constitution", "justice", "rights", "policy", "governance", "geopolitics"], "ph:gavel-bold"],
   [["philosophy", "stoicism", "ethics", "epistemology", "metaphysics", "logic", "existentialism", "aristotle", "plato", "socrates", "kant"], "ph:bank-bold"],
-  [["history", "ancient", "rome", "roman", "greece", "medieval", "empire", "war", "civilisation", "civilization", "archaeology"], "ph:scroll-bold"],
+  [["history", "historical", "ancient", "rome", "roman", "greece", "greek", "egypt", "medieval", "empire", "war", "revolution", "dynasty", "renaissance", "colonial", "civilisation", "civilization", "archaeology", "prehistoric", "silk road"], "ph:scroll-bold"],
   [["economics", "economy", "finance", "market", "monetary", "trade", "investment", "inflation", "money", "game theory", "supply chain"], "ph:currency-circle-dollar-bold"],
   [["law", "legal", "constitution", "politics", "government", "democracy", "geopolitics"], "ph:gavel-bold"],
   [["music", "audio", "sound", "acoustic", "instrument", "composition", "jazz", "classical music"], "ph:music-notes-bold"],
-  [["art", "painting", "design", "architecture", "drawing", "sculpture", "typography", "colour", "color"], "ph:palette-bold"],
+  [["art", "painting", "design", "drawing", "sculpture", "sculptures", "typography", "colour", "color", "ceramics", "pottery", "craft", "illustration", "printmaking"], "ph:palette-bold"],
   [["film", "cinema", "movie", "video", "photography", "animation"], "ph:film-slate-bold"],
   [["climate", "weather", "environment", "earth", "geography", "sustainability", "carbon"], "ph:globe-hemisphere-west-bold"],
   [["ocean", "marine", "water", "fluid", "wave", "hydro"], "ph:waves-bold"],
@@ -161,6 +161,77 @@ export function iconUrl(icon, color) {
   return `${base}?color=${encodeURIComponent(color)}`;
 }
 
+/* --- the second tier: a real object, when the concept map has no word for it
+ *
+ * Iconify's search is usable here, but only under two restrictions that were
+ * measured rather than assumed.
+ *
+ * Restriction one: concept sets only. Unrestricted, the search answers a topic
+ * with whatever brand happens to share its name — "nebula" returns the Nebula
+ * streaming service, "portal" and "cosmos" return crypto token logos. A logo
+ * for the wrong thing is worse than an honest generic glyph.
+ *
+ * Restriction two: the icon's own name must *be* one of the topic's words, not
+ * merely contain one. Without it "portal" resolves to `captive-portal`, a wifi
+ * icon, and "ocean" to `digital-ocean`. With it, the lane is exact: telescope,
+ * volcano, galaxy and pyramid all resolve to an icon of that thing, and
+ * anything else falls through to the fallback rather than guessing.
+ *
+ * What this cannot do is abstract topics. No icon set has a drawing of
+ * stoicism, philosophy or cell biology — all measured at zero across eight
+ * sets — so those stay the concept map's job. */
+const CONCEPT_SETS = ["ph", "mdi", "material-symbols", "solar", "tabler", "lucide", "carbon"];
+
+/* Style suffixes stack (`solar:telescope-bold-duotone`), so this strips until
+   it stops changing. */
+const STYLE_SUFFIX = /-(bold|fill|filled|duotone|outline|outlined|rounded|sharp|light|thin|twotone|two-tone|linear|broken|line-duotone)$/;
+
+function baseName(id) {
+  let name = id.slice(id.indexOf(":") + 1);
+  let prev;
+  do {
+    prev = name;
+    name = name.replace(STYLE_SUFFIX, "");
+  } while (name !== prev);
+  return name;
+}
+
+async function searchConceptSets(query) {
+  const url =
+    `${API}/search?query=${encodeURIComponent(query)}` +
+    `&prefixes=${CONCEPT_SETS.join(",")}&limit=32`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const { icons = [] } = await res.json();
+    return icons;
+  } catch {
+    return [];
+  }
+}
+
+/** An icon actually *of* the thing, or nothing. */
+async function objectIcon(topic) {
+  const words = topic.split(/[^a-z0-9]+/).filter((w) => w.length > 2);
+  /* The whole topic first — "black hole" should beat "hole" — then the longest
+     word, which is the one most likely to name a thing. */
+  const longest = [...words].sort((a, b) => b.length - a.length)[0];
+  const queries = [topic, longest].filter(Boolean).filter((q, i, a) => a.indexOf(q) === i);
+  const terms = new Set([topic.replace(/\s+/g, "-"), ...words]);
+
+  for (const query of queries) {
+    const icons = await searchConceptSets(query);
+    // Set order is preference, so the glyphs stay visually of a piece.
+    for (const set of CONCEPT_SETS) {
+      const hit = icons.find(
+        (id) => id.startsWith(`${set}:`) && terms.has(baseName(id)),
+      );
+      if (hit) return hit;
+    }
+  }
+  return null;
+}
+
 /**
  * Resolves a topic to an icon id, consulting Iconify's search only for topics
  * that look like a named tool — where a real logo beats a generic glyph.
@@ -176,9 +247,13 @@ export async function resolveTopicIcon(topic) {
   const concept = conceptIcon(key);
 
   if (!TECH_HINT.test(key)) {
-    cache[key] = concept;
+    /* The map's answer wins whenever it has one — it maps a topic to a idea,
+       which is the harder half. The search only covers what the map has no
+       word for, and only when it can name the thing exactly. */
+    const answer = concept === FALLBACK ? (await objectIcon(key)) || FALLBACK : concept;
+    cache[key] = answer;
     writeCache(cache);
-    return concept;
+    return answer;
   }
 
   /* `logos:` first — a real brand mark in its own colours beats a monotone
