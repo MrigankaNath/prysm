@@ -9,6 +9,7 @@ const { getCached, setCached } = require("./db/topicCache");
 const { getQuota, consumeTopic } = require("./db/usage");
 const { fetchWikipediaOverview } = require("./sources/wikipedia");
 const { fetchHackerNews } = require("./sources/hackerNews");
+const { fetchWebsites } = require("./sources/websites");
 const { fetchOverview } = require("./sources/overview");
 const { fetchStackExchange } = require("./sources/stackExchange");
 const { fetchPapers } = require("./sources/papers");
@@ -530,6 +531,8 @@ const TTL_HOURS = {
   podcasts: 24 * 14,
   code: 24 * 7,
   videos: 24 * 7,
+  /* Editor-curated links change about as often as a book does. */
+  websites: 24 * 30,
   discussions: 24 * 3,
 };
 
@@ -537,6 +540,7 @@ const DEFAULT_TTL_HOURS = 24 * 7;
 
 const LIVE_CATEGORIES = {
   overview: { fetch: fetchOverview, empty: null, expected: 1 },
+  websites: { fetch: fetchWebsites, empty: [], expected: 5 },
   discussions: { fetch: fetchHackerNews, empty: [], expected: 20, saturation: 1000 },
   qa: { fetch: fetchStackExchange, empty: [], expected: 5, saturation: 1000 },
   papers: { fetch: fetchPapers, empty: [], expected: 6 },
@@ -637,7 +641,7 @@ async function loadLiveCategory(topic, category, fetchFn, emptyValue, ...args) {
 // Fetched first because all five are free and keyless, so they cost nothing but
 // a little latency — and what they return tells us which of the metered sources
 // are actually worth calling.
-const PROBE_CATEGORIES = ["discussions", "papers", "books", "podcasts"];
+const PROBE_CATEGORIES = ["discussions", "papers", "books", "podcasts", "websites"];
 
 /* What the monthly budget actually pays for: overview and articles, which
    share one round of Tavily searches.

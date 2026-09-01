@@ -214,6 +214,16 @@ export function IconDiscussions(props) {
   );
 }
 
+export function IconWebsites(props) {
+  return (
+    <svg {...gradientBase} {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M3.5 12h17" />
+      <path d="M12 3.5c2.2 2.3 3.4 5.3 3.4 8.5s-1.2 6.2-3.4 8.5c-2.2-2.3-3.4-5.3-3.4-8.5S9.8 5.8 12 3.5Z" />
+    </svg>
+  );
+}
+
 /* --- UI + gamification icons ----------------------------------------------
    Same 24x24 / 1.8-stroke house style as the nav icons above, drawn with
    currentColor so they inherit whatever the surrounding element is coloured.

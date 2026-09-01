@@ -8,6 +8,7 @@ import {
   IconPapers,
   IconQA,
   IconDiscussions,
+  IconWebsites,
 } from "./Icons";
 
 export const CATEGORY_ICONS = {
@@ -20,6 +21,7 @@ export const CATEGORY_ICONS = {
   papers: IconPapers,
   qa: IconQA,
   discussions: IconDiscussions,
+  websites: IconWebsites,
 };
 
 export const CATEGORY_LABELS = {
@@ -32,11 +34,13 @@ export const CATEGORY_LABELS = {
   papers: "Research Papers",
   qa: "Q&A",
   discussions: "Discussions",
+  websites: "Websites",
 };
 
 // Fallback only — the server ranks categories per topic and returns an order.
 export const CATEGORY_ORDER = [
   "overview",
+  "websites",
   "articles",
   "videos",
   "podcasts",
@@ -66,6 +70,7 @@ export const CATEGORY_GRADIENTS = {
   papers: ["#6366f1", "#a5b4fc"],
   qa: ["#84cc16", "#bef264"],
   discussions: ["#14b8a6", "#5eead4"],
+  websites: ["#f97316", "#fdba74"],
 };
 
 /** The `stroke` a category icon should be given. Pass it as a prop — the icon

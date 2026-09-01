@@ -53,6 +53,9 @@ const STAGES = [
  * usually asked from exactly that position. */
 const LANE_STAGE = {
   videos: "orient",
+  /* A curated site is somewhere to go and look around, which is what the
+     first stage is for. */
+  websites: "orient",
   qa: "work",
   discussions: "work",
   code: "work",
@@ -64,6 +67,7 @@ const LANE_STAGE = {
    whole shelf — the full lane is still one click away under "everything". */
 const LANE_TAKE = {
   videos: 2,
+  websites: 3,
   qa: 3,
   discussions: 3,
   code: 2,
@@ -109,7 +113,9 @@ const ADMITS = {
     item.source === "arxiv" || item.peer_reviewed === true || (item.signal || 0) >= 10,
 };
 
-/* Articles, books and podcasts carry no floor. Articles are the depth-tagged
+/* Websites, articles, books and podcasts carry no floor. A website in this
+   lane was put there by a Wikipedia editor, which is a stronger filter than
+   any vote count this app could apply to it. Articles are the depth-tagged
    spine and have no signal to floor; books are already gated on catalogued
    subjects and are readable in full; podcasts are already relevance-gated at
    the source. */
@@ -222,13 +228,14 @@ export function buildPath(categories, order = []) {
  * matters, not that it is a good third thing to open. */
 const KIND_ORDER = {
   videos: 0,
-  articles: 1,
-  qa: 2,
-  discussions: 3,
-  podcasts: 4,
-  code: 5,
-  books: 6,
-  papers: 7,
+  websites: 1,
+  articles: 2,
+  qa: 3,
+  discussions: 4,
+  podcasts: 5,
+  code: 6,
+  books: 7,
+  papers: 8,
 };
 
 /* Reviewed and institutional work above popularity, popularity above the

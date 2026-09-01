@@ -50,6 +50,7 @@ const PICKER_HUES = {
   papers: "#8b5cf6",
   qa: "#f472b6",
   discussions: "#22d3ee",
+  websites: "#f97316",
   curated: "#a3e635",
 };
 
@@ -126,7 +127,8 @@ function CategorySection({ category, items, topic, index }) {
           ? "media"
           : category === "discussions" ||
               category === "qa" ||
-              category === "articles"
+              category === "articles" ||
+              category === "websites"
             ? "tiles"
             : null;
 

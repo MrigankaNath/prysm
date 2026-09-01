@@ -1,12 +1,12 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, MessageSquare, Newspaper, HelpCircle } from "lucide-react";
+import { ArrowUpRight, MessageSquare, Newspaper, HelpCircle, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BookmarkButton } from "@/components/ResultCard";
 import { recordVisit } from "@/lib/library";
 import { hostOf, formatSignal } from "@/lib/result";
 import { provenanceOf } from "@/lib/provenance";
 
-/* Articles, discussions and Q&A — the three lanes that are text and a link.
+/* Articles, discussions, Q&A and websites — the lanes that are text and a link.
  *
  * Adapted from a glass blog card, which leads with an image. None of these
  * lanes have one: Tavily returns a snippet, Hacker News a thread, Stack
@@ -19,6 +19,7 @@ const KIND = {
   articles: { Icon: Newspaper, label: "Article" },
   discussions: { Icon: MessageSquare, label: "Discussion" },
   qa: { Icon: HelpCircle, label: "Question" },
+  websites: { Icon: Globe, label: "Website" },
 };
 
 /* The conversation adapters put their engagement line in `snippet` ("784
