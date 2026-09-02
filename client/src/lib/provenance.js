@@ -21,7 +21,7 @@
  * re-reading of what the adapters return, not a new request.
  */
 
-import { hostOf } from "./result";
+import { hostOf } from "./result.js";
 
 /* Institutional domains, by suffix rather than by list. A curated allow-list
    of universities would bias toward whoever happened to be on it; suffixes are

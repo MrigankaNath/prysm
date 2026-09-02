@@ -16,7 +16,7 @@
  * already has.
  */
 
-import { provenanceOf } from "./provenance";
+import { provenanceOf } from "./provenance.js";
 
 /* Stages carry no number of their own. An empty stage is dropped — a thin
    topic has nothing to orient with — and a hardcoded `n` then survived the

@@ -6,8 +6,8 @@
  * or a prerequisite graph — those make the map *smarter*, not possible.
  */
 
-import { getAllProgress } from "./library";
-import { CLUSTERS } from "./clusters";
+import { getAllProgress } from "./library.js";
+import { CLUSTERS } from "./clusters.js";
 
 /** Topics with a path started but not finished, most recent first. */
 export function inProgress(limit = 6) {
