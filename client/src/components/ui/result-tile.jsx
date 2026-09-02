@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, MessageSquare, Newspaper, HelpCircle, Globe } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { BookmarkButton } from "@/components/ResultCard";
 import { recordVisit } from "@/lib/library";
 import { hostOf, formatSignal } from "@/lib/result";
@@ -29,12 +27,7 @@ const KIND = {
 const NUMERIC_ONLY =
   /^[\d\s,.·k+]*(points?|comments?|votes?|answers?|accepted)[\s\S]{0,40}$/i;
 
-export function ResultTile({ item, topic, category, index = 0, className }) {
-  /* Results are the content, not decoration. Fading them in from zero means
-     they are invisible until JS has run and rAF has ticked — so anyone who has
-     asked for less motion gets them immediately and in full, rather than a
-     shorter version of the same wait. */
-  const still = useReducedMotion();
+export function ResultTile({ item, topic, category, index = 0 }) {
   const { Icon, label } = KIND[category] || KIND.articles;
   /* The site's own mark, where the lane carries one. It is as close to a
      preview as this is worth: measured on the sites this lane returns, only
@@ -50,22 +43,9 @@ export function ResultTile({ item, topic, category, index = 0, className }) {
     item.snippet && !NUMERIC_ONLY.test(item.snippet) ? item.snippet : null;
 
   return (
-    <motion.article
-      initial={still ? false : { opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
-      /* Staggered, but capped: past about half a second the last card in a
-         long lane is still arriving after the reader has got there. */
-      transition={
-        still ? { duration: 0 } : { duration: 0.35, delay: Math.min(index, 7) * 0.04 }
-      }
-      className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-2xl",
-        "border border-border/70 bg-card/40 backdrop-blur-xl",
-        "transition-[transform,border-color,box-shadow] duration-300 ease-out",
-        "hover:-translate-y-1 hover:border-[color:var(--tint)]/60",
-        className,
-      )}
-      style={{ "--tint": "var(--cat, #a78bfa)" }}
+    <article
+      className="tile group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/40 backdrop-blur-xl transition-[border-color,box-shadow] duration-300 ease-out hover:border-[color:var(--tint)]/60"
+      style={{ "--tint": "var(--cat, #a78bfa)", "--stagger": `${Math.min(index, 7) * 40}ms` }}
     >
       {/* A wash of the lane's own colour, lit on hover. The card is glass, so
           the light sits in it rather than on it. */}
@@ -158,7 +138,7 @@ export function ResultTile({ item, topic, category, index = 0, className }) {
           />
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }
 

@@ -1530,6 +1530,15 @@ nav {
   animation-delay: var(--stagger, 0ms);
 }
 
+/* The result tiles reuse the section entrance rather than shipping an
+   animation library for it. Also more reliable: framer-motion drives from
+   requestAnimationFrame, which a backgrounded tab throttles to nothing, so the
+   tiles could sit at opacity 0 indefinitely. CSS animations run regardless. */
+.tile {
+  animation: fade-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--stagger, 0ms);
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;
