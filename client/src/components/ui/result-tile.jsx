@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowUpRight, MessageSquare, Newspaper, HelpCircle, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,13 @@ export function ResultTile({ item, topic, category, index = 0, className }) {
      shorter version of the same wait. */
   const still = useReducedMotion();
   const { Icon, label } = KIND[category] || KIND.articles;
+  /* The site's own mark, where the lane carries one. It is as close to a
+     preview as this is worth: measured on the sites this lane returns, only
+     one page in five ships an og:image — academic and museum sites almost
+     never do — and the free screenshot renderers answer 403. A favicon
+     identifies the destination, which is what a preview is for. */
+  const [markBroken, setMarkBroken] = useState(false);
+  const favicon = category === "websites" && !markBroken ? item.thumbnail : null;
   const host = hostOf(item.url);
   const signal = formatSignal(item);
   const mark = provenanceOf(item);
@@ -92,7 +100,19 @@ export function ResultTile({ item, topic, category, index = 0, className }) {
                 "inset 0 0 0 1px color-mix(in srgb, var(--tint) 26%, transparent)",
             }}
           >
-            <Icon className="h-3 w-3" strokeWidth={2.2} />
+            {favicon ? (
+              <img
+                src={favicon}
+                alt=""
+                width="12"
+                height="12"
+                loading="lazy"
+                className="h-3 w-3 rounded-[2px]"
+                onError={() => setMarkBroken(true)}
+              />
+            ) : (
+              <Icon className="h-3 w-3" strokeWidth={2.2} />
+            )}
             {label}
           </span>
           {mark ? (
