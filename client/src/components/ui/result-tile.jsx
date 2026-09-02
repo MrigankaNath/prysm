@@ -44,7 +44,7 @@ export function ResultTile({ item, topic, category, index = 0 }) {
 
   return (
     <article
-      className="tile group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/40 backdrop-blur-xl transition-[border-color,box-shadow] duration-300 ease-out hover:border-[color:var(--tint)]/60"
+      className="tile group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/40 backdrop-blur-xl transition-[transform,border-color,box-shadow] duration-300 ease-out hover:-translate-y-1 hover:border-[color:var(--tint)]/60"
       style={{ "--tint": "var(--cat, #a78bfa)", "--stagger": `${Math.min(index, 7) * 40}ms` }}
     >
       {/* A wash of the lane's own colour, lit on hover. The card is glass, so
