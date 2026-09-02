@@ -21,6 +21,8 @@
  * re-reading of what the adapters return, not a new request.
  */
 
+import { hostOf } from "./result";
+
 /* Institutional domains, by suffix rather than by list. A curated allow-list
    of universities would bias toward whoever happened to be on it; suffixes are
    granted, not chosen. */
@@ -38,14 +40,6 @@ const MUCH_WATCHED = 100000;
    the only durable fact iTunes gives, and longevity is the honest reading of
    it — not quality, but not nothing either. */
 const LONG_RUNNING = 100;
-
-function hostOf(url) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return "";
-  }
-}
 
 /**
  * The single strongest claim that can be made about an item, or null.

@@ -17,12 +17,9 @@
  * Free and keyless, like the overview it sits beside.
  */
 
-const API = "https://en.wikipedia.org/w/api.php";
+const { getJson, hostOf } = require("./http");
 
-/* Wikipedia blocks the default user agent of most HTTP clients outright — it
-   answered 403 until this was set. Their policy asks for something
-   identifying. */
-const UA = "Prysm/1.0 (https://github.com/MrigankaNath/prysm)";
+const API = "https://en.wikipedia.org/w/api.php";
 
 const CURATED_SECTIONS = new Set(["external links", "further reading"]);
 
@@ -68,12 +65,7 @@ async function wiki(params) {
     ...params,
   })}`;
 
-  const res = await fetch(url, {
-    headers: { "User-Agent": UA },
-    signal: AbortSignal.timeout(6000),
-  });
-  if (!res.ok) throw new Error(`Wikipedia returned ${res.status}`);
-  return res.json();
+  return getJson(url, { label: "Wikipedia" });
 }
 
 /* The topic is rarely an exact article title, so it is resolved the same way
@@ -114,14 +106,6 @@ function cleanTitle(raw) {
   const sentence = flat.split(/\.\s+/)[0];
   const short = sentence.length >= 8 ? sentence : flat;
   return short.length > 90 ? `${short.slice(0, 88).trimEnd()}…` : short;
-}
-
-function hostOf(url) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return null;
-  }
 }
 
 async function linksIn(title, index) {

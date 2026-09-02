@@ -1,14 +1,10 @@
+
+const { getJson, getText } = require("./http");
 const { isRelevant } = require("./relevance");
 
 async function fetchPodcasts(topic) {
   const url = `https://itunes.apple.com/search?term=${encodeURIComponent(topic)}&entity=podcast&limit=5`;
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new Error(`iTunes Search API returned ${res.status}`);
-  }
-
-  const data = await res.json();
+  const data = await getJson(url, { label: "iTunes Search API" });
 
   return (data.results || [])
     .filter((show) => show.collectionName && show.trackViewUrl)

@@ -1,3 +1,5 @@
+
+const { getJson } = require("./http");
 const { relevanceScore } = require("./relevance");
 
 // Stack Exchange has no cross-site search — `site` is required — so we fan out
@@ -37,10 +39,10 @@ async function searchSite(topic, site) {
     `?order=desc&sort=votes&pagesize=3&filter=default` +
     `&q=${encodeURIComponent(topic)}&site=${site}`;
 
-  const res = await fetch(url);
-  if (!res.ok) return [];
-
-  const data = await res.json();
+  const data = await getJson(url, { label: "Stack Exchange API" }).catch(
+    () => null,
+  );
+  if (!data) return [];
 
   return (data.items || [])
     .filter((item) => item.answer_count > 0)

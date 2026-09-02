@@ -1,3 +1,5 @@
+
+const { getJson, getText } = require("./http");
 const { XMLParser } = require("fast-xml-parser");
 const { isRelevant } = require("./relevance");
 
@@ -5,13 +7,7 @@ const parser = new XMLParser();
 
 async function fetchArxiv(topic) {
   const url = `http://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(topic)}&start=0&max_results=5`;
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new Error(`arXiv API returned ${res.status}`);
-  }
-
-  const xml = await res.text();
+  const xml = await getText(url, { label: "arXiv API" });
   const data = parser.parse(xml);
   const entries = data.feed?.entry;
   const list = Array.isArray(entries) ? entries : entries ? [entries] : [];

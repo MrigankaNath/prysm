@@ -13,6 +13,8 @@
  * Rate limit is 100k requests/day. This runs once per topic per 14 days.
  */
 
+const { getJson } = require("./http");
+
 const ENDPOINT = "https://api.openalex.org/works";
 
 /* Only top-level fields; OpenAlex's `select` doesn't take nested paths. Cuts
@@ -88,16 +90,10 @@ async function fetchOpenAlex(topic) {
 
   /* A slow scholarly index shouldn't hold up the page. Papers is a phase-one
      probe, so everything downstream waits on it. */
-  const res = await fetch(url, {
-    signal: AbortSignal.timeout(6000),
+  const data = await getJson(url, {
     headers: { Accept: "application/json" },
+    label: "OpenAlex API",
   });
-
-  if (!res.ok) {
-    throw new Error(`OpenAlex API returned ${res.status}`);
-  }
-
-  const data = await res.json();
   const works = Array.isArray(data?.results) ? data.results : [];
 
   return works

@@ -18,6 +18,8 @@
  *    pages, and only the snippet is used. Basic depth throughout.
  */
 
+const { postJson, hostOf } = require("./http");
+
 const ENDPOINT = "https://api.tavily.com/search";
 
 /* Suffixes were A/B'd against a humanities topic and a physics one, because a
@@ -77,32 +79,18 @@ const PER_DOMAIN = 2;
    isn't. */
 const KEEP_PER_TIER = 4;
 
-function hostOf(url) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return null;
-  }
-}
-
 async function runTier(apiKey, topic, tier) {
-  const res = await fetch(ENDPOINT, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  const data = await postJson(
+    ENDPOINT,
+    {
       api_key: apiKey,
       query: tier.query(topic),
       max_results: PER_TIER,
       exclude_domains: EXCLUDE,
       ...(tier.answer ? { include_answer: "basic" } : {}),
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Tavily API returned ${res.status}`);
-  }
-
-  const data = await res.json();
+    },
+    { label: "Tavily API" },
+  );
 
   return {
     answer: data.answer || null,

@@ -10,6 +10,8 @@
  * — this ordering saves no credits, it buys a source line.
  */
 
+const { getJson } = require("./http");
+
 const REST = "https://en.wikipedia.org/api/rest_v1/page/summary";
 const SEARCH = "https://en.wikipedia.org/w/api.php";
 
@@ -21,10 +23,10 @@ async function bestTitle(topic) {
     `${SEARCH}?action=query&list=search&format=json&origin=*` +
     `&srlimit=1&srsearch=${encodeURIComponent(topic)}`;
 
-  const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-  if (!res.ok) return null;
-
-  const data = await res.json();
+  const data = await getJson(url, { label: "Wikipedia search" }).catch(
+    () => null,
+  );
+  if (!data) return null;
   return data?.query?.search?.[0]?.title || null;
 }
 
@@ -53,12 +55,10 @@ async function fetchWikipediaOverview(topic) {
   const title = await bestTitle(topic);
   if (!title) return null;
 
-  const res = await fetch(`${REST}/${encodeURIComponent(title)}`, {
-    signal: AbortSignal.timeout(5000),
-  });
-  if (!res.ok) return null;
-
-  const page = await res.json();
+  const page = await getJson(`${REST}/${encodeURIComponent(title)}`, {
+    label: "Wikipedia summary",
+  }).catch(() => null);
+  if (!page) return null;
   /* A disambiguation page lists senses instead of defining anything, so its
      extract is a worse answer than none. */
   if (page.type === "disambiguation") return null;

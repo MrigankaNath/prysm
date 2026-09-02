@@ -1,3 +1,5 @@
+
+const { getJson } = require("./http");
 // Only surfaces books that are free to read in full. Open Library's
 // `ebook_access` has to be filtered inside `q` (the standalone query param is
 // ignored), and we re-check it here so a silently-changed API can't leak
@@ -51,15 +53,8 @@ async function fetchBooks(topic) {
     "&limit=40" +
     "&fields=title,author_name,first_publish_year,ia,ebook_access,cover_i,subject";
 
-  const res = await fetch(url, {
-    headers: { "User-Agent": "Prysm/1.0 (https://prysm-black.vercel.app)" },
-  });
+  const data = await getJson(url, { label: "Open Library API" });
 
-  if (!res.ok) {
-    throw new Error(`Open Library API returned ${res.status}`);
-  }
-
-  const data = await res.json();
 
   return (data.docs || [])
     .filter(

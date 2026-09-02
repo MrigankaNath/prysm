@@ -1,3 +1,5 @@
+
+const { getJson, getText } = require("./http");
 const { isRelevant } = require("./relevance");
 
 /* Algolia's `query` is a loose match, and this was the one keyword source with
@@ -39,13 +41,7 @@ function bestPerUrl(hits) {
 
 async function fetchHackerNews(topic) {
   const url = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(topic)}&tags=story`;
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new Error(`Hacker News API returned ${res.status}`);
-  }
-
-  const data = await res.json();
+  const data = await getJson(url, { label: "Hacker News API" });
 
   return bestPerUrl(
     data.hits

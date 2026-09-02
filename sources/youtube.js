@@ -1,3 +1,5 @@
+
+const { getJson } = require("./http");
 const { isRelevant } = require("./relevance");
 
 /* ISO-8601 durations, as YouTube returns them: PT4M13S. */
@@ -16,12 +18,11 @@ async function videoStats(apiKey, ids) {
   if (wanted.length === 0) return {};
 
   try {
-    const res = await fetch(
+    const data = await getJson(
       "https://www.googleapis.com/youtube/v3/videos" +
         `?part=statistics,contentDetails&id=${wanted.join(",")}&key=${apiKey}`,
+      { label: "YouTube API" },
     );
-    if (!res.ok) return {};
-    const data = await res.json();
     return Object.fromEntries(
       (data.items || []).map((v) => [
         v.id,
@@ -45,13 +46,7 @@ async function fetchYoutube(topic) {
   }
 
   const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(topic)}&key=${apiKey}`;
-  const res = await fetch(url);
-
-  if (!res.ok) {
-    throw new Error(`YouTube API returned ${res.status}`);
-  }
-
-  const data = await res.json();
+  const data = await getJson(url, { label: "YouTube API" });
   const items = data.items || [];
 
   /* A second call for statistics. `search` costs 100 units; `videos` costs 1,
