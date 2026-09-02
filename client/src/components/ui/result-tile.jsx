@@ -106,7 +106,6 @@ export function ResultTile({ item, topic, category, index = 0, className }) {
                 alt=""
                 width="12"
                 height="12"
-                loading="lazy"
                 className="h-3 w-3 rounded-[2px]"
                 onError={() => setMarkBroken(true)}
               />

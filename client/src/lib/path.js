@@ -31,14 +31,14 @@ const STAGES = [
   },
   {
     id: "work",
-    label: "Work through it",
-    blurb: "How it actually works, and where people get stuck.",
+    label: "Go deeper",
+    blurb: "You know the basics — this is what else is out there.",
     hue: "#8b5cf6",
   },
   {
     id: "source",
     label: "Go to the source",
-    blurb: "The primary material, once the ground is solid.",
+    blurb: "The primary material, for when you want it at depth.",
     hue: "#10b981",
   },
 ];

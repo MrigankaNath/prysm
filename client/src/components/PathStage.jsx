@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Check, ChevronDown, ArrowUpRight } from "lucide-react";
 import { recordVisit } from "../lib/library";
 import { hostOf } from "../lib/result";
@@ -54,6 +55,13 @@ function Stop({ item, index, count, state, topic, open, onOpen, onToggle }) {
   const mark = provenanceOf(item);
   const kind = CATEGORY_LABELS[item.category] || item.category;
   const done = state === "done";
+  /* A website's marker carries the site's own mark rather than a globe. Every
+     stop in that lane is a website, so the category glyph identifies nothing —
+     the favicon is the only thing that tells one stop from another at a
+     glance. Falls back to the glyph if the icon 404s. */
+  const [markBroken, setMarkBroken] = useState(false);
+  const favicon =
+    item.category === "websites" && !markBroken ? item.thumbnail : null;
 
   const visit = () => recordVisit(item, { topic, category: item.category });
 
@@ -73,6 +81,13 @@ function Stop({ item, index, count, state, topic, open, onOpen, onToggle }) {
           <span className="stop-node-face">
             {done ? (
               <Check className="stop-node-check" strokeWidth={3.4} />
+            ) : favicon ? (
+              <img
+                className="stop-node-mark"
+                src={favicon}
+                alt=""
+                onError={() => setMarkBroken(true)}
+              />
             ) : (
               Icon && (
                 <Icon

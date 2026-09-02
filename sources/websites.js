@@ -227,7 +227,7 @@ async function fetchWebsites(topic) {
        least likely to), and the free screenshot renderers now answer 403. A
        favicon is served for every host and identifies the destination at a
        glance, which is what the preview was wanted for. */
-    thumbnail: `https://www.google.com/s2/favicons?domain=${encodeURIComponent(item.host)}&sz=64`,
+    thumbnail: `https://www.google.com/s2/favicons?domain=${encodeURIComponent(item.host)}&sz=128`,
   }));
 }
 

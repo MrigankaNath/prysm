@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BookmarkButton } from "./ResultCard";
 import { recordVisit } from "../lib/library";
 import { hostOf, formatSignal, venueChip } from "../lib/result";
@@ -35,6 +36,12 @@ function FeedCard({ item, topic, category, compact = false }) {
      stretched: the row is as tall as its tallest card either way, so the
      choice is between a card with a header and a card with a hole in it. */
   const showGlyph = !compact && !showThumb;
+  /* Same reasoning as the roadmap marker: in the websites lane every card is a
+     website, so the site's own mark is the only thing that distinguishes one
+     from another. */
+  const [markBroken, setMarkBroken] = useState(false);
+  const siteMark =
+    category === "websites" && !markBroken ? item.thumbnail : null;
 
   return (
     <article
@@ -62,7 +69,16 @@ function FeedCard({ item, topic, category, compact = false }) {
 
       {showGlyph && (
         <span className="fcard-thumb is-glyph" aria-hidden="true">
-          <Icon stroke={categoryStroke(category)} />
+          {siteMark ? (
+            <img
+              className="fcard-mark"
+              src={siteMark}
+              alt=""
+              onError={() => setMarkBroken(true)}
+            />
+          ) : (
+            <Icon stroke={categoryStroke(category)} />
+          )}
         </span>
       )}
 
