@@ -29,6 +29,7 @@ const FIELDS = [
   "is_retracted",
   "is_paratext",
   "abstract_inverted_index",
+  "authorships",
   "primary_location",
   "best_oa_location",
 ].join(",");
@@ -52,6 +53,18 @@ function abstractFrom(inverted) {
    proceedings imply review. `submittedVersion` is the author's manuscript
    before review, whatever it is hosted on. Anything that fits neither is left
    unlabelled rather than guessed at. */
+/* First author, "et al." past two. A paper's byline is usually longer than a
+   card has room for, and the first name is the one people recognise. */
+function bylineOf(authorships) {
+  const names = (authorships || [])
+    .map((a) => a.author?.display_name)
+    .filter(Boolean);
+
+  if (names.length === 0) return null;
+  if (names.length <= 2) return names.join(" & ");
+  return `${names[0]} et al.`;
+}
+
 function reviewStatus(work) {
   const location = work.primary_location || {};
   const source = location.source || {};
@@ -110,6 +123,7 @@ async function fetchOpenAlex(topic) {
         type: "paper",
         snippet: abstractFrom(work.abstract_inverted_index).slice(0, 280),
         published_at: work.publication_date || null,
+        author: bylineOf(work.authorships),
         thumbnail: null,
         signal: Number(work.cited_by_count) || 0,
         peer_reviewed: peerReviewed,
