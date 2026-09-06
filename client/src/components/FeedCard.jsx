@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { BookmarkButton } from "./ResultCard";
 import { recordVisit } from "../lib/library";
-import { hostOf, formatSignal, venueChip } from "../lib/result";
+import { hostOf, venueChip, effortOf, publishedOn, artFor } from "../lib/result";
 import { CATEGORY_ICONS, CATEGORY_LABELS, categoryStroke } from "./categories";
 import { lighten, topicColor } from "../lib/topicIcon";
 import { IconPlay } from "./Icons";
@@ -28,8 +28,10 @@ function FeedCard({ item, topic, category, compact = false }) {
   const band = topicColor(topic || item.topic || "");
   const Icon = CATEGORY_ICONS[category] || CATEGORY_ICONS.articles;
   const host = hostOf(item.url);
-  const signal = formatSignal(item);
   const venue = venueChip(item);
+  const effort = effortOf(item, category);
+  const published = publishedOn(item);
+  const byline = item.author || null;
   const showThumb = !compact && THUMBED.has(category) && item.thumbnail;
   /* Everything else fills the same band with its category glyph.
      Leaving it out is what made a podcast sitting next to a video look
@@ -68,7 +70,11 @@ function FeedCard({ item, topic, category, compact = false }) {
       )}
 
       {showGlyph && (
-        <span className="fcard-thumb is-glyph" aria-hidden="true">
+        <span
+          className={`fcard-thumb is-glyph${siteMark ? "" : " is-art"}`}
+          style={siteMark ? undefined : artFor(item.url)}
+          aria-hidden="true"
+        >
           {siteMark ? (
             <img
               className="fcard-mark"
@@ -89,6 +95,7 @@ function FeedCard({ item, topic, category, compact = false }) {
             {CATEGORY_LABELS[category] || "Articles"}
           </span>
           {topic && <span className="fcard-topic">{topic}</span>}
+          {effort && <span className="fcard-effort">{effort}</span>}
           <BookmarkButton item={item} topic={topic} category={category} />
         </div>
 
@@ -106,17 +113,27 @@ function FeedCard({ item, topic, category, compact = false }) {
             every card in a row the same height. */}
         {!compact && <p className="fcard-snippet">{item.snippet || ""}</p>}
 
-        {(host || signal || venue) && (
-          <div className="fcard-foot">
-            {host && <span>{host}</span>}
-            {signal && <span className="fcard-signal">{signal}</span>}
-            {venue && (
-              <span className={`venue-chip${venue.reviewed ? " reviewed" : ""}`}>
-                {venue.reviewed ? "Peer reviewed" : "Preprint"}
+        {(byline || published || host) && (
+          <footer className="fcard-foot">
+            <span className="fcard-fact">
+              <span className="fcard-fact-label">{byline ? "By" : "From"}</span>
+              <span className="fcard-fact-value">{byline || host}</span>
+            </span>
+            {published && (
+              <span className="fcard-fact is-right">
+                <span className="fcard-fact-label">Published</span>
+                <span className="fcard-fact-value">{published}</span>
               </span>
             )}
-          </div>
+          </footer>
         )}
+
+        {venue && (
+          <span className={`venue-chip${venue.reviewed ? " reviewed" : ""}`}>
+            {venue.reviewed ? "Peer reviewed" : "Preprint"}
+          </span>
+        )}
+
       </div>
     </article>
   );

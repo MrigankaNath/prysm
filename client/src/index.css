@@ -2732,14 +2732,50 @@ nav {
 /* Lights up where it stands. The card used to lift on hover as well, which
    on a dense grid read as the row twitching; the glow alone says the same
    thing and says it on every side. */
+/* Smoke, not a ring. Lighting the whole border and throwing two halos read as
+   machinery on a grid of eight — every card announcing itself identically.
+   This drifts a soft wash of the card's own band up through it instead: the
+   colour is still there, it just isn't tracing an outline. */
+.fcard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(
+      120% 80% at 18% 112%,
+      color-mix(in srgb, var(--band, #a1a1aa) 40%, transparent),
+      transparent 62%
+    ),
+    radial-gradient(
+      90% 70% at 88% -8%,
+      color-mix(in srgb, var(--band-lit, #a1a1aa) 24%, transparent),
+      transparent 60%
+    );
+  filter: blur(20px);
+  transform: scale(1.08) translateY(8px);
+  transition:
+    opacity 0.55s var(--ease-settle),
+    transform 0.8s var(--ease-settle);
+}
+
 .fcard:hover {
   background: var(--surface-raised);
-  border-color: color-mix(in srgb, var(--band, #a1a1aa) 50%, var(--line-bold));
-  border-bottom-color: color-mix(in srgb, var(--band, #a1a1aa) 60%, #3d3d49);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--band, #000) 26%, transparent),
-    0 0 22px color-mix(in srgb, var(--band, #000) 30%, transparent),
-    0 0 60px color-mix(in srgb, var(--band, #000) 16%, transparent);
+  border-color: color-mix(in srgb, var(--band, #a1a1aa) 24%, var(--line-bold));
+}
+
+.fcard:hover::after {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* Everything the card draws sits above the smoke. */
+.fcard-thumb,
+.fcard-body {
+  position: relative;
+  z-index: 1;
 }
 
 
@@ -2774,10 +2810,56 @@ nav {
   border-bottom: 1px solid var(--line);
 }
 
+/* A different picture on every card that has none of its own: two soft arcs
+   seeded from the item's URL, so it is stable per item and no two collide the
+   way one gradient per category would. */
+.fcard-thumb.is-art {
+  background: #08080c;
+}
+
+/* Held back until hover. At rest the grid is a set of calm dark cards and the
+   glyph is the only thing in the band; the colour is the reward for pointing
+   at one, not the resting state of eight. */
+.fcard-thumb.is-art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background:
+    radial-gradient(
+      95% 78% at var(--art-x, 50%) 116%,
+      hsl(var(--art-a, 220deg) 70% 56% / 0.55),
+      transparent 68%
+    ),
+    radial-gradient(
+      72% 62% at calc(100% - var(--art-x, 50%)) -16%,
+      hsl(var(--art-b, 280deg) 64% 50% / 0.4),
+      transparent 64%
+    );
+  transition: opacity 0.5s var(--ease-settle);
+}
+
+.fcard:hover .fcard-thumb.is-art::before {
+  opacity: 1;
+}
+
+/* The glyph carries the band at rest, so it has to actually read: lit to the
+   card's own colour and haloed, rather than a grey mark at a fifth opacity. */
 .fcard-thumb.is-glyph svg {
-  width: 34px;
-  height: 34px;
-  opacity: 0.5;
+  position: relative;
+  width: 40px;
+  height: 40px;
+  opacity: 0.9;
+  filter:
+    drop-shadow(0 0 10px color-mix(in srgb, var(--band, #a1a1aa) 70%, transparent))
+    drop-shadow(0 0 24px color-mix(in srgb, var(--band, #a1a1aa) 45%, transparent));
+  transition: filter 0.4s var(--ease-settle);
+}
+
+.fcard:hover .fcard-thumb.is-glyph svg {
+  filter:
+    drop-shadow(0 0 14px color-mix(in srgb, var(--band, #a1a1aa) 85%, transparent))
+    drop-shadow(0 0 34px color-mix(in srgb, var(--band, #a1a1aa) 55%, transparent));
 }
 
 /* Qualified, because `.fcard-thumb img` is the video-thumbnail rule and it
@@ -2996,13 +3078,44 @@ nav {
    signal onto a second line and break the card's even foot. */
 .fcard-foot {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 14px;
   margin-top: auto;
-  padding-top: 13px;
+  padding-top: 14px;
   border-top: 1px solid var(--line);
-  color: #52525b;
-  font-size: 0.74rem;
+}
+
+.fcard-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.fcard-fact.is-right {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.fcard-fact-label {
+  color: var(--text-faint);
+  font-size: 0.72rem;
+}
+
+.fcard-fact-value {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.fcard-effort {
+  flex-shrink: 0;
+  color: var(--text-faint);
+  font-size: 0.72rem;
   white-space: nowrap;
 }
 

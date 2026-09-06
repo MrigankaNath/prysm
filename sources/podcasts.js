@@ -24,6 +24,7 @@ async function fetchPodcasts(topic) {
     )
     .map((show) => ({
       title: show.collectionName,
+      author: show.artistName || null,
       url: show.trackViewUrl,
       source: "podcasts",
       type: "podcast",

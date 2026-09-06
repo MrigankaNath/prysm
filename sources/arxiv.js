@@ -5,6 +5,17 @@ const { isRelevant } = require("./relevance");
 
 const parser = new XMLParser();
 
+/* The Atom feed gives one <author> for a solo paper and an array otherwise. */
+function bylineOf(author) {
+  const names = (Array.isArray(author) ? author : [author])
+    .map((a) => a?.name)
+    .filter(Boolean);
+
+  if (names.length === 0) return null;
+  if (names.length <= 2) return names.join(" & ");
+  return `${names[0]} et al.`;
+}
+
 async function fetchArxiv(topic) {
   const url = `http://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(topic)}&start=0&max_results=5`;
   const xml = await getText(url, { label: "arXiv API" });
@@ -23,6 +34,7 @@ async function fetchArxiv(topic) {
         .trim()
         .slice(0, 280),
       published_at: entry.published,
+      author: bylineOf(entry.author),
       thumbnail: null,
       /* Everything on arXiv is a preprint. Most of the good ones are peer
          reviewed eventually, but the copy linked here is the submitted one. */
