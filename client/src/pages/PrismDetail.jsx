@@ -3,12 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import PrismStep from "../components/PrismStep";
 import { IconPrism, IconChevronRight } from "../components/Icons";
 import { apiFetch } from "../lib/api";
-import {
-  getProgress,
-  toggleDone,
-  recordPathSize,
-  subscribe,
-} from "../lib/library";
+import { getProgress, toggleDone, subscribe } from "../lib/library";
 
 const DEPTHS = [
   { id: "beginner", label: "Start here" },
@@ -21,18 +16,20 @@ const DEPTHS = [
    change unverifiable without an account. */
 export function PrismBody({ bundle }) {
   const items = bundle.items || [];
-  const [done, setDone] = useState(() => new Set(getProgress(bundle.topic)));
 
-  useEffect(
-    () => subscribe(() => setDone(new Set(getProgress(bundle.topic)))),
-    [bundle.topic],
-  );
+  /* Keyed on the Prism, not on its topic.
+   *
+   * Progress is stored per topic, and an Explore path for "react" is a
+   * different set of items from the React Prism — sharing the key let this
+   * page overwrite the path's length, so the feed offered to resume "3 of 21"
+   * on a page that has eleven stops. `recordPathSize` is deliberately not
+   * called for the same reason: with no total recorded, journey.js filters
+   * this entry out of the feed's resume rows rather than rendering a raw key
+   * and linking to an explore page that doesn't exist. */
+  const key = `prism:${bundle.id}`;
+  const [done, setDone] = useState(() => new Set(getProgress(key)));
 
-  /* The feed reads this to say "2 of 4" and to decide what is worth
-     resuming, and it is only knowable here. */
-  useEffect(() => {
-    if (items.length) recordPathSize(bundle.topic, items.length);
-  }, [bundle.topic, items.length]);
+  useEffect(() => subscribe(() => setDone(new Set(getProgress(key)))), [key]);
 
   const position = new Map(items.map((item, i) => [item.id, i + 1]));
 
@@ -93,7 +90,7 @@ export function PrismBody({ bundle }) {
                   index={position.get(item.id)}
                   topic={bundle.topic}
                   done={done.has(item.url)}
-                  onToggle={() => toggleDone(bundle.topic, item.url)}
+                  onToggle={() => toggleDone(key, item.url)}
                 />
               ))}
             </div>
