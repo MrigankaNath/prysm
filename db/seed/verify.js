@@ -70,10 +70,15 @@ async function main() {
   const bad = results.filter((r) => !r.ok);
   for (const r of bad) console.log(`  ${String(r.status).padEnd(6)} ${r.slug}  ${r.url}`);
 
-  const dupes = new Map();
-  for (const r of results) dupes.set(r.url, (dupes.get(r.url) || 0) + 1);
-  const repeated = [...dupes].filter(([, n]) => n > 1);
-  for (const [url, n] of repeated) console.log(`  DUPE×${n} ${url}`);
+  /* Scoped to one prism. Two paths sharing a resource is legitimate — the
+     same link twice inside one path is a curation mistake. */
+  const seen = new Map();
+  for (const r of results) {
+    const k = `${r.slug}|${r.url}`;
+    seen.set(k, (seen.get(k) || 0) + 1);
+  }
+  const repeated = [...seen].filter(([, n]) => n > 1);
+  for (const [k, n] of repeated) console.log(`  DUPE×${n} ${k}`);
 
   console.log(
     `\n${results.length - bad.length}/${results.length} ok` +

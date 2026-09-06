@@ -3915,8 +3915,12 @@ nav {
   --band-lit: #f9a8d4;
 }
 
+/* Wraps, and the squares never shrink. A four-stop Prism fits on one line; a
+   twenty-one-stop one squeezed each square to 13px and pushed the page wider
+   than the phone. Rows are cheaper than illegible numbers. */
 .prism-progress {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
   margin-top: 26px;
@@ -3926,6 +3930,7 @@ nav {
    can count off, which is what this now actually tracks. */
 .prism-step {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 26px;
@@ -4074,10 +4079,13 @@ nav {
   line-height: 1.6;
 }
 
+/* Wraps: a long host beside a long depth label ran past the right edge of a
+   phone, and the badge is the thing that has to drop rather than the page. */
 .pstep-meta {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: 8px 10px;
   margin-top: 12px;
 }
 

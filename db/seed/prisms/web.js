@@ -15,9 +15,9 @@
 
 const WEB = [
   {
-    slug: "modern-react",
-    title: "React, the modern way",
-    topic: "react",
+    slug: "react-hooks",
+    title: "React Hooks, properly",
+    topic: "react hooks",
     description:
       "Components, state and effects as the current docs teach them — not the class-based React the internet still remembers.",
     items: [
