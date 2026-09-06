@@ -1,4 +1,13 @@
-import { IconCheck } from "./Icons";
+import {
+  IconCheck,
+  IconArticles,
+  IconVideos,
+  IconBooks,
+  IconPapers,
+  IconWebsites,
+  IconCode,
+  IconTarget,
+} from "./Icons";
 import { BookmarkButton } from "./ResultCard";
 import { hostOf } from "../lib/result";
 
@@ -10,13 +19,36 @@ import { hostOf } from "../lib/result";
  *
  * Done mutes rather than brightens. A finished step that lit up would be the
  * loudest thing on a page whose whole job is to point at the next one. */
+/* What kind of thing a stop is. A curated path mixes a docs site, a lecture
+   and a paper, and knowing which is which before you click is the difference
+   between opening it now and saving it for a train. */
+const TYPE_ICON = {
+  article: IconArticles,
+  video: IconVideos,
+  book: IconBooks,
+  paper: IconPapers,
+  website: IconWebsites,
+  code: IconCode,
+  course: IconTarget,
+};
+
 function PrismStep({ item, index, topic, done, onToggle }) {
   const host = hostOf(item.url);
+  const TypeIcon = TYPE_ICON[item.type] || IconArticles;
 
   return (
     <article className={`pstep pstep-${item.depth_level}${done ? " done" : ""}`}>
-      <span className="pstep-n" aria-hidden="true">
-        {String(index).padStart(2, "0")}
+      <span className="pstep-rail">
+        <span className="pstep-n" aria-hidden="true">
+          {String(index).padStart(2, "0")}
+        </span>
+        {/* The category icons default to the fixed prism gradient. Here the
+            glyph has to carry the stage's band and mute when the step is
+            done, so it is told to inherit instead. */}
+        <span className="pstep-type" title={item.type}>
+          <TypeIcon stroke="currentColor" />
+          <span className="sr-only">{item.type}</span>
+        </span>
       </span>
 
       <div className="pstep-body">

@@ -542,10 +542,16 @@ offset is that same trick with the volume up. It is the only shadow in the app
 that is a **shape** rather than a haze — keep it that way, or it stops reading
 as construction and starts reading as glow.
 
-**Hover presses, it does not lift.** `translate(4px, 4px)` while the shadow
-shortens from 6px to 2px — the slab travels exactly as far as its own shadow
-loses, so it goes *down into* the page. A lift here would be the same gesture
-the feed cards use, and these are meant to feel heavier than those.
+**The slab does not move on hover.** An offset shadow plus a travelling hover
+reads as a button waiting to be pressed, and these are not buttons — the title
+is the link. Hover warms the surface and lets the band reach the border, and
+that is all: a list of twenty stops has to stay still while you run down it.
+
+**Each stop carries its content type** as a small glyph beneath the index —
+knowing a stop is a paper rather than a video before you click is the
+difference between opening it now and saving it for later. The glyph takes the
+stage's band and greys out when the step is done, so it is told to inherit
+rather than using the category icons' fixed prism gradient.
 
 **The index is set at display scale.** In a curated path the position is the
 content, so `01`/`02` carries the slab rather than sitting in the meta line.
