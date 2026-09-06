@@ -527,6 +527,53 @@ thing to open.
 **Everything is still one click away.** The path is the default view, not the
 only one — someone who knows what they want should get the shelf, not a route.
 
+## Prisms
+
+A Prism is the one surface where a **person**, not a ranking, decided the
+order. Everywhere else the UI is deliberately quiet because it is presenting
+search results and shouldn't oversell them — a curated path has an author, so
+it is allowed to look built rather than listed.
+
+**The slab.** A 2px border, a 6px radius and a **hard offset shadow with zero
+blur** in the stage's band. This is the existing card rule taken to its end,
+not a new idea: cards elsewhere carry a 4px bottom edge in a lighter tone
+because a soft drop shadow is invisible against a black page, and an unblurred
+offset is that same trick with the volume up. It is the only shadow in the app
+that is a **shape** rather than a haze — keep it that way, or it stops reading
+as construction and starts reading as glow.
+
+**The slab does not move on hover.** An offset shadow plus a travelling hover
+reads as a button waiting to be pressed, and these are not buttons — the title
+is the link. Hover warms the surface and lets the band reach the border, and
+that is all: a list of twenty stops has to stay still while you run down it.
+
+**Each stop carries its content type** as a small glyph beneath the index —
+knowing a stop is a paper rather than a video before you click is the
+difference between opening it now and saving it for later. The glyph takes the
+stage's band and greys out when the step is done, so it is told to inherit
+rather than using the category icons' fixed prism gradient.
+
+**The index is set at display scale.** In a curated path the position is the
+content, so `01`/`02` carries the slab rather than sitting in the meta line.
+
+**The stage name is a struck block**, band-filled with the label knocked out.
+Three per page is the entire colour budget for this surface: enough to read as
+structure, few enough that it doesn't become decoration.
+
+**Done mutes, it never brightens.** A finished step drops its shadow, greys its
+number and strikes its title. The page's whole job is to point at the next
+thing, and a completed slab at full strength competes with the one that
+matters. Same rule as the path's read stops.
+
+**Depth carries a band and is not a badge of quality**: emerald `beginner`,
+blue `intermediate`, pink `advanced`. It says where in the sequence something
+sits, nothing about how good it is.
+
+**No roadmap here.** The Explore roadmap exists to impose order on results a
+machine assembled. A Prism's order is already authoritative, and the real ones
+hold 2–5 items — one to two per stage, where the roadmap's curve degenerates
+and a marker run becomes scaffolding around a single link.
+
 ## The loop
 
 Progress is what makes visit twenty better than visit one, and the three feed

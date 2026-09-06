@@ -188,7 +188,10 @@ export function toggleDone(topic, url) {
     ? entry.done.filter((u) => u !== url)
     : [...entry.done, url];
 
-  all[key] = { done, updated_at: new Date().toISOString() };
+  /* Spread, don't replace: `total` is written separately by recordPathSize
+     and a bare assignment dropped it, so the feed read every part-finished
+     path as "2 of 0" the moment its first item was ticked. */
+  all[key] = { ...entry, done, updated_at: new Date().toISOString() };
 
   try {
     localStorage.setItem(KEYS.progress, JSON.stringify(all));
