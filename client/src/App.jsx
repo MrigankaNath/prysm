@@ -39,6 +39,7 @@ const NAV_LINKS = [
   { to: "/", label: "Feed", Icon: IconFeed, end: true },
   { to: "/prisms", label: "Prisms", Icon: IconPrism },
   { to: "/spectrum", label: "Spectrum", Icon: IconSpectrum },
+  { to: "/wavelength", label: "Wavelength", Icon: IconWavelength },
 ];
 
 const navLinkClass = ({ isActive }) => (isActive ? "nav-link active" : "nav-link");
@@ -48,7 +49,11 @@ function AppNav({ hidden, onOpenSearch, session }) {
 
   return (
     <nav>
-      <span className="nav-brand">Prysm</span>
+      <span className="nav-brand">
+        {/* Placeholder for the real mark — one element to swap for artwork. */}
+        <span className="nav-brand-mark" aria-hidden="true" />
+        Prysm
+      </span>
 
       {/* Deliberately shaped like the field it opens rather than an icon
           button — search is the primary way into the product, and a 30px pill
@@ -72,11 +77,6 @@ function AppNav({ hidden, onOpenSearch, session }) {
             <span className="nav-label">{label}</span>
           </NavLink>
         ))}
-
-        <NavLink to="/wavelength" className={navLinkClass} title="Wavelength">
-          <IconWavelength className="nav-icon" />
-          <span className="nav-label">Wavelength</span>
-        </NavLink>
 
         <NavMenu session={session} />
       </div>

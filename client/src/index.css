@@ -119,26 +119,54 @@ nav {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   margin-left: auto;
 }
 
 .nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   font-weight: bold;
   font-size: 1.2rem;
 }
 
-.nav-link {
+/* Stand-in for the real logo. A clipped triangle rather than an SVG so the
+   whole mark is one element to replace when the artwork lands. */
+.nav-brand-mark {
+  width: 22px;
+  height: 22px;
+  clip-path: polygon(50% 4%, 97% 95%, 3% 95%);
+  background: linear-gradient(142deg, #3b82f6, #8b5cf6 40%, #ec4899 72%, #f59e0b);
+}
+
+/* Icon over name. The name is a caption to the glyph rather than a label
+   beside it, so it sits small and quiet — the icon is what gets recognised at
+   a glance and the word is there for the one time it isn't.
+
+   The menu trigger takes the same shape from here rather than repeating it:
+   it is one of the items in this row, and its own block sits far enough down
+   the file that a second copy would outrank the narrow-screen override. */
+.nav-link,
+.nav-menu-trigger {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  gap: 7px;
-  padding: 7px 14px;
+  justify-content: center;
+  gap: 5px;
+  min-width: 66px;
+  padding: 7px 10px 6px;
   border: 1px solid transparent;
-  border-radius: 999px;
+  border-radius: 14px;
   color: #6f6f7a;
   text-decoration: none;
-  font-size: 0.92rem;
   transition: color 0.14s ease;
+}
+
+.nav-label {
+  font-size: 0.68rem;
+  font-weight: 500;
+  line-height: 1;
 }
 
 .nav-link:hover {
@@ -166,8 +194,8 @@ nav {
 }
 
 .nav-icon {
-  width: 17px;
-  height: 17px;
+  width: 19px;
+  height: 19px;
   flex-shrink: 0;
 }
 
@@ -178,20 +206,28 @@ nav {
   }
 
   .nav-links {
-    gap: 4px;
+    gap: 2px;
+  }
+
+  /* The mark costs width the labels no longer spend, and at 375px the row was
+     6px over. It gives some back rather than the row losing an item. */
+  .nav-brand {
+    gap: 7px;
+  }
+
+  .nav-brand-mark {
+    width: 18px;
+    height: 18px;
   }
 
   .nav-label {
     display: none;
   }
 
-  .nav-icon {
-    width: 19px;
-    height: 19px;
-  }
-
-  .nav-link {
-    padding: 8px 12px;
+  .nav-link,
+  .nav-menu-trigger {
+    min-width: 0;
+    padding: 8px 10px;
   }
 }
 
@@ -897,19 +933,13 @@ nav {
 
 .nav-menu {
   position: relative;
-  margin-left: 4px;
 }
 
 .nav-menu-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid transparent;
-  border-radius: 11px;
   background: transparent;
-  color: #6f6f7a;
+  /* A button inherits no font family, so the one label that lives in one
+     would otherwise render in the browser's UI face. */
+  font-family: inherit;
   cursor: pointer;
   transition:
     color 0.14s ease,

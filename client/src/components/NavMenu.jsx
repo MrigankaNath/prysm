@@ -48,6 +48,7 @@ function NavMenu({ session }) {
         aria-label="Menu"
       >
         <IconMenu className="nav-menu-icon" />
+        <span className="nav-label">Menu</span>
       </button>
 
       {open && (
