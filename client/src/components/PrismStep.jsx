@@ -1,0 +1,56 @@
+import { IconCheck } from "./Icons";
+import { BookmarkButton } from "./ResultCard";
+import { hostOf } from "../lib/result";
+
+/* One stop on a curated Prism.
+ *
+ * A Prism is ordered by a person, not by a ranking, so the position is the
+ * content: the index is set at display scale and carries the slab rather than
+ * sitting in the meta line as an afterthought.
+ *
+ * Done mutes rather than brightens. A finished step that lit up would be the
+ * loudest thing on a page whose whole job is to point at the next one. */
+function PrismStep({ item, index, topic, done, onToggle }) {
+  const host = hostOf(item.url);
+
+  return (
+    <article className={`pstep pstep-${item.depth_level}${done ? " done" : ""}`}>
+      <span className="pstep-n" aria-hidden="true">
+        {String(index).padStart(2, "0")}
+      </span>
+
+      <div className="pstep-body">
+        <a
+          className="pstep-title"
+          href={item.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {item.title}
+        </a>
+
+        {item.description && <p className="pstep-desc">{item.description}</p>}
+
+        <div className="pstep-meta">
+          {host && <span className="pstep-host">{host}</span>}
+          <span className="pstep-depth">{item.depth_level}</span>
+        </div>
+      </div>
+
+      <div className="pstep-controls">
+        <BookmarkButton item={item} topic={topic} category="curated" />
+        <button
+          type="button"
+          className="pstep-tick"
+          aria-pressed={done}
+          aria-label={done ? "Mark as unread" : "Mark as done"}
+          onClick={onToggle}
+        >
+          <IconCheck />
+        </button>
+      </div>
+    </article>
+  );
+}
+
+export default PrismStep;

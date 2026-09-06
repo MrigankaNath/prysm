@@ -3659,15 +3659,20 @@ nav {
    ========================================================================== */
 
 .prism-hero {
-  margin-bottom: 34px;
+  margin-bottom: 36px;
+  padding-bottom: 26px;
+  border-bottom: 2px solid var(--line-bold);
 }
 
 .prism-eyebrow {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  margin-bottom: 12px;
-  font-size: 0.7rem;
+  margin-bottom: 14px;
+  padding: 5px 11px;
+  border: 2px solid rgba(167, 139, 250, 0.34);
+  border-radius: 4px;
+  font-size: 0.68rem;
   font-weight: 700;
   color: #a78bfa;
   text-transform: uppercase;
@@ -3681,11 +3686,11 @@ nav {
 
 .prism-title {
   font-family: var(--font-display);
-  margin: 0 0 12px;
-  font-size: clamp(1.85rem, 1.1rem + 2.4vw, 2.9rem);
+  margin: 0 0 14px;
+  font-size: clamp(2.1rem, 1.2rem + 3vw, 3.4rem);
   font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.04em;
+  line-height: 1.02;
+  letter-spacing: -0.045em;
   color: #fafafa;
 }
 
@@ -3701,10 +3706,11 @@ nav {
 /* --- Prism detail --- */
 
 .prism-back {
-  display: inline-flex;
+  display: flex;
+  width: fit-content;
   align-items: center;
   gap: 6px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
   color: #52525b;
   font-size: 0.83rem;
   font-weight: 600;
@@ -3722,54 +3728,286 @@ nav {
   transform: rotate(180deg);
 }
 
-.prism-progress {
-  display: flex;
-  gap: 7px;
-  margin-top: 24px;
+/* --- Prism detail: the slab ---
+ *
+ * A Prism is the one place in the app where a person, not a ranking, decided
+ * the order. The rest of the UI is deliberately quiet because it is presenting
+ * search results and shouldn't oversell them; a curated path has an author, so
+ * it is allowed to be built rather than listed.
+ *
+ * The hard offset shadow is the existing card rule taken to its end. Cards
+ * elsewhere carry a 4px bottom edge in a lighter tone, because a drop shadow
+ * is invisible against a black page — an unblurred offset in the band colour
+ * is the same trick with the volume up, and it is the only shadow in the app
+ * that is a shape rather than a haze.
+ */
+
+.stage-beginner {
+  --band: #10b981;
+  --band-lit: #6ee7b7;
 }
 
+.stage-intermediate {
+  --band: #3b82f6;
+  --band-lit: #93c5fd;
+}
+
+.stage-advanced {
+  --band: #ec4899;
+  --band-lit: #f9a8d4;
+}
+
+.pstep-beginner {
+  --band: #10b981;
+  --band-lit: #6ee7b7;
+}
+
+.pstep-intermediate {
+  --band: #3b82f6;
+  --band-lit: #93c5fd;
+}
+
+.pstep-advanced {
+  --band: #ec4899;
+  --band-lit: #f9a8d4;
+}
+
+.prism-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 26px;
+}
+
+/* Squares, not dots. A dot is a decoration; a numbered square is a thing you
+   can count off, which is what this now actually tracks. */
 .prism-step {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
-  background: #16161c;
-  color: #52525b;
-  font-size: 0.76rem;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--line-bold);
+  border-radius: 4px;
+  color: var(--text-faint);
+  font-size: 0.72rem;
   font-weight: 700;
+  transition:
+    background-color 0.18s var(--ease-settle),
+    border-color 0.18s var(--ease-settle),
+    color 0.18s var(--ease-settle);
+}
+
+.prism-step.done {
+  border-color: var(--band);
+  background: var(--band);
+  color: #08080c;
+}
+
+.prism-progress-count {
+  margin-left: 6px;
+  color: var(--text-faint);
+  font-size: 0.75rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .prism-stage {
-  margin-bottom: 32px;
+  margin-bottom: 40px;
 }
 
+/* The stage name is a struck block rather than a line of small caps. Three of
+   them on a page is the whole colour budget for this surface — enough to read
+   as structure, few enough that it doesn't become decoration. */
 .prism-stage-head {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 10px;
-  margin: 0 0 14px;
-  font-size: 0.72rem;
+  margin: 0 0 18px;
+  padding: 7px 14px;
+  border-radius: 4px;
+  background: var(--band, #a1a1aa);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--band, #a1a1aa) 26%, transparent);
+  color: #07070a;
+  font-size: 0.74rem;
   font-weight: 700;
-  color: var(--text-faint);
   text-transform: uppercase;
   letter-spacing: 0.11em;
 }
 
-.prism-stage-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: currentColor;
+.prism-stage-count {
+  padding: 1px 7px;
+  border-radius: 3px;
+  background: rgba(7, 7, 10, 0.22);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
 }
 
-.prism-stage-count {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #16161c;
+.prism-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pstep {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 20px 22px;
+  border: 2px solid var(--line-bold);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: 6px 6px 0 var(--band, #a1a1aa);
+  transition:
+    transform 0.18s var(--ease-settle),
+    box-shadow 0.18s var(--ease-settle),
+    border-color 0.18s var(--ease-settle);
+}
+
+/* Pressed, not lifted. The slab travels exactly as far as its own shadow
+   shortens, so the block reads as going down into the page rather than
+   sliding across it. */
+.pstep:hover {
+  transform: translate(4px, 4px);
+  border-color: color-mix(in srgb, var(--band) 40%, var(--line-bold));
+  box-shadow: 2px 2px 0 var(--band, #a1a1aa);
+}
+
+.pstep-n {
+  flex-shrink: 0;
+  min-width: 2ch;
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  color: var(--band-lit, #a1a1aa);
+  font-variant-numeric: tabular-nums;
+}
+
+.pstep-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pstep-title {
+  font-family: var(--font-display);
+  font-size: 1.16rem;
+  font-weight: 700;
+  line-height: 1.24;
+  letter-spacing: -0.02em;
+  color: #fafafa;
+  text-decoration: none;
+}
+
+.pstep-title:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+.pstep-desc {
+  margin: 7px 0 0;
+  max-width: 64ch;
+  color: var(--text-faint);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.pstep-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.pstep-host {
   color: #52525b;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
+}
+
+.pstep-depth {
+  padding: 3px 9px;
+  border: 1.5px solid color-mix(in srgb, var(--band) 45%, transparent);
+  border-radius: 3px;
+  color: var(--band-lit);
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+
+.pstep-controls .bookmark-btn {
+  position: static;
+}
+
+.pstep-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.pstep-tick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--line-bold);
+  border-radius: 4px;
+  background: transparent;
+  color: #3f3f46;
+  cursor: pointer;
+  transition:
+    background-color 0.16s var(--ease-settle),
+    border-color 0.16s var(--ease-settle),
+    color 0.16s var(--ease-settle);
+}
+
+.pstep-tick svg {
+  width: 15px;
+  height: 15px;
+}
+
+.pstep-tick:hover {
+  border-color: var(--band);
+  color: var(--band-lit);
+}
+
+.pstep-tick[aria-pressed="true"] {
+  border-color: var(--band);
+  background: var(--band);
+  color: #07070a;
+}
+
+/* Finished work steps back. The page's job is to point at the next thing, and
+   a completed slab at full strength competes with it. */
+.pstep.done {
+  border-color: var(--line);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--band) 30%, transparent);
+}
+
+.pstep.done .pstep-n,
+.pstep.done .pstep-title {
+  color: #52525b;
+}
+
+.pstep.done .pstep-title {
+  text-decoration: line-through;
+  text-decoration-color: #3f3f46;
+}
+
+@media (max-width: 640px) {
+  .pstep {
+    gap: 13px;
+    padding: 16px;
+    box-shadow: 4px 4px 0 var(--band, #a1a1aa);
+  }
+
+  .pstep-n {
+    font-size: 1.5rem;
+  }
 }
 
 /* --- Hero: sections below the fold --- */
