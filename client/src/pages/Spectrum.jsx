@@ -23,12 +23,6 @@ function Spectrum() {
           the web — articles, papers, videos, code and more, sorted by what they
           actually are.
         </p>
-
-        {/*  ILLUSTRATION SLOT — "spectrum banner", full-width ~1080x220.
-            The best place for a wide prism/light-split piece.  */}
-        <div className="illo-slot illo-slot-banner" aria-hidden="true">
-          <span className="illo-hint">wide illustration — prism / light split</span>
-        </div>
       </header>
 
       {recent.length > 0 && (

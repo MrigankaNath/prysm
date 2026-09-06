@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import "./index.css";
 import { PrismGradientDefs } from "./components/Icons";
 import { PrismBody } from "./pages/PrismDetail";
+import Spectrum from "./pages/Spectrum";
 
 const react = {
   "id": 3,
@@ -199,7 +200,8 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <MemoryRouter>
       <PrismGradientDefs />
-      <div className="page page-wide">
+      {location.hash === "#spectrum" ? <Spectrum /> : null}
+      <div className="page page-wide" hidden={location.hash === "#spectrum"}>
         <PrismBody bundle={react} />
         <hr style={{ margin: "56px 0", border: 0, borderTop: "2px solid #1c1c20" }} />
         <PrismBody bundle={rust} />

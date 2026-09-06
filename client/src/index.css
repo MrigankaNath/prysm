@@ -3498,44 +3498,52 @@ nav {
    you scroll — compact rows rather than illustrated cards, because at this
    count the names are the content and artwork would bury them.
    These jump to a section; they do not swap one in. */
+/* The domain index is a list of names, not a grid of cards.
+ *
+ * Twenty-four bordered chips above twenty-four bordered sections meant the
+ * first screen of this page was forty-eight boxes and no hierarchy. A domain
+ * is a word and a colour; that is all the index has to be, and dropping the
+ * container is what gives the sections below room to read. */
 .spec-index {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
-  gap: 10px;
-  margin-bottom: clamp(38px, 5vw, 64px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 30px;
+  margin-bottom: clamp(44px, 5.5vw, 76px);
+  padding-bottom: clamp(30px, 4vw, 48px);
+  border-bottom: 1px solid var(--line);
 }
 
 .spec-domain {
-  display: flex;
-  text-decoration: none;
+  display: inline-flex;
   align-items: center;
-  gap: 11px;
-  padding: 11px 13px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--text-dim);
+  gap: 10px;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--text-faint);
   font-family: inherit;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 500;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
-  transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    color 0.18s ease,
-    transform 0.32s var(--ease-bounce);
+  transition: color 0.16s ease;
 }
 
+/* The plate is the section heading's job. Here the colour alone identifies the
+   domain, which is all twenty-four of them need to be told apart. */
 .spec-domain .topic-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
+  display: none;
 }
 
-.spec-domain .topic-icon img {
-  width: 16px;
-  height: 16px;
+.spec-domain::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--hue, #a1a1aa);
+  transition: box-shadow 0.2s ease;
 }
 
 .spec-domain-name {
@@ -3544,20 +3552,17 @@ nav {
 }
 
 .spec-domain:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--hue) 40%, var(--line));
   color: #fafafa;
+}
+
+.spec-domain:hover::before {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--hue, #a1a1aa) 75%, transparent);
 }
 
 .spec-domain:focus-visible {
   outline: 2px solid var(--hue);
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .spec-domain:hover {
-    transform: none;
-  }
+  outline-offset: 4px;
+  border-radius: 3px;
 }
 
 .spec-clusters {
@@ -3576,9 +3581,9 @@ nav {
 .spec-head {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 18px;
-  padding-bottom: 14px;
+  gap: 15px;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -3604,37 +3609,60 @@ nav {
    available. */
 .spec-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
-  gap: clamp(14px, 1.8vw, 22px);
+  grid-template-columns: repeat(auto-fill, minmax(198px, 1fr));
+  gap: 2px 18px;
   align-items: start;
 }
 
+/* A row, not a tile. The 108px plate around every topic was the page's main
+   texture and it carried no information — the icon already has a coloured
+   plate of its own, so the outer box was a frame around a frame. */
 .spec-grid .rail-item {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
   width: 100%;
+  padding: 9px 12px 9px 8px;
+  border-radius: var(--radius-md);
+  transition: background-color 0.18s ease;
 }
 
 .spec-grid .rail-tile {
-  width: 100%;
-  height: 108px;
-  border-radius: 20px;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
 }
 
 .spec-grid .rail-tile .topic-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
 }
 
 .spec-grid .rail-tile .topic-icon img {
-  width: 24px;
-  height: 24px;
+  width: 17px;
+  height: 17px;
 }
 
 .spec-grid .rail-label {
-  font-size: 0.84rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.35;
   color: var(--text-dim);
+  text-align: left;
   text-transform: capitalize;
+}
+
+.spec-grid .rail-item:hover {
+  background: color-mix(in srgb, var(--hue, #a1a1aa) 8%, transparent);
+}
+
+.spec-grid .rail-item:hover .rail-tile {
+  transform: none;
+  box-shadow: none;
 }
 
 .spec-grid .rail-item:hover .rail-label {
@@ -3918,136 +3946,176 @@ nav {
 /* Wraps, and the squares never shrink. A four-stop Prism fits on one line; a
    twenty-one-stop one squeezed each square to 13px and pushed the page wider
    than the phone. Rows are cheaper than illegible numbers. */
+/* --- Prism detail ---
+ *
+ * A list, not a stack of cards. Twenty-one bordered slabs turned a reading
+ * path into a wall of boxes: every stop was a container competing with every
+ * other one, and nothing carried rank. The structure is now spacing and one
+ * hairline per row, which is what an editorial page uses to hold a long
+ * sequence together — and it lets the accent mean something, because it is the
+ * only colour left.
+ */
+
+.stage-beginner {
+  --band: #10b981;
+  --band-lit: #6ee7b7;
+}
+
+.stage-intermediate {
+  --band: #3b82f6;
+  --band-lit: #93c5fd;
+}
+
+.stage-advanced {
+  --band: #ec4899;
+  --band-lit: #f9a8d4;
+}
+
+.pstep-beginner {
+  --band: #10b981;
+  --band-lit: #6ee7b7;
+}
+
+.pstep-intermediate {
+  --band: #3b82f6;
+  --band-lit: #93c5fd;
+}
+
+.pstep-advanced {
+  --band: #ec4899;
+  --band-lit: #f9a8d4;
+}
+
 .prism-progress {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  margin-top: 26px;
+  gap: 16px;
+  margin-top: 30px;
 }
 
-/* Squares, not dots. A dot is a decoration; a numbered square is a thing you
-   can count off, which is what this now actually tracks. */
-.prism-step {
+/* One rule cut into a segment per stop, each in its stage's colour once it is
+   done. Reads as a whole at a glance and still resolves per item up close. */
+.prism-bar {
   display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: 2px solid var(--line-bold);
-  border-radius: 4px;
-  color: var(--text-faint);
-  font-size: 0.72rem;
-  font-weight: 700;
-  transition:
-    background-color 0.18s var(--ease-settle),
-    border-color 0.18s var(--ease-settle),
-    color 0.18s var(--ease-settle);
+  flex: 1;
+  gap: 3px;
+  max-width: 420px;
 }
 
-.prism-step.done {
-  border-color: var(--band);
+.prism-seg {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--line-bold);
+  transition: background-color 0.35s var(--ease-settle);
+}
+
+.prism-seg.done {
   background: var(--band);
-  color: #08080c;
 }
 
 .prism-progress-count {
-  margin-left: 6px;
   color: var(--text-faint);
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
 }
 
 .prism-stage {
-  margin-bottom: 40px;
+  margin-bottom: clamp(44px, 5vw, 72px);
 }
 
-/* The stage name is a struck block rather than a line of small caps. Three of
-   them on a page is the whole colour budget for this surface — enough to read
-   as structure, few enough that it doesn't become decoration. */
+/* A dot, a name, and a rule running out to the margin. The filled block this
+   replaces was the loudest thing on the page and it was only a label. */
 .prism-stage-head {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 0 0 18px;
-  padding: 7px 14px;
-  border-radius: 4px;
-  background: var(--band, #a1a1aa);
-  box-shadow: 4px 4px 0 color-mix(in srgb, var(--band, #a1a1aa) 26%, transparent);
-  color: #07070a;
-  font-size: 0.74rem;
-  font-weight: 700;
+  gap: 13px;
+  margin: 0 0 4px;
+  color: var(--text-faint);
+  font-size: 0.7rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.16em;
+}
+
+.prism-stage-head::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--band, #a1a1aa);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--band, #a1a1aa) 60%, transparent);
+}
+
+.prism-stage-head::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--line-bold), transparent);
 }
 
 .prism-stage-count {
-  padding: 1px 7px;
-  border-radius: 3px;
-  background: rgba(7, 7, 10, 0.22);
-  font-size: 0.7rem;
+  color: #3f3f46;
   font-variant-numeric: tabular-nums;
 }
 
 .prism-steps {
   display: flex;
   flex-direction: column;
-  gap: 18px;
 }
 
 .pstep {
   display: flex;
-  align-items: flex-start;
-  gap: 18px;
-  padding: 20px 22px;
-  border: 2px solid var(--line-bold);
-  border-radius: 6px;
-  background: var(--surface);
-  box-shadow: 4px 4px 0 color-mix(in srgb, var(--band, #a1a1aa) 78%, transparent);
-  transition:
-    background-color 0.2s var(--ease-settle),
-    border-color 0.2s var(--ease-settle);
+  align-items: baseline;
+  gap: clamp(18px, 2.2vw, 30px);
+  padding: 26px 18px 28px 6px;
+  border-bottom: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  transition: background 0.28s var(--ease-settle);
 }
 
-/* The slab does not move. An offset shadow plus a travelling hover reads as a
-   button waiting to be pressed, and these are not buttons — the title is the
-   link. Hover only warms the surface and lets the band reach the border, so a
-   list of twenty stops stays still while you run down it. */
+.pstep:last-child {
+  border-bottom: 0;
+}
+
+/* The accent enters from the index side and falls away — a wash rather than an
+   outline, so hovering down a long list doesn't strobe twenty-one borders. */
 .pstep:hover {
-  border-color: color-mix(in srgb, var(--band) 52%, var(--line-bold));
-  background: var(--surface-raised);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--band) 9%, transparent),
+    transparent 62%
+  );
 }
 
 .pstep-rail {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 7px;
+  gap: 9px;
   flex-shrink: 0;
+  width: 58px;
+}
+
+.pstep-n {
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 700;
+  color: #3f3f46;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
 }
 
 .pstep-type {
   display: flex;
-  color: color-mix(in srgb, var(--band) 62%, transparent);
+  color: color-mix(in srgb, var(--band) 70%, transparent);
 }
 
 .pstep-type svg {
-  width: 16px;
-  height: 16px;
-}
-
-.pstep-n {
-  min-width: 2ch;
-  text-align: center;
-  font-family: var(--font-display);
-  font-size: 2.1rem;
-  font-weight: 800;
-  line-height: 0.92;
-  letter-spacing: -0.05em;
-  color: var(--band-lit, #a1a1aa);
-  font-variant-numeric: tabular-nums;
+  width: 15px;
+  height: 15px;
 }
 
 .pstep-body {
@@ -4057,85 +4125,93 @@ nav {
 
 .pstep-title {
   font-family: var(--font-display);
-  font-size: 1.16rem;
-  font-weight: 700;
-  line-height: 1.24;
-  letter-spacing: -0.02em;
-  color: #fafafa;
+  font-size: 1.14rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.019em;
+  color: #f4f4f5;
   text-decoration: none;
 }
 
 .pstep-title:hover {
+  color: #fff;
   text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--band) 60%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 4px;
 }
 
 .pstep-desc {
-  margin: 7px 0 0;
-  max-width: 64ch;
-  color: var(--text-faint);
+  margin: 9px 0 0;
+  max-width: 62ch;
+  color: #7c7c88;
   font-size: 0.92rem;
-  line-height: 1.6;
+  line-height: 1.62;
 }
 
-/* Wraps: a long host beside a long depth label ran past the right edge of a
-   phone, and the badge is the thing that has to drop rather than the page. */
 .pstep-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 10px;
-  margin-top: 12px;
+  gap: 6px 14px;
+  margin-top: 13px;
 }
 
 .pstep-host {
-  color: #52525b;
-  font-size: 0.78rem;
+  color: #4b4b55;
+  font-size: 0.76rem;
 }
 
+/* No pill. The word is the label — a border round it was one more box. */
 .pstep-depth {
-  padding: 3px 9px;
-  border: 1.5px solid color-mix(in srgb, var(--band) 45%, transparent);
-  border-radius: 3px;
-  color: var(--band-lit);
-  font-size: 0.64rem;
+  color: color-mix(in srgb, var(--band-lit) 72%, transparent);
+  font-size: 0.63rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.13em;
+}
+
+.pstep-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.24s var(--ease-settle);
+}
+
+/* The controls stay out of the way until wanted. Forty-two always-visible
+   buttons down one page is noise; keyboard focus still brings them back. */
+.pstep:hover .pstep-controls,
+.pstep:focus-within .pstep-controls,
+.pstep.done .pstep-controls {
+  opacity: 1;
 }
 
 .pstep-controls .bookmark-btn {
   position: static;
 }
 
-.pstep-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
 .pstep-tick {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: 2px solid var(--line-bold);
-  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line-bold);
+  border-radius: 50%;
   background: transparent;
   color: #3f3f46;
   cursor: pointer;
   transition:
-    background-color 0.16s var(--ease-settle),
-    border-color 0.16s var(--ease-settle),
-    color 0.16s var(--ease-settle);
+    background-color 0.18s var(--ease-settle),
+    border-color 0.18s var(--ease-settle),
+    color 0.18s var(--ease-settle);
 }
 
 .pstep-tick svg {
-  width: 15px;
-  height: 15px;
+  width: 13px;
+  height: 13px;
 }
 
 .pstep-tick:hover {
@@ -4144,41 +4220,38 @@ nav {
 }
 
 .pstep-tick[aria-pressed="true"] {
-  border-color: var(--band);
+  border-color: transparent;
   background: var(--band);
   color: #07070a;
 }
 
-/* Finished work steps back. The page's job is to point at the next thing, and
-   a completed slab at full strength competes with it. */
-.pstep.done {
-  border-color: var(--line);
-  box-shadow: 3px 3px 0 color-mix(in srgb, var(--band) 24%, transparent);
+/* Finished work steps back so the page keeps pointing at the next thing. */
+.pstep.done .pstep-n,
+.pstep.done .pstep-title {
+  color: #4b4b55;
 }
 
 .pstep.done .pstep-type {
-  color: #3f3f46;
+  color: #35353d;
 }
 
-.pstep.done .pstep-n,
-.pstep.done .pstep-title {
-  color: #52525b;
-}
-
-.pstep.done .pstep-title {
-  text-decoration: line-through;
-  text-decoration-color: #3f3f46;
+.pstep.done .pstep-desc {
+  color: #56565f;
 }
 
 @media (max-width: 640px) {
   .pstep {
-    gap: 13px;
-    padding: 16px;
-    box-shadow: 3px 3px 0 color-mix(in srgb, var(--band, #a1a1aa) 78%, transparent);
+    gap: 14px;
+    padding: 20px 4px 22px;
   }
 
-  .pstep-n {
-    font-size: 1.5rem;
+  .pstep-rail {
+    width: auto;
+    gap: 7px;
+  }
+
+  .pstep-controls {
+    opacity: 1;
   }
 }
 

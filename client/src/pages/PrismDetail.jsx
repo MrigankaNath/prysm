@@ -32,6 +32,7 @@ export function PrismBody({ bundle }) {
   useEffect(() => subscribe(() => setDone(new Set(getProgress(key)))), [key]);
 
   const position = new Map(items.map((item, i) => [item.id, i + 1]));
+  const doneCount = items.filter((item) => done.has(item.url)).length;
 
   return (
     <>
@@ -52,19 +53,27 @@ export function PrismBody({ bundle }) {
           </p>
         )}
 
+        {/* A segmented rule rather than numbered squares. Twenty-one numbered
+            boxes was twenty-one more boxes on a page that already had too
+            many, and the number on each was never the useful part — where you
+            are along the whole run is. */}
         <div className="prism-progress">
-          {items.map((item, i) => (
-            <span
-              key={item.id}
-              className={`prism-step stage-${item.depth_level}${
-                done.has(item.url) ? " done" : ""
-              }`}
-            >
-              {i + 1}
-            </span>
-          ))}
+          <span
+            className="prism-bar"
+            role="img"
+            aria-label={`${doneCount} of ${items.length} complete`}
+          >
+            {items.map((item) => (
+              <span
+                key={item.id}
+                className={`prism-seg stage-${item.depth_level}${
+                  done.has(item.url) ? " done" : ""
+                }`}
+              />
+            ))}
+          </span>
           <span className="prism-progress-count">
-            {items.filter((item) => done.has(item.url)).length} of {items.length}
+            {doneCount} of {items.length}
           </span>
         </div>
       </header>
