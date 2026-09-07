@@ -7,6 +7,11 @@ import { useId } from "react";
  * gradient id is generated per instance: two copies on one page — the nav and
  * the auth card, say — would otherwise declare the same id twice, and the
  * second one unmounting takes the first one's fill with it.
+ *
+ * The viewBox is the artwork's own bounding box, not the 256 square it was
+ * drawn in. That square left 38% of the frame empty, so every placement was
+ * rendering a mark two-thirds the size of the box it had been given — small in
+ * the nav and lost inside the rounded plate a browser draws around a favicon.
  */
 function BrandMark({ className = "", title }) {
   const gradient = useId();
@@ -14,7 +19,7 @@ function BrandMark({ className = "", title }) {
   return (
     <svg
       className={`brand-mark ${className}`.trim()}
-      viewBox="0 0 256 256"
+      viewBox="46 47 166 166"
       role={title ? "img" : "presentation"}
       aria-hidden={title ? undefined : "true"}
       aria-label={title}

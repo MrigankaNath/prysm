@@ -139,22 +139,15 @@ nav {
 }
 
 .nav-brand-mark {
-  width: 24px;
-  height: 24px;
+  width: 27px;
+  height: 27px;
 }
 
 .auth-brand-mark {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
 }
 
-/* Above the wordmark on the landing page, at the size the title is set in. */
-.hero-mark {
-  width: clamp(52px, 7vw, 76px);
-  height: clamp(52px, 7vw, 76px);
-  margin: 0 auto 18px;
-  filter: drop-shadow(0 10px 30px rgba(23, 120, 243, 0.42));
-}
 
 /* Icon over name. The name is a caption to the glyph rather than a label
    beside it, so it sits small and quiet — the icon is what gets recognised at
@@ -232,8 +225,8 @@ nav {
   }
 
   .nav-brand-mark {
-    width: 20px;
-    height: 20px;
+    width: 23px;
+    height: 23px;
   }
 
   .nav-label {
