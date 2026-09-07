@@ -110,15 +110,21 @@ function Stop({ item, side, state, topic, open, onOpen, onToggle }) {
             alone does not say whether a link is worth opening — and for a
             website the domain *is* the recommendation, so it leads. */}
         <div className="stop-facts">
-          {item.category === "websites" && host ? (
-            <span className="stop-domain">{host}</span>
-          ) : (
-            <>
-              {item.author && <span className="stop-by">{item.author}</span>}
-              {signal && <span className="stop-signal">{signal}</span>}
-              {host && <span className="stop-host">{host}</span>}
-            </>
+          {host && (
+            <span
+              className={
+                item.category === "websites" ? "stop-domain" : "stop-host"
+              }
+            >
+              {host}
+            </span>
           )}
+          {item.author && <span className="stop-by">{item.author}</span>}
+          {signal && <span className="stop-signal">{signal}</span>}
+          {/* The strongest verifiable fact about the item, as a category
+              rather than a number — the same badge the popover carries, moved
+              up so the decision to click can be made without opening it. */}
+          {mark && <span className={`mark mark-${mark.tone}`}>{mark.label}</span>}
         </div>
       </div>
 

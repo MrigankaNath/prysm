@@ -7127,6 +7127,17 @@ nav {
   font-variant-numeric: tabular-nums;
 }
 
+.stop-host {
+  color: #6a6a75;
+}
+
+/* The badge sits in the facts line at the size of the line, not at the size it
+   takes in the popover — it is one fact among several here, not the headline. */
+.stop-facts .mark {
+  padding: 1px 8px;
+  font-size: 0.64rem;
+}
+
 /* For a curated site the domain is the recommendation — "plato.stanford.edu"
    settles whether to click in a way the title never does — so it is set in the
    lane's own colour rather than dropped in beside the rest. */
@@ -7344,10 +7355,6 @@ nav {
   .stop-pop-title,
   .stop-pop-note {
     overflow-wrap: anywhere;
-  }
-
-  .stage-head {
-    padding: 16px 20px 18px;
   }
 
   .route-card {

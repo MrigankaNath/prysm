@@ -207,7 +207,7 @@ const CATEGORIES = {
     { title: "Quantum Computers, Explained", url: "https://youtube.com/watch?v=b", source: "youtube", author: "Veritasium", signal: 1_100_000, snippet: "Where the speedup actually comes from." },
   ],
   websites: [
-    { title: "Quantum Country", url: "https://quantum.country/qcvc", thumbnail: "https://www.google.com/s2/favicons?domain=quantum.country&sz=128", snippet: "An essay with spaced repetition built in." },
+    { title: "quantum.country", url: "https://quantum.country/qcvc", thumbnail: "https://www.google.com/s2/favicons?domain=quantum.country&sz=128", snippet: "An essay with spaced repetition built in." },
     { title: "Quantum Algorithm Zoo", url: "https://quantumalgorithmzoo.org/", thumbnail: "https://www.google.com/s2/favicons?domain=quantumalgorithmzoo.org&sz=128", snippet: "Every known algorithm and its speedup." },
   ],
   articles: [
@@ -216,7 +216,7 @@ const CATEGORIES = {
     { title: "Surface codes", url: "https://arxiv.org/abs/1208.0928", depth_level: "advanced", snippet: "The code the roadmaps are betting on." },
   ],
   discussions: [
-    { title: "Google claims quantum supremacy", url: "https://news.ycombinator.com/item?id=1", signal: 1582, snippet: "1582 points, 640 comments" },
+    { title: "Google claims quantum supremacy", url: "https://www.nature.com/articles/x", source: "hackernews", signal: 1582, snippet: "1582 points, 640 comments" },
   ],
   papers: [
     { title: "Polynomial-Time Algorithms for Prime Factorization", url: "https://arxiv.org/abs/quant-ph/9508027", source: "arxiv", snippet: "Shor, 1995." },

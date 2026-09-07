@@ -159,10 +159,24 @@ async function linksIn(title, index) {
     const host = hostOf(url);
     if (!host) continue;
 
-    out.push({ title: name, url, host });
+    out.push({ title: nameFor(name, host), url, host });
   }
 
   return out;
+}
+
+/* Wikipedia's link text is often the word "Official website" and nothing else,
+ * which names the relationship rather than the destination — three of those in
+ * one lane are indistinguishable. Where the text says nothing, the host does.
+ */
+const GENERIC = /^(official (web ?site|page|home ?page)|web ?site|home ?page|home|site|link|here|online)$/i;
+
+function nameFor(text, host) {
+  const name = (text || "").trim();
+  if (!name || GENERIC.test(name)) return host;
+  /* "Official website" plus a real name is the common Wikipedia shape; keep
+     the name and drop the boilerplate rather than losing the whole entry. */
+  return name.replace(/\s*[-—–,]?\s*official (web ?site|page)$/i, "").trim() || host;
 }
 
 async function fetchWebsites(topic) {
