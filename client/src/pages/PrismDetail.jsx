@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import PrismStep from "../components/PrismStep";
+import RoadRun from "../components/RoadRun";
 import { IconPrism, IconChevronRight } from "../components/Icons";
 import { apiFetch } from "../lib/api";
 import { getProgress, toggleDone, subscribe } from "../lib/library";
@@ -31,7 +32,6 @@ export function PrismBody({ bundle }) {
 
   useEffect(() => subscribe(() => setDone(new Set(getProgress(key)))), [key]);
 
-  const position = new Map(items.map((item, i) => [item.id, i + 1]));
   const doneCount = items.filter((item) => done.has(item.url)).length;
 
   return (
@@ -91,18 +91,23 @@ export function PrismBody({ bundle }) {
               <span className="prism-stage-count">{stage.length}</span>
             </h3>
 
-            <div className="prism-steps">
-              {stage.map((item) => (
-                <PrismStep
-                  key={item.id}
-                  item={item}
-                  index={position.get(item.id)}
-                  topic={bundle.topic}
-                  done={done.has(item.url)}
-                  onToggle={() => toggleDone(key, item.url)}
-                />
-              ))}
-            </div>
+            <ol className="proad">
+              {stage.map((item, i) => {
+                const side = i % 2 === 0 ? "l" : "r";
+                return (
+                  <Fragment key={item.id}>
+                    {i > 0 && <RoadRun from={i % 2 === 0 ? "r" : "l"} />}
+                    <PrismStep
+                      item={item}
+                      side={side}
+                      topic={bundle.topic}
+                      done={done.has(item.url)}
+                      onToggle={() => toggleDone(key, item.url)}
+                    />
+                  </Fragment>
+                );
+              })}
+            </ol>
           </section>
         );
       })}

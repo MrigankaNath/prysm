@@ -4062,196 +4062,264 @@ nav {
   font-variant-numeric: tabular-nums;
 }
 
-.prism-steps {
-  display: flex;
-  flex-direction: column;
+/* --- The route ---
+ *
+ * A Prism is a course you are working through, so it is drawn as one: markers
+ * on a dashed run that weaves down the page rather than a list of rows. The
+ * weave is what makes it read as a route — a straight column of discs is still
+ * a list, just with round bullets.
+ *
+ * Held to a narrow column at every width. The curve only reads as a curve when
+ * the two positions are close enough to see at once, and a marker flung to the
+ * far edge of a wide screen breaks the line into unrelated dots.
+ */
+.proad {
+  --node: 84px;
+  list-style: none;
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 8px 0 0;
 }
 
-.pstep {
-  display: flex;
-  align-items: baseline;
-  gap: clamp(18px, 2.2vw, 30px);
-  padding: 26px 18px 28px 6px;
-  border-bottom: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  transition: background 0.28s var(--ease-settle);
-}
-
-.pstep:last-child {
-  border-bottom: 0;
-}
-
-/* The accent enters from the index side and falls away — a wash rather than an
-   outline, so hovering down a long list doesn't strobe twenty-one borders. */
-.pstep:hover {
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--band) 9%, transparent),
-    transparent 62%
-  );
-}
-
-.pstep-rail {
+.proad-stop {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: clamp(16px, 3vw, 26px);
+}
+
+.proad-stop.side-r {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+/* The marker.
+ *
+ * Glass rather than flat fill: a light source at the top left, the band colour
+ * through the body, and a darker rim under it. The ring around it is the same
+ * hue at low alpha, which is what stops a bright disc from sitting on black
+ * with nothing between. */
+.proad-node {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--node);
+  height: var(--node);
   flex-shrink: 0;
-  width: 58px;
+  border-radius: 50%;
+  text-decoration: none;
+  transition: transform 0.28s var(--ease-bounce);
 }
 
-.pstep-n {
-  font-family: var(--font-display);
-  font-size: 1.02rem;
-  font-weight: 700;
-  color: #3f3f46;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.01em;
+.proad-face {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  color: #fff;
+  background:
+    radial-gradient(
+      circle at 34% 26%,
+      color-mix(in srgb, var(--band) 42%, #ffffff) 0%,
+      var(--band) 52%,
+      color-mix(in srgb, var(--band) 84%, #000000) 100%
+    );
+  box-shadow:
+    0 0 0 9px color-mix(in srgb, var(--band) 16%, transparent),
+    0 14px 32px -10px color-mix(in srgb, var(--band) 62%, transparent),
+    inset 0 -3px 9px color-mix(in srgb, var(--band) 72%, #000000);
+  transition:
+    box-shadow 0.3s var(--ease-settle),
+    filter 0.3s var(--ease-settle);
 }
 
-.pstep-type {
-  display: flex;
-  color: color-mix(in srgb, var(--band) 70%, transparent);
+/* The shine. A soft cap of light across the top, clipped to the disc — the one
+   detail that makes it read as a lit object rather than a coloured circle. */
+.proad-face::after {
+  content: "";
+  position: absolute;
+  inset: 7% 13% 46%;
+  border-radius: 50%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0.06) 70%,
+    transparent
+  );
+  pointer-events: none;
 }
 
-.pstep-type svg {
-  width: 15px;
-  height: 15px;
+.proad-face svg {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
 }
 
-.pstep-body {
+.proad-node:hover {
+  transform: translateY(-4px);
+}
+
+.proad-node:hover .proad-face {
+  box-shadow:
+    0 0 0 11px color-mix(in srgb, var(--band) 20%, transparent),
+    0 20px 40px -10px color-mix(in srgb, var(--band) 70%, transparent),
+    inset 0 -3px 8px color-mix(in srgb, var(--band) 50%, #000000);
+}
+
+.proad-node:focus-visible {
+  outline: 2px solid var(--band-lit);
+  outline-offset: 6px;
+}
+
+/* Not yet read. Dimmed, never locked — every stop opens, in any order, and
+   nothing in this UI may imply a prerequisite the app does not have. */
+.proad-stop:not(.done) .proad-face {
+  filter: brightness(0.86);
+}
+
+.proad-stop:not(.done) .proad-node:hover .proad-face {
+  filter: none;
+}
+
+.proad-body {
   flex: 1;
   min-width: 0;
 }
 
-.pstep-title {
+.proad-title {
   font-family: var(--font-display);
-  font-size: 1.14rem;
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.019em;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
   color: #f4f4f5;
   text-decoration: none;
 }
 
-.pstep-title:hover {
+.proad-title:hover {
   color: #fff;
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, var(--band) 60%, transparent);
-  text-decoration-thickness: 1.5px;
   text-underline-offset: 4px;
 }
 
-.pstep-desc {
-  margin: 9px 0 0;
-  max-width: 62ch;
-  color: #7c7c88;
-  font-size: 0.92rem;
-  line-height: 1.62;
+.proad-desc {
+  margin: 7px 0 0;
+  color: #77777f;
+  font-size: 0.86rem;
+  line-height: 1.55;
 }
 
-.pstep-meta {
+.proad-meta {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 6px 14px;
-  margin-top: 13px;
+  gap: 6px 12px;
+  flex-wrap: wrap;
+  margin-top: 11px;
 }
 
-.pstep-host {
-  color: #4b4b55;
-  font-size: 0.76rem;
+.proad-stop.side-r .proad-meta {
+  justify-content: flex-end;
 }
 
-/* No pill. The word is the label — a border round it was one more box. */
-.pstep-depth {
-  color: color-mix(in srgb, var(--band-lit) 72%, transparent);
+.proad-type {
+  color: color-mix(in srgb, var(--band-lit) 78%, transparent);
   font-size: 0.63rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.13em;
 }
 
-.pstep-controls {
-  display: flex;
+.proad-host {
+  color: #4b4b55;
+  font-size: 0.75rem;
+}
+
+.proad-tick {
+  display: inline-flex;
   align-items: center;
-  gap: 2px;
-  flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.24s var(--ease-settle);
-}
-
-/* The controls stay out of the way until wanted. Forty-two always-visible
-   buttons down one page is noise; keyboard focus still brings them back. */
-.pstep:hover .pstep-controls,
-.pstep:focus-within .pstep-controls,
-.pstep.done .pstep-controls {
-  opacity: 1;
-}
-
-.pstep-controls .bookmark-btn {
-  position: static;
-}
-
-.pstep-tick {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
+  gap: 5px;
+  padding: 4px 11px 4px 8px;
   border: 1px solid var(--line-bold);
-  border-radius: 50%;
+  border-radius: 999px;
   background: transparent;
-  color: #3f3f46;
+  color: #6f6f7a;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
   cursor: pointer;
   transition:
-    background-color 0.18s var(--ease-settle),
-    border-color 0.18s var(--ease-settle),
-    color 0.18s var(--ease-settle);
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease;
 }
 
-.pstep-tick svg {
-  width: 13px;
-  height: 13px;
+.proad-tick svg {
+  width: 12px;
+  height: 12px;
 }
 
-.pstep-tick:hover {
+.proad-tick:hover {
   border-color: var(--band);
   color: var(--band-lit);
 }
 
-.pstep-tick[aria-pressed="true"] {
+.proad-stop.done .proad-tick {
   border-color: transparent;
-  background: var(--band);
-  color: #07070a;
+  background: color-mix(in srgb, var(--band) 18%, transparent);
+  color: var(--band-lit);
 }
 
-/* Finished work steps back so the page keeps pointing at the next thing. */
-.pstep.done .pstep-n,
-.pstep.done .pstep-title {
-  color: #4b4b55;
+.proad-meta .bookmark-btn {
+  position: static;
+  width: 26px;
+  height: 26px;
 }
 
-.pstep.done .pstep-type {
-  color: #35353d;
+/* The run between two markers. Fixed height, so the curve has room to leave
+   one disc and arrive at the next without either end kinking. */
+/* Inset by half a marker each side, so the curve's own 0 and 100 sit dead on
+   the two marker centres at any marker size. */
+.proad-link {
+  height: 92px;
+  margin: 2px calc(var(--node) / 2);
+  pointer-events: none;
 }
 
-.pstep.done .pstep-desc {
-  color: #56565f;
+.proad-link svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-@media (max-width: 640px) {
-  .pstep {
-    gap: 14px;
-    padding: 20px 4px 22px;
+.proad-link path {
+  fill: none;
+  stroke: #3a3a45;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 2 11;
+}
+
+@media (max-width: 560px) {
+  .proad {
+    --node: 68px;
   }
 
-  .pstep-rail {
-    width: auto;
-    gap: 7px;
+  .proad-face svg {
+    width: 28px;
+    height: 28px;
   }
 
-  .pstep-controls {
-    opacity: 1;
+  .proad-title {
+    font-size: 1rem;
+  }
+
+  .proad-link {
+    height: 76px;
   }
 }
 
@@ -6790,6 +6858,7 @@ nav {
 }
 
 .stage-trail {
+  --node: 74px;
   display: flex;
   flex-direction: column;
   /* The run was reading as a stack rather than a route: at the old spacing a
@@ -6808,16 +6877,24 @@ nav {
    component. No connector is drawn: neither reference has one, and once the
    markers are this size the stagger carries the route on its own — a line
    through them would only be something else to look at. */
+/* Stops alternate sides and are joined by a dashed run, the same route the
+   Prism page draws. The sine lean this replaces put every marker on the left
+   and bent the column — it read as a crooked list rather than a path, because
+   a curve you cannot see both ends of is just a drift. */
 .stop {
-  /* The arc's widest point. The marker column is this plus the marker itself,
-     so the column is a constant width and the marker slides inside it. */
-  --lean-max: 76px;
-  --mark: 74px;
   position: relative;
-  display: grid;
-  grid-template-columns: calc(var(--lean-max) + var(--mark)) minmax(0, 1fr);
-  gap: 22px;
+  display: flex;
   align-items: center;
+  gap: clamp(16px, 3vw, 26px);
+}
+
+.stop.side-r {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.stop.side-r .stop-label {
+  align-items: flex-end;
 }
 
 /* The open stop and its popover sit above everything after them. */
@@ -6844,8 +6921,7 @@ nav {
   position: relative;
   display: grid;
   place-items: center;
-  justify-self: start;
-  margin-left: var(--lean, 0px);
+  flex-shrink: 0;
 }
 
 .stop-node {
@@ -6877,41 +6953,76 @@ nav {
    something with thickness that can be pressed rather than a flat circle.
    Darkening the underside is invisible on a black page, so the edge is a
    deeper tone of the marker's own hue. */
+/* Lit glass, not a flat disc: a light source at the top left, the lane's hue
+   through the body and a darker rim under it. Two near-blacks on a black page
+   made an unread marker a hole rather than an object. */
 .stop-node-face {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 74px;
-  height: 74px;
-  border: 1.5px solid #3c3c49;
+  width: var(--node);
+  height: var(--node);
   border-radius: 50%;
-  /* Was two near-blacks on a black page, which made an unread marker a hole
-     rather than an object. It has to read as unlit, not as absent. */
-  background: linear-gradient(180deg, #26262f, #16161d);
-  box-shadow: 0 6px 0 #0b0b0f;
+  color: #fff;
+  background:
+    radial-gradient(
+      circle at 34% 26%,
+      color-mix(in srgb, var(--type) 42%, #ffffff) 0%,
+      var(--type) 52%,
+      color-mix(in srgb, var(--type) 84%, #000000) 100%
+    );
+  box-shadow:
+    0 0 0 9px color-mix(in srgb, var(--type) 16%, transparent),
+    0 14px 32px -10px color-mix(in srgb, var(--type) 62%, transparent),
+    inset 0 -3px 9px color-mix(in srgb, var(--type) 72%, #000000);
   transition:
-    box-shadow 0.2s var(--ease-bounce),
-    background 0.28s var(--ease-settle),
-    border-color 0.28s var(--ease-settle);
+    box-shadow 0.3s var(--ease-settle),
+    filter 0.3s var(--ease-settle);
+}
+
+/* The shine — the detail that makes it a lit object rather than a circle. */
+.stop-node-face::after {
+  content: "";
+  position: absolute;
+  inset: 7% 13% 46%;
+  border-radius: 50%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0.06) 70%,
+    transparent
+  );
+  pointer-events: none;
 }
 
 .stop-node:hover .stop-node-face {
-  border-color: #4e4e5e;
-  box-shadow: 0 8px 0 #0b0b0f;
+  box-shadow:
+    0 0 0 11px color-mix(in srgb, var(--type) 20%, transparent),
+    0 20px 40px -10px color-mix(in srgb, var(--type) 70%, transparent),
+    inset 0 -3px 9px color-mix(in srgb, var(--type) 72%, #000000);
 }
 
-.stop-node:active .stop-node-face {
-  box-shadow: 0 2px 0 #0b0b0f;
+/* Ahead of you: dimmed, never locked. Every stop opens, in any order. */
+.stop.is-ahead .stop-node-face {
+  filter: brightness(0.86);
+}
+
+.stop.is-ahead .stop-node:hover .stop-node-face {
+  filter: none;
 }
 
 .stop-node-icon {
+  position: relative;
   width: 32px;
   height: 32px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
 }
 
 /* The site's own mark, centred in the marker. Rounded a little and lifted off
    the plate, so a square favicon on a dark disc reads as a badge rather than a
    pasted screenshot. */
 .stop-node-mark {
+  position: relative;
   width: 30px;
   height: 30px;
   object-fit: contain;
@@ -6920,9 +7031,11 @@ nav {
 }
 
 .stop-node-check {
+  position: relative;
   width: 32px;
   height: 32px;
-  color: #07070a;
+  color: #fff;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
 }
 
 /* Ahead of you. Quiet, never disabled — every stop opens, in any order. */
@@ -7241,19 +7354,15 @@ nav {
 }
 
 @media (max-width: 620px) {
+  /* One variable, so the run's inset shrinks with the marker. Overriding the
+     face's width directly left the dashed curve anchored to the desktop size
+     and it missed every marker by 7px. */
+  .stage-trail {
+    --node: 60px;
+  }
+
   .stop {
-    --lean-max: 38px;
-    --mark: 60px;
     gap: 16px;
-  }
-
-  .stop-marker {
-    margin-left: calc(var(--lean, 0px) * 0.5);
-  }
-
-  .stop-node-face {
-    width: 60px;
-    height: 60px;
   }
 
   .stop-node-icon,
