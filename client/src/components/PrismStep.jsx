@@ -17,6 +17,19 @@ import { hostOf } from "../lib/result";
  * curated path mixes a docs site, a lecture and a paper, and knowing which is
  * which before you click is the difference between opening it now and saving
  * it for a train. */
+/* What the reader is actually being handed. "Course" and "Free book" carry
+   more before a click than a filename extension does, and on a wide screen
+   there is room to say it. */
+const TYPE_LABEL = {
+  article: "Article",
+  video: "Video",
+  book: "Free book",
+  paper: "Paper",
+  website: "Reference",
+  code: "Repository",
+  course: "Course",
+};
+
 const TYPE_ICON = {
   article: IconArticles,
   video: IconVideos,
@@ -30,6 +43,7 @@ const TYPE_ICON = {
 function PrismStep({ item, side, topic, done, onToggle }) {
   const host = hostOf(item.url);
   const TypeIcon = TYPE_ICON[item.type] || IconArticles;
+  const kind = TYPE_LABEL[item.type] || item.type;
 
   return (
     <li className={`proad-stop side-${side} pstep-${item.depth_level}${done ? " done" : ""}`}>
@@ -58,8 +72,9 @@ function PrismStep({ item, side, topic, done, onToggle }) {
         {item.description && <p className="proad-desc">{item.description}</p>}
 
         <div className="proad-meta">
-          <span className="proad-type">{item.type}</span>
+          <span className="proad-type">{kind}</span>
           {host && <span className="proad-host">{host}</span>}
+          <span className="proad-depth">{item.depth_level}</span>
 
           <button
             type="button"

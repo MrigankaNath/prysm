@@ -4125,7 +4125,10 @@ nav {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  color: #fff;
+  /* Dark, not white. Measured against every band, a near-black glyph wins by
+     two to four times — emerald reads 7.7:1 against it and 2.5:1 against
+     white. These glyphs are thin strokes, so the pairing has to do the work. */
+  color: #0b0b12;
   background:
     radial-gradient(
       circle at 34% 26%,
@@ -4160,9 +4163,10 @@ nav {
 
 .proad-face svg {
   position: relative;
-  width: 34px;
-  height: 34px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  width: 33px;
+  height: 33px;
+  stroke-width: 2.1;
+  opacity: 0.82;
 }
 
 .proad-node:hover {
@@ -4245,6 +4249,14 @@ nav {
   font-size: 0.75rem;
 }
 
+.proad-depth {
+  color: #4b4b55;
+  font-size: 0.63rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+}
+
 .proad-tick {
   display: inline-flex;
   align-items: center;
@@ -4311,6 +4323,88 @@ nav {
   stroke-width: 2.5;
   stroke-linecap: round;
   stroke-dasharray: 2 11;
+}
+
+/* --- The route on a wide screen ---
+ *
+ * The weave is right for a phone: one column, thumb-scrolled, each marker
+ * arriving on its own. On a landscape screen it is wrong — the same two
+ * positions get flung a thousand pixels apart, the curve pulls flat and the
+ * middle of the page is empty while the text is squeezed into the corners.
+ *
+ * So the run straightens into a spine and the space that freed up goes into
+ * saying what the thing actually is. The metaphor survives, because a straight
+ * dashed line down a column of markers is still a route.
+ */
+@media (min-width: 860px) {
+  .proad,
+  .stage-trail {
+    position: relative;
+    max-width: 780px;
+    padding-left: 0;
+  }
+
+  /* The drawn runs are for the weave. Here one dashed rule behind the markers
+     does the same job without eighteen svgs. */
+  .proad-link {
+    display: none;
+  }
+
+  .proad::before,
+  .stage-trail::before {
+    content: "";
+    position: absolute;
+    top: 30px;
+    bottom: 30px;
+    left: calc(var(--node) / 2 - 1px);
+    border-left: 2px dashed #33333d;
+  }
+
+  .proad-stop,
+  .proad-stop.side-r,
+  .stop,
+  .stop.side-r {
+    flex-direction: row;
+    text-align: left;
+    align-items: flex-start;
+    gap: 26px;
+    padding: 22px 0;
+  }
+
+  .proad-stop.side-r .proad-meta,
+  .stop.side-r .stop-label {
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  /* The marker sits on the spine, so it needs the page under it rather than
+     the dashes running through the glass. */
+  .proad-node,
+  .stop-marker {
+    position: relative;
+    z-index: 1;
+    border-radius: 50%;
+    background: var(--bg);
+  }
+
+  .proad-body {
+    padding-top: 6px;
+  }
+
+  .proad-title {
+    font-size: 1.22rem;
+  }
+
+  .proad-desc {
+    margin-top: 9px;
+    max-width: 60ch;
+    font-size: 0.92rem;
+  }
+
+  .proad-meta {
+    margin-top: 14px;
+    gap: 8px 16px;
+  }
 }
 
 @media (max-width: 560px) {
@@ -6971,7 +7065,7 @@ nav {
   width: var(--node);
   height: var(--node);
   border-radius: 50%;
-  color: #fff;
+  color: #0b0b12;
   background:
     radial-gradient(
       circle at 34% 26%,
@@ -7021,9 +7115,10 @@ nav {
 
 .stop-node-icon {
   position: relative;
-  width: 32px;
-  height: 32px;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  width: 31px;
+  height: 31px;
+  stroke-width: 2.1;
+  opacity: 0.82;
 }
 
 /* The site's own mark, centred in the marker. Rounded a little and lifted off
@@ -7040,10 +7135,9 @@ nav {
 
 .stop-node-check {
   position: relative;
-  width: 32px;
-  height: 32px;
-  color: #fff;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  width: 30px;
+  height: 30px;
+  color: #0b0b12;
 }
 
 /* Ahead of you. Quiet, never disabled — every stop opens, in any order. */
