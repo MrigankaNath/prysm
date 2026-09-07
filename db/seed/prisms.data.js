@@ -18,7 +18,8 @@ const { WEB } = require("./prisms/web");
 const { AI } = require("./prisms/ai");
 const { CS } = require("./prisms/cs");
 const { MIXED } = require("./prisms/mixed");
+const { CORE } = require("./prisms/core");
 
-const PRISMS = [...WEB, ...AI, ...CS, ...MIXED];
+const PRISMS = [...WEB, ...AI, ...CS, ...MIXED, ...CORE];
 
 module.exports = { PRISMS };
