@@ -6,7 +6,6 @@ import {
   CATEGORY_ICONS,
   CATEGORY_LABELS,
   CATEGORY_GRADIENTS,
-  categoryStroke,
 } from "./categories";
 import { provenanceOf } from "../lib/provenance";
 import RoadRun from "./RoadRun";
@@ -85,10 +84,9 @@ function Stop({ item, side, state, topic, open, onOpen, onToggle }) {
               />
             ) : (
               Icon && (
-                <Icon
-                  className="stop-node-icon"
-                  stroke={categoryStroke(item.category)}
-                />
+                /* currentColor, not the category gradient: the marker is a
+                   lit disc and the glyph has to be the dark thing on it. */
+                <Icon className="stop-node-icon" stroke="currentColor" />
               )
             )}
           </span>

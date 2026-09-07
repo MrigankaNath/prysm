@@ -7,6 +7,7 @@ import { PrismGradientDefs } from "./components/Icons";
 import { PrismBody } from "./pages/PrismDetail";
 import Spectrum from "./pages/Spectrum";
 import PathStage from "./components/PathStage";
+import MediaCard from "./components/MediaCard";
 import { buildPath } from "./lib/path";
 
 const react = {
@@ -254,12 +255,34 @@ function PathPreview() {
   );
 }
 
+/* Deliberately uneven copy: a one-line title beside a three-line one is what
+   made the lane ragged, so that is what the preview has to show. */
+const MEDIA = [
+  { title: "GPT-6 Astra First Experience", url: "https://youtube.com/watch?v=1", snippet: "ChatGPT 6 Astra is out and it's INSANE. Support our community with merch :) and a much longer trailing line to force the clamp.", thumbnail: null, signal: 120000, duration: 640 },
+  { title: "Introducing GPT-6 Astra for developers", url: "https://youtube.com/watch?v=2", snippet: "Meet GPT-6 Astra, our latest frontier model.", thumbnail: null, signal: 400000, duration: 320 },
+  { title: "Short", url: "https://youtube.com/watch?v=3", snippet: "One line.", thumbnail: null, signal: 900, duration: 200 },
+];
+
+function MediaPreview() {
+  return (
+    <div className="page page-wide">
+      <h1 className="prism-title" style={{ marginBottom: 24 }}>Videos lane</h1>
+      <div className="media-grid">
+        {MEDIA.map((item, i) => (
+          <MediaCard key={i} item={item} topic="gpt astra" category="videos" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <MemoryRouter>
       <PrismGradientDefs />
       {location.hash === "#spectrum" ? <Spectrum /> : null}
       {location.hash === "#path" ? <PathPreview /> : null}
+      {location.hash === "#media" ? <MediaPreview /> : null}
       <div className="page page-wide" hidden={location.hash !== ""}>
         <PrismBody bundle={react} />
         <hr style={{ margin: "56px 0", border: 0, borderTop: "2px solid #1c1c20" }} />

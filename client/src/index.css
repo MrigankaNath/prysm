@@ -2345,11 +2345,33 @@ nav {
    cover art cropped to widescreen, throws away the part worth showing.
    -------------------------------------------------------------------------- */
 
+/* Stretch, not start.
+ *
+ * `align-items: start` let every tile stop at its own content, so a one-line
+ * title sat in a card visibly shorter than the two-line one beside it and a
+ * lane read as a ragged skyline. Stretching the row and pushing the footer
+ * down with auto margin makes the host line up across the lane whatever the
+ * title did. */
 .media-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
   gap: clamp(20px, 2.4vw, 30px);
-  align-items: start;
+  align-items: stretch;
+}
+
+.media {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.media-body {
+  flex: 1;
+}
+
+.media-foot {
+  margin-top: auto;
+  padding-top: 6px;
 }
 
 /* The art used to run to the card's own edge, so a still with a bright or
@@ -2451,6 +2473,10 @@ nav {
   min-width: 0;
 }
 
+.media-sub {
+  flex: 1;
+}
+
 .media-title {
   display: -webkit-box;
   -webkit-box-orient: vertical;
@@ -2487,7 +2513,6 @@ nav {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  margin-top: 3px;
   color: #52525b;
   font-size: 0.73rem;
   white-space: nowrap;
@@ -6184,6 +6209,11 @@ nav {
 .cat-grid {
   grid-template-columns: repeat(auto-fill, minmax(232px, 1fr));
   gap: 26px 20px;
+  align-items: stretch;
+}
+
+.cat-grid .res-tile {
+  height: 100%;
 }
 
 .cat-grid .res-tile {
@@ -6851,7 +6881,7 @@ nav {
   width: var(--node);
   height: var(--node);
   border-radius: 50%;
-  color: #0b0b12;
+  color: #07070c;
   background:
     radial-gradient(
       circle at 34% 26%,
@@ -6899,12 +6929,15 @@ nav {
   filter: none;
 }
 
+/* Weight and full opacity, because these are thin strokes on a lit disc and
+   anything less disappears into it. The gradient stroke the category icons
+   ship with is deliberately overridden at the call site — it is a light ramp,
+   which is the one thing that cannot read here. */
 .stop-node-icon {
   position: relative;
-  width: 31px;
-  height: 31px;
-  stroke-width: 2.1;
-  opacity: 0.82;
+  width: 30px;
+  height: 30px;
+  stroke-width: 2.5;
 }
 
 /* The site's own mark, centred in the marker. Rounded a little and lifted off
@@ -6923,7 +6956,7 @@ nav {
   position: relative;
   width: 30px;
   height: 30px;
-  color: #0b0b12;
+  color: #07070c;
 }
 
 /* Ahead of you. Quiet, never disabled — every stop opens, in any order. */
@@ -7216,62 +7249,6 @@ nav {
 .stop-pop-tick[aria-pressed="true"] {
   border-color: color-mix(in srgb, var(--type) 55%, transparent);
   color: var(--type-lit);
-}
-
-/* --- The route on a wide screen ---
- *
- * The weave is right for a phone: one column, thumb-scrolled, each marker
- * arriving on its own. On a landscape screen it is wrong — the same two
- * positions get flung a thousand pixels apart, the curve pulls flat and the
- * middle of the page is empty while the text is squeezed into the corners.
- *
- * So the run straightens into a spine. It has to sit *after* the .stop rules
- * rather than up with the other breakpoints: the selectors are the same weight
- * either way, so the one further down the file is the one that applies, and
- * from higher up this block drew the spine while the weave stayed on.
- */
-@media (min-width: 860px) {
-  .stage-trail {
-    position: relative;
-    max-width: 780px;
-  }
-
-  /* The drawn runs are for the weave. Here one dashed rule behind the markers
-     does the same job without an svg per gap. */
-  .road-run {
-    display: none;
-  }
-
-  .stage-trail::before {
-    content: "";
-    position: absolute;
-    top: 30px;
-    bottom: 30px;
-    left: calc(var(--node) / 2 - 1px);
-    border-left: 2px dashed #33333d;
-  }
-
-  .stop,
-  .stop.side-r {
-    flex-direction: row;
-    text-align: left;
-    align-items: flex-start;
-    gap: 26px;
-    padding: 20px 0;
-  }
-
-  .stop.side-r .stop-label {
-    align-items: flex-start;
-  }
-
-  /* The marker sits on the spine, so it needs the page under it rather than
-     the dashes running through the glass. */
-  .stop-marker {
-    position: relative;
-    z-index: 1;
-    border-radius: 50%;
-    background: var(--bg);
-  }
 }
 
 .path-done {

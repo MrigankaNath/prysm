@@ -39,6 +39,24 @@ async function videoStats(apiKey, ids) {
   }
 }
 
+/* The API returns titles and descriptions HTML-escaped, so "Doesn&#39;t Need"
+ * arrives with the entity intact. React renders a text node literally, which
+ * means the escape survives all the way to the card — it does not decode on
+ * the way out, it just shows.
+ */
+const NAMED = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+
+function decodeEntities(text) {
+  return (text || "").replace(/&(#\d+|#x[0-9a-f]+|[a-z]+);/gi, (match, code) => {
+    if (code[0] !== "#") return NAMED[code.toLowerCase()] ?? match;
+    const point =
+      code[1] === "x" || code[1] === "X"
+        ? Number.parseInt(code.slice(2), 16)
+        : Number(code.slice(1));
+    return Number.isFinite(point) ? String.fromCodePoint(point) : match;
+  });
+}
+
 async function fetchYoutube(topic) {
   const apiKey = process.env.YOUTUBE_API_KEY;
   if (!apiKey) {
@@ -76,11 +94,11 @@ async function fetchYoutube(topic) {
     })
     .slice(0, 5)
     .map((item) => ({
-      title: item.snippet.title,
+      title: decodeEntities(item.snippet.title),
       url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
       source: "youtube",
       type: "video",
-      snippet: item.snippet.description,
+      snippet: decodeEntities(item.snippet.description),
       published_at: item.snippet.publishedAt,
       thumbnail: item.snippet.thumbnails?.medium?.url || null,
       signal: stats[item.id.videoId]?.views || 0,
@@ -88,4 +106,4 @@ async function fetchYoutube(topic) {
     }));
 }
 
-module.exports = { fetchYoutube };
+module.exports = { fetchYoutube, decodeEntities };

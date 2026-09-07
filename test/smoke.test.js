@@ -113,3 +113,17 @@ test("prism topics are unique, so the loader updates rather than duplicates", ()
   const topics = PRISMS.map((p) => p.topic);
   assert.equal(new Set(topics).size, topics.length);
 });
+
+const { decodeEntities } = require("../sources/youtube.js");
+
+/* YouTube hands back escaped markup. React renders a text node literally, so
+ * an entity that survives the adapter is an entity the reader sees. */
+test("youtube titles arrive decoded", () => {
+  assert.equal(decodeEntities("Doesn&#39;t Need"), "Doesn't Need");
+  assert.equal(decodeEntities("Rock &amp; Roll &quot;live&quot;"), 'Rock & Roll "live"');
+  assert.equal(decodeEntities("&#x1F600;"), "😀");
+  // Not an entity we know: left alone rather than mangled or dropped.
+  assert.equal(decodeEntities("&notreal; kept"), "&notreal; kept");
+  assert.equal(decodeEntities(""), "");
+  assert.equal(decodeEntities(null), "");
+});
