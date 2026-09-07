@@ -4073,19 +4073,26 @@ nav {
  * the two positions are close enough to see at once, and a marker flung to the
  * far edge of a wide screen breaks the line into unrelated dots.
  */
+/* Narrower than the page.
+ *
+ * The weave only reads as a curve when the horizontal travel is close to the
+ * vertical drop. At full page width the run was six times wider than tall and
+ * flattened into a line with two kinks in it, so the column is capped and the
+ * runs are given real height instead. */
 .proad {
   --node: 84px;
+  --run: 168px;
   list-style: none;
-  max-width: 660px;
+  max-width: 500px;
   margin: 0 auto;
-  padding: 8px 0 0;
+  padding: 10px 0 0;
 }
 
 .proad-stop {
   position: relative;
   display: flex;
   align-items: center;
-  gap: clamp(16px, 3vw, 26px);
+  gap: clamp(15px, 2.6vw, 24px);
 }
 
 .proad-stop.side-r {
@@ -4284,15 +4291,17 @@ nav {
 /* Inset by half a marker each side, so the curve's own 0 and 100 sit dead on
    the two marker centres at any marker size. */
 .proad-link {
-  height: 92px;
-  margin: 2px calc(var(--node) / 2);
+  height: var(--run, 168px);
+  margin: 4px calc(var(--node) / 2);
   pointer-events: none;
 }
 
+/* No width or height here on purpose. The svg carries its own measured size
+   and a viewBox to match; forcing it to 100% let the box and the viewBox drift
+   apart on any resize, which stretched the path — the exact distortion the
+   measuring was added to remove. */
 .proad-link svg {
   display: block;
-  width: 100%;
-  height: 100%;
   overflow: visible;
 }
 
@@ -4306,7 +4315,8 @@ nav {
 
 @media (max-width: 560px) {
   .proad {
-    --node: 68px;
+    --node: 64px;
+    --run: 124px;
   }
 
   .proad-face svg {
@@ -4316,10 +4326,6 @@ nav {
 
   .proad-title {
     font-size: 1rem;
-  }
-
-  .proad-link {
-    height: 76px;
   }
 }
 
@@ -6859,6 +6865,8 @@ nav {
 
 .stage-trail {
   --node: 74px;
+  --run: 158px;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   /* The run was reading as a stack rather than a route: at the old spacing a
@@ -7359,6 +7367,7 @@ nav {
      and it missed every marker by 7px. */
   .stage-trail {
     --node: 60px;
+    --run: 120px;
   }
 
   .stop {
