@@ -4206,6 +4206,7 @@ nav {
 /* Inset by half a marker each side, so the curve's own 0 and 100 sit dead on
    the two marker centres at any marker size. */
 .road-run {
+  position: relative;
   height: var(--run, 158px);
   margin: 4px calc(var(--node) / 2);
   pointer-events: none;
@@ -4215,7 +4216,17 @@ nav {
    and a viewBox to match; forcing it to 100% let the box and the viewBox drift
    apart on any resize, which stretched the path — the exact distortion the
    measuring was added to remove. */
+/* Taken out of flow.
+ *
+ * The svg is sized from its container's measured width, which made it the
+ * container's widest content — so once the window narrowed the box could not
+ * shrink past the svg that was sizing itself from the box, and the run stayed
+ * frozen at its widest, overflowing the page. Absolute positioning breaks the
+ * loop: the run's width is decided by layout alone, and the svg follows. */
 .road-run svg {
+  position: absolute;
+  top: 0;
+  left: 0;
   display: block;
   overflow: visible;
 }
@@ -6720,8 +6731,11 @@ nav {
  * The plate centred itself while the trail below it started at the section's
  * left edge, so the run read as something happening *next to* the stage rather
  * than inside it — and the leftmost marker hung off the edge with its ring
- * clipped. One bordered box now holds the heading and the whole run, which is
- * also what makes a stage legible when three of them stack. */
+ * clipped. The heading and the whole run now share one column.
+ *
+ * It draws no box. Bordering each stage cut the page into three cards and made
+ * the route look like three separate things rather than one that changes
+ * gear; the heading's own rule is enough to say where a stage begins. */
 .stage {
   --plate: 660px;
   box-sizing: border-box;
@@ -6732,16 +6746,7 @@ nav {
   max-width: var(--plate);
   min-width: 0;
   margin: 0 auto;
-  padding: 24px clamp(20px, 3vw, 38px) clamp(30px, 4vw, 46px);
-  border: 1.5px solid color-mix(in srgb, var(--stage) 30%, transparent);
-  border-radius: 28px;
-  background:
-    radial-gradient(
-      120% 60% at 50% 0%,
-      color-mix(in srgb, var(--stage) 10%, transparent),
-      transparent 70%
-    ),
-    #08080c;
+  padding: 8px clamp(20px, 3vw, 38px) clamp(30px, 4vw, 46px);
 }
 
 /* The level plate. Centred, because it is a marker for a run rather than a
@@ -7178,7 +7183,10 @@ nav {
   content: "";
   position: absolute;
   top: -8px;
-  left: 30px;
+  /* Half a marker in, less half the notch — so it lands under the marker's
+     centre rather than at a guessed offset, and follows the marker when the
+     breakpoint shrinks it. */
+  left: calc(var(--node, 74px) / 2 - 7px);
   width: 14px;
   height: 14px;
   border-top: 1.5px solid #33333f;
@@ -7186,6 +7194,19 @@ nav {
   border-radius: 3px 0 0 0;
   background: #0d0d12;
   transform: rotate(45deg);
+}
+
+/* A right-hand stop opens its card against the right edge with the pointer
+   under its own marker. Both were pinned left, so every card on that side
+   pointed into empty space. */
+.stop.side-r .stop-pop {
+  left: auto;
+  right: 0;
+}
+
+.stop.side-r .stop-pop::before {
+  left: auto;
+  right: calc(var(--node, 74px) / 2 - 7px);
 }
 
 @keyframes stop-pop-in {

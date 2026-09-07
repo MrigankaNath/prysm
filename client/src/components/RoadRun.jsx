@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 /* The dashed run between two markers on a route.
  *
@@ -20,17 +20,40 @@ function RoadRun({ from }) {
   const ref = useRef(null);
   const [box, setBox] = useState({ w: 0, h: 0 });
 
-  useEffect(() => {
+  /* Measured before paint, then kept in step by an observer.
+   *
+   * Relying on the observer's first callback alone left the run blank: the
+   * curve only exists once a width is known, and that callback is delivered
+   * asynchronously — when it did not arrive the element stayed empty with
+   * nothing to retry it. Reading the box directly on mount means the run is
+   * drawn on the first frame and the observer only has to handle changes. */
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return undefined;
 
-    const observer = new ResizeObserver(([entry]) => {
-      const { width, height } = entry.contentRect;
-      setBox({ w: Math.round(width), h: Math.round(height) });
-    });
+    const measure = ({ width, height }) =>
+      setBox((prev) => {
+        const w = Math.round(width);
+        const h = Math.round(height);
+        return prev.w === w && prev.h === h ? prev : { w, h };
+      });
 
+    const remeasure = () => measure(el.getBoundingClientRect());
+    remeasure();
+
+    const observer = new ResizeObserver(([entry]) => measure(entry.contentRect));
     observer.observe(el);
-    return () => observer.disconnect();
+
+    /* The window listener is not redundant. This element's width comes from
+       the page, so a window resize is what actually changes it — and the
+       observer's change notifications were not arriving here, leaving every
+       run frozen at the width it was first drawn at. */
+    window.addEventListener("resize", remeasure);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", remeasure);
+    };
   }, []);
 
   const { w, h } = box;
