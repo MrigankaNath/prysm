@@ -1,5 +1,6 @@
 import { useState } from "react";
 import WebGLShader from "../components/WebGLShader";
+import BrandMark from "../components/BrandMark";
 import PrismModel from "../components/PrismModel";
 import AuthModal from "../components/AuthModal";
 
@@ -12,6 +13,7 @@ function Hero() {
         <WebGLShader />
 
         <div className="hero-content-inner">
+          <BrandMark className="hero-mark" title="Prysm" />
           <h1 className="hero-title">Prysm</h1>
           <p className="hero-tagline">
             Curated depth and live discovery, in one place worth coming back to.

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import AuthForm from "../components/AuthForm";
+import BrandMark from "../components/BrandMark";
 
 function Auth() {
   const [mode, setMode] = useState("login");
@@ -10,6 +11,7 @@ function Auth() {
     <div className="auth-page">
       <div className="auth-panel">
         <Link to="/" className="auth-brand">
+          <BrandMark className="auth-brand-mark" />
           Prysm
         </Link>
 

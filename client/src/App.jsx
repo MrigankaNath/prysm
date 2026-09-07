@@ -18,6 +18,7 @@ import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import CommandPalette from "./components/CommandPalette";
 import NavMenu from "./components/NavMenu";
+import BrandMark from "./components/BrandMark";
 import {
   IconFeed,
   IconPrism,
@@ -50,8 +51,7 @@ function AppNav({ hidden, onOpenSearch, session }) {
   return (
     <nav>
       <span className="nav-brand">
-        {/* Placeholder for the real mark — one element to swap for artwork. */}
-        <span className="nav-brand-mark" aria-hidden="true" />
+        <BrandMark className="nav-brand-mark" />
         Prysm
       </span>
 

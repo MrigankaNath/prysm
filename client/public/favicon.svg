@@ -1,15 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <title>Prysm</title>
   <defs>
-    <linearGradient id="p" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#3b82f6"/>
-      <stop offset="0.35" stop-color="#8b5cf6"/>
-      <stop offset="0.65" stop-color="#ec4899"/>
-      <stop offset="1" stop-color="#f59e0b"/>
+    <linearGradient id="p" x1="105" y1="52" x2="156" y2="210" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1749DC"/>
+      <stop offset=".5" stop-color="#1678F3"/>
+      <stop offset="1" stop-color="#27B9F3"/>
     </linearGradient>
   </defs>
-  <path d="M12 3.5 L21 19.5 H3 Z"
-        fill="none"
-        stroke="url(#p)"
-        stroke-width="2.2"
-        stroke-linejoin="round"/>
+  <path fill="url(#p)" fill-rule="evenodd" d="M113 59Q128 41 142 60L204 149Q215 166 198 176L140 206Q128 212 117 206L58 174Q44 166 52 151ZM120 68Q123 64 123 70L123 190Q124 198 117 194L63 165Q57 162 62 155Z"/>
 </svg>

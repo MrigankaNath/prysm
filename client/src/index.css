@@ -131,13 +131,29 @@ nav {
   font-size: 1.2rem;
 }
 
-/* Stand-in for the real logo. A clipped triangle rather than an SVG so the
-   whole mark is one element to replace when the artwork lands. */
+/* The mark sizes itself from whatever it sits in; only the box changes per
+   placement. */
+.brand-mark {
+  display: block;
+  flex-shrink: 0;
+}
+
 .nav-brand-mark {
-  width: 22px;
-  height: 22px;
-  clip-path: polygon(50% 4%, 97% 95%, 3% 95%);
-  background: linear-gradient(142deg, #3b82f6, #8b5cf6 40%, #ec4899 72%, #f59e0b);
+  width: 24px;
+  height: 24px;
+}
+
+.auth-brand-mark {
+  width: 26px;
+  height: 26px;
+}
+
+/* Above the wordmark on the landing page, at the size the title is set in. */
+.hero-mark {
+  width: clamp(52px, 7vw, 76px);
+  height: clamp(52px, 7vw, 76px);
+  margin: 0 auto 18px;
+  filter: drop-shadow(0 10px 30px rgba(23, 120, 243, 0.42));
 }
 
 /* Icon over name. The name is a caption to the glyph rather than a label
@@ -216,8 +232,8 @@ nav {
   }
 
   .nav-brand-mark {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
 
   .nav-label {
@@ -5453,7 +5469,9 @@ nav {
 }
 
 .auth-brand {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   margin-bottom: 30px;
   font-family: var(--font-display);
   font-size: 1.3rem;
