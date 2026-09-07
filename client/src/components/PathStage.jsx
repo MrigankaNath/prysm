@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Check, ChevronDown, ArrowUpRight } from "lucide-react";
 import { recordVisit } from "../lib/library";
 import { hostOf } from "../lib/result";
@@ -9,6 +9,7 @@ import {
   categoryStroke,
 } from "./categories";
 import { provenanceOf } from "../lib/provenance";
+import RoadRun from "./RoadRun";
 
 /* One stage of the roadmap, and the stops along it.
  *
@@ -41,14 +42,8 @@ const VISIBLE = 5;
  * to the right that flattened out, reading as a crooked line rather than a
  * curve. Two points cannot describe a curve at all, so they stack straight.
  */
-const LEAN = 76;
 
-function leanOf(index, count) {
-  if (count < 3) return 0;
-  return Math.round(Math.sin((Math.PI * index) / (count - 1)) * LEAN);
-}
-
-function Stop({ item, index, count, state, topic, open, onOpen, onToggle }) {
+function Stop({ item, side, state, topic, open, onOpen, onToggle }) {
   const Icon = CATEGORY_ICONS[item.category];
   const [hue, lit] = CATEGORY_GRADIENTS[item.category] || ["#8b5cf6", "#c4b5fd"];
   const host = hostOf(item.url);
@@ -67,8 +62,8 @@ function Stop({ item, index, count, state, topic, open, onOpen, onToggle }) {
 
   return (
     <li
-      className={`stop is-${state}${open ? " is-open" : ""}`}
-      style={{ "--lean": `${leanOf(index, count)}px`, "--type": hue, "--type-lit": lit }}
+      className={`stop side-${side} is-${state}${open ? " is-open" : ""}`}
+      style={{ "--type": hue, "--type-lit": lit }}
     >
       <div className="stop-marker">
         <button
@@ -182,11 +177,11 @@ function PathStage({
 
       <ol className="stage-trail">
         {shown.map((item, i) => (
-          <Stop
-            key={item.url}
+          <Fragment key={item.url}>
+            {i > 0 && <RoadRun from={i % 2 === 0 ? "r" : "l"} />}
+            <Stop
             item={item}
-            index={i}
-            count={shown.length}
+            side={i % 2 === 0 ? "l" : "r"}
             state={
               doneUrls.includes(item.url)
                 ? "done"
@@ -198,7 +193,8 @@ function PathStage({
             open={openUrl === item.url}
             onOpen={onOpen}
             onToggle={onToggle}
-          />
+            />
+          </Fragment>
         ))}
       </ol>
 

@@ -3498,44 +3498,52 @@ nav {
    you scroll — compact rows rather than illustrated cards, because at this
    count the names are the content and artwork would bury them.
    These jump to a section; they do not swap one in. */
+/* The domain index is a list of names, not a grid of cards.
+ *
+ * Twenty-four bordered chips above twenty-four bordered sections meant the
+ * first screen of this page was forty-eight boxes and no hierarchy. A domain
+ * is a word and a colour; that is all the index has to be, and dropping the
+ * container is what gives the sections below room to read. */
 .spec-index {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
-  gap: 10px;
-  margin-bottom: clamp(38px, 5vw, 64px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 30px;
+  margin-bottom: clamp(44px, 5.5vw, 76px);
+  padding-bottom: clamp(30px, 4vw, 48px);
+  border-bottom: 1px solid var(--line);
 }
 
 .spec-domain {
-  display: flex;
-  text-decoration: none;
+  display: inline-flex;
   align-items: center;
-  gap: 11px;
-  padding: 11px 13px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  background: var(--surface);
-  color: var(--text-dim);
+  gap: 10px;
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--text-faint);
   font-family: inherit;
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 500;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
-  transition:
-    border-color 0.18s ease,
-    background-color 0.18s ease,
-    color 0.18s ease,
-    transform 0.32s var(--ease-bounce);
+  transition: color 0.16s ease;
 }
 
+/* The plate is the section heading's job. Here the colour alone identifies the
+   domain, which is all twenty-four of them need to be told apart. */
 .spec-domain .topic-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
+  display: none;
 }
 
-.spec-domain .topic-icon img {
-  width: 16px;
-  height: 16px;
+.spec-domain::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--hue, #a1a1aa);
+  transition: box-shadow 0.2s ease;
 }
 
 .spec-domain-name {
@@ -3544,20 +3552,17 @@ nav {
 }
 
 .spec-domain:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--hue) 40%, var(--line));
   color: #fafafa;
+}
+
+.spec-domain:hover::before {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--hue, #a1a1aa) 75%, transparent);
 }
 
 .spec-domain:focus-visible {
   outline: 2px solid var(--hue);
-  outline-offset: 2px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .spec-domain:hover {
-    transform: none;
-  }
+  outline-offset: 4px;
+  border-radius: 3px;
 }
 
 .spec-clusters {
@@ -3576,9 +3581,9 @@ nav {
 .spec-head {
   display: flex;
   align-items: center;
-  gap: 14px;
-  margin-bottom: 18px;
-  padding-bottom: 14px;
+  gap: 15px;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -3604,37 +3609,60 @@ nav {
    available. */
 .spec-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(146px, 1fr));
-  gap: clamp(14px, 1.8vw, 22px);
+  grid-template-columns: repeat(auto-fill, minmax(198px, 1fr));
+  gap: 2px 18px;
   align-items: start;
 }
 
+/* A row, not a tile. The 108px plate around every topic was the page's main
+   texture and it carried no information — the icon already has a coloured
+   plate of its own, so the outer box was a frame around a frame. */
 .spec-grid .rail-item {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
   width: 100%;
+  padding: 9px 12px 9px 8px;
+  border-radius: var(--radius-md);
+  transition: background-color 0.18s ease;
 }
 
 .spec-grid .rail-tile {
-  width: 100%;
-  height: 108px;
-  border-radius: 20px;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
 }
 
 .spec-grid .rail-tile .topic-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
 }
 
 .spec-grid .rail-tile .topic-icon img {
-  width: 24px;
-  height: 24px;
+  width: 17px;
+  height: 17px;
 }
 
 .spec-grid .rail-label {
-  font-size: 0.84rem;
-  font-weight: 600;
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.35;
   color: var(--text-dim);
+  text-align: left;
   text-transform: capitalize;
+}
+
+.spec-grid .rail-item:hover {
+  background: color-mix(in srgb, var(--hue, #a1a1aa) 8%, transparent);
+}
+
+.spec-grid .rail-item:hover .rail-tile {
+  transform: none;
+  box-shadow: none;
 }
 
 .spec-grid .rail-item:hover .rail-label {
@@ -3900,6 +3928,34 @@ nav {
   --band-lit: #f9a8d4;
 }
 
+/* Wraps, and the squares never shrink. A four-stop Prism fits on one line; a
+   twenty-one-stop one squeezed each square to 13px and pushed the page wider
+   than the phone. Rows are cheaper than illegible numbers. */
+/* --- Prism detail ---
+ *
+ * A list, not a stack of cards. Twenty-one bordered slabs turned a reading
+ * path into a wall of boxes: every stop was a container competing with every
+ * other one, and nothing carried rank. The structure is now spacing and one
+ * hairline per row, which is what an editorial page uses to hold a long
+ * sequence together — and it lets the accent mean something, because it is the
+ * only colour left.
+ */
+
+.stage-beginner {
+  --band: #10b981;
+  --band-lit: #6ee7b7;
+}
+
+.stage-intermediate {
+  --band: #3b82f6;
+  --band-lit: #93c5fd;
+}
+
+.stage-advanced {
+  --band: #ec4899;
+  --band-lit: #f9a8d4;
+}
+
 .pstep-beginner {
   --band: #10b981;
   --band-lit: #6ee7b7;
@@ -3915,271 +3971,236 @@ nav {
   --band-lit: #f9a8d4;
 }
 
-/* Wraps, and the squares never shrink. A four-stop Prism fits on one line; a
-   twenty-one-stop one squeezed each square to 13px and pushed the page wider
-   than the phone. Rows are cheaper than illegible numbers. */
-.prism-progress {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin-top: 26px;
-}
-
-/* Squares, not dots. A dot is a decoration; a numbered square is a thing you
-   can count off, which is what this now actually tracks. */
-.prism-step {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: 2px solid var(--line-bold);
-  border-radius: 4px;
-  color: var(--text-faint);
-  font-size: 0.72rem;
-  font-weight: 700;
-  transition:
-    background-color 0.18s var(--ease-settle),
-    border-color 0.18s var(--ease-settle),
-    color 0.18s var(--ease-settle);
-}
-
-.prism-step.done {
-  border-color: var(--band);
-  background: var(--band);
-  color: #08080c;
-}
-
-.prism-progress-count {
-  margin-left: 6px;
-  color: var(--text-faint);
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
 .prism-stage {
-  margin-bottom: 40px;
+  margin-bottom: clamp(44px, 5vw, 72px);
 }
 
-/* The stage name is a struck block rather than a line of small caps. Three of
-   them on a page is the whole colour budget for this surface — enough to read
-   as structure, few enough that it doesn't become decoration. */
+/* A dot, a name, and a rule running out to the margin. */
 .prism-stage-head {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 0 0 18px;
-  padding: 7px 14px;
-  border-radius: 4px;
-  background: var(--band, #a1a1aa);
-  box-shadow: 4px 4px 0 color-mix(in srgb, var(--band, #a1a1aa) 26%, transparent);
-  color: #07070a;
-  font-size: 0.74rem;
-  font-weight: 700;
+  gap: 13px;
+  margin: 0 0 22px;
+  color: var(--text-faint);
+  font-size: 0.7rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.11em;
+  letter-spacing: 0.16em;
+}
+
+.prism-stage-head::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--band, #a1a1aa);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--band, #a1a1aa) 60%, transparent);
+}
+
+.prism-stage-head::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--line-bold), transparent);
 }
 
 .prism-stage-count {
-  padding: 1px 7px;
-  border-radius: 3px;
-  background: rgba(7, 7, 10, 0.22);
-  font-size: 0.7rem;
+  color: #3f3f46;
   font-variant-numeric: tabular-nums;
 }
 
-.prism-steps {
+/* --- The shelf ---
+ *
+ * A Prism is browsed, not walked. Drawn as a route it implied an order the
+ * content does not have — every item opens on its own and the depth stages
+ * already carry the sequence — and twenty-one markers on a weaving line was a
+ * lot of drawing for a claim that wasn't true. Tiles, grouped by stage.
+ */
+.ptile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: clamp(14px, 1.6vw, 20px);
+}
+
+.ptile {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-}
-
-.pstep {
-  display: flex;
-  align-items: flex-start;
-  gap: 18px;
-  padding: 20px 22px;
-  border: 2px solid var(--line-bold);
-  border-radius: 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg, 16px);
   background: var(--surface);
-  box-shadow: 4px 4px 0 color-mix(in srgb, var(--band, #a1a1aa) 78%, transparent);
   transition:
-    background-color 0.2s var(--ease-settle),
-    border-color 0.2s var(--ease-settle);
+    border-color 0.22s var(--ease-settle),
+    background-color 0.22s var(--ease-settle),
+    transform 0.28s var(--ease-settle);
 }
 
-/* The slab does not move. An offset shadow plus a travelling hover reads as a
-   button waiting to be pressed, and these are not buttons — the title is the
-   link. Hover only warms the surface and lets the band reach the border, so a
-   list of twenty stops stays still while you run down it. */
-.pstep:hover {
-  border-color: color-mix(in srgb, var(--band) 52%, var(--line-bold));
+.ptile:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--band) 38%, var(--line-bold));
   background: var(--surface-raised);
 }
 
-.pstep-rail {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 7px;
-  flex-shrink: 0;
-}
-
-.pstep-type {
-  display: flex;
-  color: color-mix(in srgb, var(--band) 62%, transparent);
-}
-
-.pstep-type svg {
-  width: 16px;
-  height: 16px;
-}
-
-.pstep-n {
-  min-width: 2ch;
-  text-align: center;
-  font-family: var(--font-display);
-  font-size: 2.1rem;
-  font-weight: 800;
-  line-height: 0.92;
-  letter-spacing: -0.05em;
-  color: var(--band-lit, #a1a1aa);
-  font-variant-numeric: tabular-nums;
-}
-
-.pstep-body {
+.ptile-face {
   flex: 1;
-  min-width: 0;
-}
-
-.pstep-title {
-  font-family: var(--font-display);
-  font-size: 1.16rem;
-  font-weight: 700;
-  line-height: 1.24;
-  letter-spacing: -0.02em;
-  color: #fafafa;
+  padding: 20px 20px 14px;
   text-decoration: none;
 }
 
-.pstep-title:hover {
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
-}
-
-.pstep-desc {
-  margin: 7px 0 0;
-  max-width: 64ch;
-  color: var(--text-faint);
-  font-size: 0.92rem;
-  line-height: 1.6;
-}
-
-/* Wraps: a long host beside a long depth label ran past the right edge of a
-   phone, and the badge is the thing that has to drop rather than the page. */
-.pstep-meta {
+.ptile-head {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 8px 10px;
-  margin-top: 12px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 
-.pstep-host {
-  color: #52525b;
-  font-size: 0.78rem;
+/* The one place the band shows at rest. A small lit chip reads as a label for
+   the kind of thing this is, where a full-size coloured disc read as a step in
+   a sequence. */
+.ptile-glyph {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  color: color-mix(in srgb, var(--band-lit) 90%, transparent);
+  background: color-mix(in srgb, var(--band) 15%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--band) 26%, transparent);
 }
 
-.pstep-depth {
-  padding: 3px 9px;
-  border: 1.5px solid color-mix(in srgb, var(--band) 45%, transparent);
-  border-radius: 3px;
-  color: var(--band-lit);
-  font-size: 0.64rem;
+.ptile-glyph svg {
+  width: 17px;
+  height: 17px;
+}
+
+.ptile-kind {
+  color: color-mix(in srgb, var(--band-lit) 80%, transparent);
+  font-size: 0.63rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.13em;
 }
 
-.pstep-controls .bookmark-btn {
-  position: static;
+.ptile-title {
+  font-family: var(--font-display);
+  margin: 0;
+  font-size: 1.04rem;
+  font-weight: 600;
+  line-height: 1.32;
+  letter-spacing: -0.018em;
+  color: #f4f4f5;
 }
 
-.pstep-controls {
+.ptile:hover .ptile-title {
+  color: #fff;
+}
+
+.ptile-desc {
+  margin: 9px 0 0;
+  color: #77777f;
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+
+.ptile-foot {
   display: flex;
   align-items: center;
-  gap: 4px;
-  flex-shrink: 0;
+  gap: 10px;
+  padding: 12px 20px 14px;
+  border-top: 1px solid var(--line);
 }
 
-.pstep-tick {
-  display: flex;
+.ptile-host {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: #4b4b55;
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ptile-tick {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: 2px solid var(--line-bold);
-  border-radius: 4px;
+  gap: 5px;
+  padding: 4px 11px 4px 8px;
+  border: 1px solid var(--line-bold);
+  border-radius: 999px;
   background: transparent;
-  color: #3f3f46;
+  color: #6f6f7a;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
   cursor: pointer;
   transition:
-    background-color 0.16s var(--ease-settle),
-    border-color 0.16s var(--ease-settle),
-    color 0.16s var(--ease-settle);
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease;
 }
 
-.pstep-tick svg {
-  width: 15px;
-  height: 15px;
+.ptile-tick svg {
+  width: 12px;
+  height: 12px;
 }
 
-.pstep-tick:hover {
+.ptile-tick:hover {
   border-color: var(--band);
   color: var(--band-lit);
 }
 
-.pstep-tick[aria-pressed="true"] {
-  border-color: var(--band);
-  background: var(--band);
-  color: #07070a;
-}
-
-/* Finished work steps back. The page's job is to point at the next thing, and
-   a completed slab at full strength competes with it. */
-.pstep.done {
+.ptile.done {
   border-color: var(--line);
-  box-shadow: 3px 3px 0 color-mix(in srgb, var(--band) 24%, transparent);
+  background: transparent;
 }
 
-.pstep.done .pstep-type {
-  color: #3f3f46;
+.ptile.done .ptile-title {
+  color: #56565f;
 }
 
-.pstep.done .pstep-n,
-.pstep.done .pstep-title {
-  color: #52525b;
+.ptile.done .ptile-desc,
+.ptile.done .ptile-glyph {
+  opacity: 0.5;
 }
 
-.pstep.done .pstep-title {
-  text-decoration: line-through;
-  text-decoration-color: #3f3f46;
+.ptile.done .ptile-tick {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--band) 18%, transparent);
+  color: var(--band-lit);
 }
 
-@media (max-width: 640px) {
-  .pstep {
-    gap: 13px;
-    padding: 16px;
-    box-shadow: 3px 3px 0 color-mix(in srgb, var(--band, #a1a1aa) 78%, transparent);
-  }
+.ptile-foot .bookmark-btn {
+  position: static;
+  width: 26px;
+  height: 26px;
+}
 
-  .pstep-n {
-    font-size: 1.5rem;
-  }
+/* The run between two markers. Fixed height, so the curve has room to leave
+   one disc and arrive at the next without either end kinking. */
+/* Inset by half a marker each side, so the curve's own 0 and 100 sit dead on
+   the two marker centres at any marker size. */
+.road-run {
+  height: var(--run, 158px);
+  margin: 4px calc(var(--node) / 2);
+  pointer-events: none;
+}
+
+/* No width or height here on purpose. The svg carries its own measured size
+   and a viewBox to match; forcing it to 100% let the box and the viewBox drift
+   apart on any resize, which stretched the path — the exact distortion the
+   measuring was added to remove. */
+.road-run svg {
+  display: block;
+  overflow: visible;
+}
+
+.road-run path {
+  fill: none;
+  stroke: #3a3a45;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 2 11;
 }
 
 /* --- Hero: sections below the fold --- */
@@ -6291,6 +6312,14 @@ nav {
 }
 
 /* Same texture as the auth card, so the grain reads as one system. */
+/* The drawn fallback, sized like the img it replaces. */
+.topic-icon-fallback {
+  position: relative;
+  width: 55%;
+  height: 55%;
+  color: color-mix(in srgb, var(--tint, #a1a1aa) 45%, #ffffff);
+}
+
 .topic-icon-grain {
   position: absolute;
   inset: 0;
@@ -6717,6 +6746,9 @@ nav {
 }
 
 .stage-trail {
+  --node: 74px;
+  --run: 158px;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   /* The run was reading as a stack rather than a route: at the old spacing a
@@ -6724,27 +6756,33 @@ nav {
      A route needs to feel walked, which means air between the stops. */
   gap: clamp(30px, 3.6vw, 52px);
   margin: 0;
-  /* Starts where the plate starts. The arc then bulges right from there, so
-     the whole run reads as hanging off the plate above it rather than sitting
-     beside it. Labels are free to run past the plate's right edge. */
-  padding: 0 0 4px max(0px, calc((100% - var(--plate)) / 2));
+  /* box-sizing is not global in this stylesheet, so max-width has to be told
+     to include padding — it was adding a 230px indent from the old
+     plate-aligned layout on top of the cap, and the spine then drew 230px left
+     of every marker. */
+  box-sizing: border-box;
+  padding: 0 0 4px;
   list-style: none;
 }
 
-/* Each stop leans off the column by its own --lean, set from a sine in the
-   component. No connector is drawn: neither reference has one, and once the
-   markers are this size the stagger carries the route on its own — a line
-   through them would only be something else to look at. */
+/* Stops alternate sides and are joined by a dashed run. The sine lean this
+   replaces put every marker on the left and bent the column — it read as a
+   crooked list rather than a path, because a curve you cannot see both ends of
+   is just a drift. */
 .stop {
-  /* The arc's widest point. The marker column is this plus the marker itself,
-     so the column is a constant width and the marker slides inside it. */
-  --lean-max: 76px;
-  --mark: 74px;
   position: relative;
-  display: grid;
-  grid-template-columns: calc(var(--lean-max) + var(--mark)) minmax(0, 1fr);
-  gap: 22px;
+  display: flex;
   align-items: center;
+  gap: clamp(16px, 3vw, 26px);
+}
+
+.stop.side-r {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.stop.side-r .stop-label {
+  align-items: flex-end;
 }
 
 /* The open stop and its popover sit above everything after them. */
@@ -6771,8 +6809,7 @@ nav {
   position: relative;
   display: grid;
   place-items: center;
-  justify-self: start;
-  margin-left: var(--lean, 0px);
+  flex-shrink: 0;
 }
 
 .stop-node {
@@ -6804,41 +6841,77 @@ nav {
    something with thickness that can be pressed rather than a flat circle.
    Darkening the underside is invisible on a black page, so the edge is a
    deeper tone of the marker's own hue. */
+/* Lit glass, not a flat disc: a light source at the top left, the lane's hue
+   through the body and a darker rim under it. Two near-blacks on a black page
+   made an unread marker a hole rather than an object. */
 .stop-node-face {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 74px;
-  height: 74px;
-  border: 1.5px solid #3c3c49;
+  width: var(--node);
+  height: var(--node);
   border-radius: 50%;
-  /* Was two near-blacks on a black page, which made an unread marker a hole
-     rather than an object. It has to read as unlit, not as absent. */
-  background: linear-gradient(180deg, #26262f, #16161d);
-  box-shadow: 0 6px 0 #0b0b0f;
+  color: #0b0b12;
+  background:
+    radial-gradient(
+      circle at 34% 26%,
+      color-mix(in srgb, var(--type) 42%, #ffffff) 0%,
+      var(--type) 52%,
+      color-mix(in srgb, var(--type) 84%, #000000) 100%
+    );
+  box-shadow:
+    0 0 0 9px color-mix(in srgb, var(--type) 16%, transparent),
+    0 14px 32px -10px color-mix(in srgb, var(--type) 62%, transparent),
+    inset 0 -3px 9px color-mix(in srgb, var(--type) 72%, #000000);
   transition:
-    box-shadow 0.2s var(--ease-bounce),
-    background 0.28s var(--ease-settle),
-    border-color 0.28s var(--ease-settle);
+    box-shadow 0.3s var(--ease-settle),
+    filter 0.3s var(--ease-settle);
+}
+
+/* The shine — the detail that makes it a lit object rather than a circle. */
+.stop-node-face::after {
+  content: "";
+  position: absolute;
+  inset: 7% 13% 46%;
+  border-radius: 50%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5),
+    rgba(255, 255, 255, 0.06) 70%,
+    transparent
+  );
+  pointer-events: none;
 }
 
 .stop-node:hover .stop-node-face {
-  border-color: #4e4e5e;
-  box-shadow: 0 8px 0 #0b0b0f;
+  box-shadow:
+    0 0 0 11px color-mix(in srgb, var(--type) 20%, transparent),
+    0 20px 40px -10px color-mix(in srgb, var(--type) 70%, transparent),
+    inset 0 -3px 9px color-mix(in srgb, var(--type) 72%, #000000);
 }
 
-.stop-node:active .stop-node-face {
-  box-shadow: 0 2px 0 #0b0b0f;
+/* Ahead of you: dimmed, never locked. Every stop opens, in any order. */
+.stop.is-ahead .stop-node-face {
+  filter: brightness(0.86);
+}
+
+.stop.is-ahead .stop-node:hover .stop-node-face {
+  filter: none;
 }
 
 .stop-node-icon {
-  width: 32px;
-  height: 32px;
+  position: relative;
+  width: 31px;
+  height: 31px;
+  stroke-width: 2.1;
+  opacity: 0.82;
 }
 
 /* The site's own mark, centred in the marker. Rounded a little and lifted off
    the plate, so a square favicon on a dark disc reads as a badge rather than a
    pasted screenshot. */
 .stop-node-mark {
+  position: relative;
   width: 30px;
   height: 30px;
   object-fit: contain;
@@ -6847,9 +6920,10 @@ nav {
 }
 
 .stop-node-check {
-  width: 32px;
-  height: 32px;
-  color: #07070a;
+  position: relative;
+  width: 30px;
+  height: 30px;
+  color: #0b0b12;
 }
 
 /* Ahead of you. Quiet, never disabled — every stop opens, in any order. */
@@ -6866,13 +6940,7 @@ nav {
    saturation these were the brightest things on the page, which put the
    loudest marker on the one stop that needs nothing from you. */
 .stop.is-done .stop-node-face {
-  border-color: color-mix(in srgb, var(--type) 34%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--type) 58%, #16161d),
-    color-mix(in srgb, var(--type) 36%, #101016)
-  );
-  box-shadow: 0 6px 0 color-mix(in srgb, var(--type) 26%, #000);
+  filter: saturate(0.6) brightness(0.72);
 }
 
 .stop.is-done .stop-node:hover .stop-node-face {
@@ -6890,19 +6958,15 @@ nav {
 /* The one lit marker on the page. A single glow is a direction; a page of
    them is the list this view exists to replace, so the light is spent here
    and nowhere else. */
+/* The one stop you are on. Nothing repaints the glass — the marker is lit by
+   widening its own ring, so every state is recognisably the same object.
+   The old rules replaced the background outright, which is why a "next" marker
+   rendered as a dark disc beside glossy ones. */
 .stop.is-next .stop-node-face {
-  border-color: color-mix(in srgb, var(--type) 62%, transparent);
-  background:
-    radial-gradient(
-      70% 70% at 50% 34%,
-      color-mix(in srgb, var(--type) 34%, transparent),
-      transparent 72%
-    ),
-    linear-gradient(180deg, #1b1b24, #101017);
   box-shadow:
-    0 6px 0 color-mix(in srgb, var(--type) 34%, #000),
-    0 0 0 6px color-mix(in srgb, var(--type) 11%, transparent),
-    0 18px 48px -10px color-mix(in srgb, var(--type) 78%, transparent);
+    0 0 0 12px color-mix(in srgb, var(--type) 22%, transparent),
+    0 18px 40px -10px color-mix(in srgb, var(--type) 78%, transparent),
+    inset 0 -3px 9px color-mix(in srgb, var(--type) 72%, #000000);
 }
 
 .stop.is-next .stop-node:hover .stop-node-face {
@@ -7004,16 +7068,13 @@ nav {
 .stop-pop {
   position: absolute;
   top: calc(100% + 14px);
-  left: var(--lean, 0px);
+  left: 0;
   z-index: 30;
   /* border-box, because this stylesheet doesn't set it globally and the 22px
      of padding was landing outside the declared width — which is what pushed
      the card off the right edge on a phone and clipped the description. */
   box-sizing: border-box;
   width: min(380px, 100%);
-  /* The card is offset by the marker's own lean, so its width has to come off
-     the same budget or a leaning stop pushes it past the row's right edge. */
-  max-width: calc(100% - var(--lean, 0px));
   padding: 22px 22px 20px;
   border: 1.5px solid #33333f;
   border-bottom: 4px solid #45454f;
@@ -7157,6 +7218,62 @@ nav {
   color: var(--type-lit);
 }
 
+/* --- The route on a wide screen ---
+ *
+ * The weave is right for a phone: one column, thumb-scrolled, each marker
+ * arriving on its own. On a landscape screen it is wrong — the same two
+ * positions get flung a thousand pixels apart, the curve pulls flat and the
+ * middle of the page is empty while the text is squeezed into the corners.
+ *
+ * So the run straightens into a spine. It has to sit *after* the .stop rules
+ * rather than up with the other breakpoints: the selectors are the same weight
+ * either way, so the one further down the file is the one that applies, and
+ * from higher up this block drew the spine while the weave stayed on.
+ */
+@media (min-width: 860px) {
+  .stage-trail {
+    position: relative;
+    max-width: 780px;
+  }
+
+  /* The drawn runs are for the weave. Here one dashed rule behind the markers
+     does the same job without an svg per gap. */
+  .road-run {
+    display: none;
+  }
+
+  .stage-trail::before {
+    content: "";
+    position: absolute;
+    top: 30px;
+    bottom: 30px;
+    left: calc(var(--node) / 2 - 1px);
+    border-left: 2px dashed #33333d;
+  }
+
+  .stop,
+  .stop.side-r {
+    flex-direction: row;
+    text-align: left;
+    align-items: flex-start;
+    gap: 26px;
+    padding: 20px 0;
+  }
+
+  .stop.side-r .stop-label {
+    align-items: flex-start;
+  }
+
+  /* The marker sits on the spine, so it needs the page under it rather than
+     the dashes running through the glass. */
+  .stop-marker {
+    position: relative;
+    z-index: 1;
+    border-radius: 50%;
+    background: var(--bg);
+  }
+}
+
 .path-done {
   margin: 0;
   padding: 20px 22px;
@@ -7168,19 +7285,16 @@ nav {
 }
 
 @media (max-width: 620px) {
+  /* One variable, so the run's inset shrinks with the marker. Overriding the
+     face's width directly left the dashed curve anchored to the desktop size
+     and it missed every marker by 7px. */
+  .stage-trail {
+    --node: 60px;
+    --run: 120px;
+  }
+
   .stop {
-    --lean-max: 38px;
-    --mark: 60px;
     gap: 16px;
-  }
-
-  .stop-marker {
-    margin-left: calc(var(--lean, 0px) * 0.5);
-  }
-
-  .stop-node-face {
-    width: 60px;
-    height: 60px;
   }
 
   .stop-node-icon,

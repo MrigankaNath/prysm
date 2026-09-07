@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import PrismStep from "../components/PrismStep";
+import PrismCard from "../components/PrismCard";
 import { IconPrism, IconChevronRight } from "../components/Icons";
 import { apiFetch } from "../lib/api";
 import { getProgress, toggleDone, subscribe } from "../lib/library";
@@ -31,7 +31,6 @@ export function PrismBody({ bundle }) {
 
   useEffect(() => subscribe(() => setDone(new Set(getProgress(key)))), [key]);
 
-  const position = new Map(items.map((item, i) => [item.id, i + 1]));
 
   return (
     <>
@@ -52,21 +51,6 @@ export function PrismBody({ bundle }) {
           </p>
         )}
 
-        <div className="prism-progress">
-          {items.map((item, i) => (
-            <span
-              key={item.id}
-              className={`prism-step stage-${item.depth_level}${
-                done.has(item.url) ? " done" : ""
-              }`}
-            >
-              {i + 1}
-            </span>
-          ))}
-          <span className="prism-progress-count">
-            {items.filter((item) => done.has(item.url)).length} of {items.length}
-          </span>
-        </div>
       </header>
 
       {/* Grouped by depth so the path reads as three stages rather than a flat
@@ -82,12 +66,11 @@ export function PrismBody({ bundle }) {
               <span className="prism-stage-count">{stage.length}</span>
             </h3>
 
-            <div className="prism-steps">
+            <div className="ptile-grid">
               {stage.map((item) => (
-                <PrismStep
+                <PrismCard
                   key={item.id}
                   item={item}
-                  index={position.get(item.id)}
                   topic={bundle.topic}
                   done={done.has(item.url)}
                   onToggle={() => toggleDone(key, item.url)}

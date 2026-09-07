@@ -74,3 +74,42 @@ test("one resource takes one stop", () => {
 
   assert.equal(urls.filter((url) => url === shared).length, 1);
 });
+
+const { PRISMS } = require("../db/seed/prisms.data.js");
+const DEPTHS = ["beginner", "intermediate", "advanced"];
+
+/* The seed is the app's only curated surface and it is loaded straight into
+ * production, so its shape is checked here rather than discovered in the UI.
+ * Link liveness is a separate, networked job — db/seed/verify.js. */
+test("every prism carries seven stops per depth level", () => {
+  for (const prism of PRISMS) {
+    const counts = DEPTHS.map(
+      (d) => prism.items.filter((item) => item.d === d).length,
+    );
+    assert.deepEqual(counts, [7, 7, 7], `${prism.slug} is ${counts.join("/")}`);
+  }
+});
+
+test("no prism lists the same url twice", () => {
+  for (const prism of PRISMS) {
+    const urls = prism.items.map((item) => item.u);
+    assert.equal(new Set(urls).size, urls.length, `${prism.slug} repeats a url`);
+  }
+});
+
+test("every stop has the fields the card renders", () => {
+  for (const prism of PRISMS) {
+    for (const item of prism.items) {
+      for (const field of ["t", "u", "k", "d", "s"]) {
+        assert.ok(item[field], `${prism.slug}: "${item.t}" is missing ${field}`);
+      }
+      assert.ok(DEPTHS.includes(item.d), `${prism.slug}: bad depth ${item.d}`);
+      assert.ok(item.u.startsWith("https://") || item.u.startsWith("http://"));
+    }
+  }
+});
+
+test("prism topics are unique, so the loader updates rather than duplicates", () => {
+  const topics = PRISMS.map((p) => p.topic);
+  assert.equal(new Set(topics).size, topics.length);
+});

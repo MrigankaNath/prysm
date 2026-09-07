@@ -1,10 +1,13 @@
 /* Scratch preview — the real pages sit behind the auth gate. Delete before merging. */
-import { StrictMode } from "react";
+import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import "./index.css";
 import { PrismGradientDefs } from "./components/Icons";
 import { PrismBody } from "./pages/PrismDetail";
+import Spectrum from "./pages/Spectrum";
+import PathStage from "./components/PathStage";
+import { buildPath } from "./lib/path";
 
 const react = {
   "id": 3,
@@ -195,11 +198,69 @@ const rust = {
   ],
 };
 
+/* The explore roadmap, built from the same buildPath the real page uses so the
+   preview cannot drift from it. */
+const CATEGORIES = {
+  videos: [
+    { title: "The Map of Quantum Computing", url: "https://youtube.com/watch?v=a", signal: 2_400_000, snippet: "Every branch of the field on one map." },
+    { title: "Quantum Computers, Explained", url: "https://youtube.com/watch?v=b", signal: 1_100_000, snippet: "Where the speedup actually comes from." },
+  ],
+  websites: [
+    { title: "Quantum Country", url: "https://quantum.country/qcvc", thumbnail: "https://www.google.com/s2/favicons?domain=quantum.country&sz=128", snippet: "An essay with spaced repetition built in." },
+    { title: "Quantum Algorithm Zoo", url: "https://quantumalgorithmzoo.org/", thumbnail: "https://www.google.com/s2/favicons?domain=quantumalgorithmzoo.org&sz=128", snippet: "Every known algorithm and its speedup." },
+  ],
+  articles: [
+    { title: "The Limits of Quantum Computers", url: "https://scottaaronson.com/l", depth_level: "beginner", snippet: "What these machines cannot do." },
+    { title: "Grover's algorithm, carefully", url: "https://en.wikipedia.org/wiki/Grover", depth_level: "intermediate", snippet: "Why quadratic is smaller than it sounds." },
+    { title: "Surface codes", url: "https://arxiv.org/abs/1208.0928", depth_level: "advanced", snippet: "The code the roadmaps are betting on." },
+  ],
+  discussions: [
+    { title: "Google claims quantum supremacy", url: "https://news.ycombinator.com/item?id=1", signal: 1582, snippet: "1582 points, 640 comments" },
+  ],
+  papers: [
+    { title: "Polynomial-Time Algorithms for Prime Factorization", url: "https://arxiv.org/abs/quant-ph/9508027", source: "arxiv", snippet: "Shor, 1995." },
+    { title: "Quantum Computing in the NISQ era", url: "https://arxiv.org/abs/1801.00862", peer_reviewed: true, venue: "Quantum", signal: 4200, snippet: "The paper that named the era." },
+  ],
+};
+
+const PATH = buildPath(CATEGORIES, ["videos", "websites", "discussions", "papers"]);
+
+function PathPreview() {
+  const [open, setOpen] = useState(null);
+  const [done, setDone] = useState([]);
+
+  return (
+    <div className="page page-wide">
+      <h1 className="prism-title" style={{ marginBottom: 28 }}>Explore path</h1>
+      <div className="path">
+        {PATH.map((stage) => (
+          <PathStage
+            key={stage.id}
+            stage={stage}
+            topic="quantum computing"
+            doneUrls={done}
+            litUrl={PATH[0].items[0].url}
+            openUrl={open}
+            onOpen={setOpen}
+            onToggle={(url) =>
+              setDone((d) => (d.includes(url) ? d.filter((u) => u !== url) : [...d, url]))
+            }
+            expanded
+            onExpand={() => {}}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <MemoryRouter>
       <PrismGradientDefs />
-      <div className="page page-wide">
+      {location.hash === "#spectrum" ? <Spectrum /> : null}
+      {location.hash === "#path" ? <PathPreview /> : null}
+      <div className="page page-wide" hidden={location.hash !== ""}>
         <PrismBody bundle={react} />
         <hr style={{ margin: "56px 0", border: 0, borderTop: "2px solid #1c1c20" }} />
         <PrismBody bundle={rust} />
