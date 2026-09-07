@@ -7,6 +7,7 @@ import {
   resolveTopicIcon,
   topicColor,
 } from "../lib/topicIcon";
+import { IconCompass } from "./Icons";
 
 /**
  * An icon for a topic, served by Iconify.
@@ -20,8 +21,6 @@ import {
    and a cached id from an earlier session can go stale. Without a handler the
    browser draws its broken-image glyph, which looks like the app is broken
    rather than like an icon is missing. */
-const FALLBACK_ICON = "ph:compass-bold";
-
 function TopicIcon({ topic, color, icon: fixed, className = "" }) {
   const [icon, setIcon] = useState(() => fixed || conceptIcon(topic));
   const [failed, setFailed] = useState(false);
@@ -59,20 +58,25 @@ function TopicIcon({ topic, color, icon: fixed, className = "" }) {
       {/* Same feTurbulence grain the auth card uses, so the texture reads as
           one system rather than a one-off. */}
       <span className="topic-icon-grain" aria-hidden="true" />
-      <img
-        src={iconUrl(failed ? FALLBACK_ICON : icon, tint)}
-        alt=""
-        loading="lazy"
-        decoding="async"
-        /* Step down once — to the concept glyph if a resolved logo failed,
-           then to the compass — rather than looping on a URL that won't load. */
-        onError={() => {
-          if (failed) return;
-          const concept = conceptIcon(topic);
-          if (icon !== concept) setIcon(concept);
-          else setFailed(true);
-        }}
-      />
+      {/* The last step down is drawn locally, not fetched.
+          Every fallback used to be another Iconify URL, so when the API was
+          unreachable — offline, blocked, rate-limited — all of them failed and
+          the browser painted its own broken-image glyph into the plate. A
+          missing icon has to degrade to something, never to that. */}
+      {failed ? (
+        <IconCompass className="topic-icon-fallback" />
+      ) : (
+        <img
+          src={iconUrl(icon, tint)}
+          alt=""
+          decoding="async"
+          onError={() => {
+            const concept = conceptIcon(topic);
+            if (icon !== concept) setIcon(concept);
+            else setFailed(true);
+          }}
+        />
+      )}
     </span>
   );
 }

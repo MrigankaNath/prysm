@@ -1,7 +1,6 @@
-import { Fragment, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import PrismStep from "../components/PrismStep";
-import RoadRun from "../components/RoadRun";
+import PrismCard from "../components/PrismCard";
 import { IconPrism, IconChevronRight } from "../components/Icons";
 import { apiFetch } from "../lib/api";
 import { getProgress, toggleDone, subscribe } from "../lib/library";
@@ -32,7 +31,6 @@ export function PrismBody({ bundle }) {
 
   useEffect(() => subscribe(() => setDone(new Set(getProgress(key)))), [key]);
 
-  const doneCount = items.filter((item) => done.has(item.url)).length;
 
   return (
     <>
@@ -53,29 +51,6 @@ export function PrismBody({ bundle }) {
           </p>
         )}
 
-        {/* A segmented rule rather than numbered squares. Twenty-one numbered
-            boxes was twenty-one more boxes on a page that already had too
-            many, and the number on each was never the useful part — where you
-            are along the whole run is. */}
-        <div className="prism-progress">
-          <span
-            className="prism-bar"
-            role="img"
-            aria-label={`${doneCount} of ${items.length} complete`}
-          >
-            {items.map((item) => (
-              <span
-                key={item.id}
-                className={`prism-seg stage-${item.depth_level}${
-                  done.has(item.url) ? " done" : ""
-                }`}
-              />
-            ))}
-          </span>
-          <span className="prism-progress-count">
-            {doneCount} of {items.length}
-          </span>
-        </div>
       </header>
 
       {/* Grouped by depth so the path reads as three stages rather than a flat
@@ -91,23 +66,17 @@ export function PrismBody({ bundle }) {
               <span className="prism-stage-count">{stage.length}</span>
             </h3>
 
-            <ol className="proad">
-              {stage.map((item, i) => {
-                const side = i % 2 === 0 ? "l" : "r";
-                return (
-                  <Fragment key={item.id}>
-                    {i > 0 && <RoadRun from={i % 2 === 0 ? "r" : "l"} />}
-                    <PrismStep
-                      item={item}
-                      side={side}
-                      topic={bundle.topic}
-                      done={done.has(item.url)}
-                      onToggle={() => toggleDone(key, item.url)}
-                    />
-                  </Fragment>
-                );
-              })}
-            </ol>
+            <div className="ptile-grid">
+              {stage.map((item) => (
+                <PrismCard
+                  key={item.id}
+                  item={item}
+                  topic={bundle.topic}
+                  done={done.has(item.url)}
+                  onToggle={() => toggleDone(key, item.url)}
+                />
+              ))}
+            </div>
           </section>
         );
       })}

@@ -46,7 +46,7 @@ function RoadRun({ from }) {
       : `M ${w} 0 C ${w} ${pull}, 0 ${h - pull}, 0 ${h}`;
 
   return (
-    <li className="proad-link" ref={ref} aria-hidden="true">
+    <li className="road-run" ref={ref} aria-hidden="true">
       {w > 0 && (
         <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
           <path d={d} />
