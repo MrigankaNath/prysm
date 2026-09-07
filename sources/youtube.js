@@ -95,6 +95,7 @@ async function fetchYoutube(topic) {
     .slice(0, 5)
     .map((item) => ({
       title: decodeEntities(item.snippet.title),
+      author: decodeEntities(item.snippet.channelTitle),
       url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
       source: "youtube",
       type: "video",

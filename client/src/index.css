@@ -6715,37 +6715,43 @@ nav {
   min-width: 0;
 }
 
+/* The stage is the container, not a caption above one.
+ *
+ * The plate centred itself while the trail below it started at the section's
+ * left edge, so the run read as something happening *next to* the stage rather
+ * than inside it — and the leftmost marker hung off the edge with its ring
+ * clipped. One bordered box now holds the heading and the whole run, which is
+ * also what makes a stage legible when three of them stack. */
 .stage {
-  /* The plate's width and the run's alignment are the same measurement, so
-     they are one token. They were separate before and it showed: the plate
-     centred itself while the markers stayed pinned to the far left of the
-     column, which read as two unrelated elements. */
-  --plate: 560px;
+  --plate: 660px;
+  box-sizing: border-box;
+  /* width, then cap. Auto side margins on a flex-column child switch off
+     cross-axis stretching, so without this the stage shrank to fit its content
+     and sat narrower than the cap it was given. */
+  width: 100%;
+  max-width: var(--plate);
   min-width: 0;
+  margin: 0 auto;
+  padding: 24px clamp(20px, 3vw, 38px) clamp(30px, 4vw, 46px);
+  border: 1.5px solid color-mix(in srgb, var(--stage) 30%, transparent);
+  border-radius: 28px;
+  background:
+    radial-gradient(
+      120% 60% at 50% 0%,
+      color-mix(in srgb, var(--stage) 10%, transparent),
+      transparent 70%
+    ),
+    #08080c;
 }
 
 /* The level plate. Centred, because it is a marker for a run rather than a
    heading over a list, and the run beneath it is centred on a weaving column
    rather than flush to a margin. */
 .stage-head {
-  /* border-box, so --plate is the plate's real width. Without it the 26px of
-     padding and 2px of border sit outside the max-width, the plate renders 56px
-     wider than the token says, and the run below it aligns to a left edge the
-     plate does not actually have. */
   box-sizing: border-box;
-  margin: 0 auto clamp(30px, 3.4vw, 44px);
-  padding: 18px 26px 20px;
-  max-width: var(--plate);
-  border: 2px solid color-mix(in srgb, var(--stage) 52%, transparent);
-  border-radius: 22px;
-  background:
-    radial-gradient(
-      120% 140% at 50% 0%,
-      color-mix(in srgb, var(--stage) 15%, transparent),
-      transparent 70%
-    ),
-    #0a0a0e;
-  box-shadow: 0 0 44px -14px color-mix(in srgb, var(--stage) 60%, transparent);
+  margin: 0 0 clamp(26px, 3vw, 38px);
+  padding: 0 0 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--stage) 22%, var(--line));
   text-align: center;
 }
 
@@ -6778,7 +6784,7 @@ nav {
 .stage-trail {
   --node: 74px;
   --run: 158px;
-  max-width: 500px;
+  max-width: none;
   display: flex;
   flex-direction: column;
   /* The run was reading as a stack rather than a route: at the old spacing a
@@ -7094,6 +7100,45 @@ nav {
   color: #fff;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+/* What the stop is, beyond its title. Small and quiet — this is the line you
+   read when the title alone hasn't decided it for you. */
+.stop-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 8px;
+  color: #55555f;
+  font-size: 0.76rem;
+}
+
+.stop.side-r .stop-facts {
+  justify-content: flex-end;
+}
+
+.stop-by {
+  color: #7c7c88;
+  font-weight: 500;
+}
+
+.stop-signal {
+  font-variant-numeric: tabular-nums;
+}
+
+/* For a curated site the domain is the recommendation — "plato.stanford.edu"
+   settles whether to click in a way the title never does — so it is set in the
+   lane's own colour rather than dropped in beside the rest. */
+.stop-domain {
+  padding: 2px 9px;
+  border: 1px solid color-mix(in srgb, var(--type) 34%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--type) 12%, transparent);
+  color: color-mix(in srgb, var(--type-lit) 92%, transparent);
+  font-size: 0.73rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 /* --- the stop's detail -------------------------------------------------- */

@@ -1,7 +1,7 @@
 import { Fragment, useState } from "react";
 import { Check, ChevronDown, ArrowUpRight } from "lucide-react";
 import { recordVisit } from "../lib/library";
-import { hostOf } from "../lib/result";
+import { hostOf, formatSignal } from "../lib/result";
 import {
   CATEGORY_ICONS,
   CATEGORY_LABELS,
@@ -47,6 +47,7 @@ function Stop({ item, side, state, topic, open, onOpen, onToggle }) {
   const [hue, lit] = CATEGORY_GRADIENTS[item.category] || ["#8b5cf6", "#c4b5fd"];
   const host = hostOf(item.url);
   const mark = provenanceOf(item);
+  const signal = formatSignal(item);
   const kind = CATEGORY_LABELS[item.category] || item.category;
   const done = state === "done";
   /* A website's marker carries the site's own mark rather than a globe. Every
@@ -104,6 +105,21 @@ function Stop({ item, side, state, topic, open, onOpen, onToggle }) {
         >
           {item.title}
         </a>
+
+        {/* Who made it, how many people met it, and where it lives. A title
+            alone does not say whether a link is worth opening — and for a
+            website the domain *is* the recommendation, so it leads. */}
+        <div className="stop-facts">
+          {item.category === "websites" && host ? (
+            <span className="stop-domain">{host}</span>
+          ) : (
+            <>
+              {item.author && <span className="stop-by">{item.author}</span>}
+              {signal && <span className="stop-signal">{signal}</span>}
+              {host && <span className="stop-host">{host}</span>}
+            </>
+          )}
+        </div>
       </div>
 
       {open && (

@@ -203,8 +203,8 @@ const rust = {
    preview cannot drift from it. */
 const CATEGORIES = {
   videos: [
-    { title: "The Map of Quantum Computing", url: "https://youtube.com/watch?v=a", signal: 2_400_000, snippet: "Every branch of the field on one map." },
-    { title: "Quantum Computers, Explained", url: "https://youtube.com/watch?v=b", signal: 1_100_000, snippet: "Where the speedup actually comes from." },
+    { title: "The Map of Quantum Computing", url: "https://youtube.com/watch?v=a", source: "youtube", author: "Domain of Science", signal: 2_400_000, snippet: "Every branch of the field on one map." },
+    { title: "Quantum Computers, Explained", url: "https://youtube.com/watch?v=b", source: "youtube", author: "Veritasium", signal: 1_100_000, snippet: "Where the speedup actually comes from." },
   ],
   websites: [
     { title: "Quantum Country", url: "https://quantum.country/qcvc", thumbnail: "https://www.google.com/s2/favicons?domain=quantum.country&sz=128", snippet: "An essay with spaced repetition built in." },

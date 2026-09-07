@@ -10,13 +10,22 @@ export function hostOf(url) {
 
 export function formatSignal(item) {
   if (typeof item.signal !== "number" || item.signal <= 0) return null;
+  /* Views run to millions where stars and points do not, so one k-step was
+     printing "2400.0k views". Steps all the way up and drops the decimal once
+     the number is large enough not to need it. */
+  const n = item.signal;
   const rounded =
-    item.signal >= 1000 ? `${(item.signal / 1000).toFixed(1)}k` : item.signal;
+    n >= 1_000_000
+      ? `${(n / 1_000_000).toFixed(n < 10_000_000 ? 1 : 0)}M`
+      : n >= 1000
+        ? `${(n / 1000).toFixed(n < 10_000 ? 1 : 0)}k`
+        : `${n}`;
   const labels = {
     github: "stars",
     hackernews: "points",
     stackexchange: "votes",
     podcasts: "episodes",
+    youtube: "views",
     openalex: "citations",
   };
   const label = labels[item.source];
