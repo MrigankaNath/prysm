@@ -2766,40 +2766,6 @@ nav {
 /* Lights up where it stands. The card used to lift on hover as well, which
    on a dense grid read as the row twitching; the glow alone says the same
    thing and says it on every side. */
-/* One shine crossing the card, the same gesture the crest makes at its own
- * scale — a single soft band, one pass, driven by the hover transition rather
- * than a loop. A repeating sweep asks to be watched; this one just answers the
- * pointer and stops.
- *
- * Warmed slightly off pure white, because sunlight is not #fff and at this
- * opacity that shift is most of what separates "sunlit" from "lit".
- */
-.fcard::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    115deg,
-    transparent 34%,
-    rgba(255, 250, 240, 0.14) 50%,
-    transparent 66%
-  );
-  transform: translateX(-130%);
-  transition: transform 0.9s var(--ease-settle);
-}
-
-.fcard:hover::before {
-  transform: translateX(130%);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .fcard::before {
-    display: none;
-  }
-}
-
 /* One light, falling across the whole card.
  *
  * The previous version placed two gradients in opposite corners, which is what
