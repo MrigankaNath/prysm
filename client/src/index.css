@@ -2766,6 +2766,70 @@ nav {
 /* Lights up where it stands. The card used to lift on hover as well, which
    on a dense grid read as the row twitching; the glow alone says the same
    thing and says it on every side. */
+/* Sun through a window: shafts crossing the card while you point at it.
+ *
+ * Three soft parallel bands at a shallow angle, not one hard sweep — a single
+ * highlight reads as a scanner passing over glass, where several of uneven
+ * weight read as light broken up on its way in. The box is inset well past the
+ * card so the bands are already at full strength when they enter, and the
+ * card's own `overflow: hidden` crops them to the rounded shape.
+ *
+ * It loops rather than firing once: the point is to say "this is live" for as
+ * long as the pointer is on it. The pass takes two and a half seconds and then
+ * rests, which is slow enough to be atmosphere rather than an effect
+ * demanding attention.
+ */
+.fcard::before {
+  content: "";
+  position: absolute;
+  inset: -30% -60%;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    104deg,
+    transparent 26%,
+    rgba(255, 255, 255, 0.055) 33%,
+    transparent 39%,
+    rgba(255, 255, 255, 0.09) 47%,
+    transparent 54%,
+    rgba(255, 255, 255, 0.04) 60%,
+    transparent 67%
+  );
+  transform: translate3d(-42%, 0, 0);
+}
+
+.fcard:hover::before {
+  animation: card-rays 5.4s var(--ease-settle) infinite;
+}
+
+@keyframes card-rays {
+  0% {
+    opacity: 0;
+    transform: translate3d(-42%, 0, 0);
+  }
+  10% {
+    opacity: 1;
+  }
+  38% {
+    opacity: 1;
+  }
+  48% {
+    opacity: 0;
+    transform: translate3d(42%, 0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(42%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fcard:hover::before {
+    animation: none;
+  }
+}
+
 /* One light, falling across the whole card.
  *
  * The previous version placed two gradients in opposite corners, which is what
