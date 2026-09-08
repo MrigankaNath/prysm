@@ -8,6 +8,7 @@ import { PrismBody } from "./pages/PrismDetail";
 import Spectrum from "./pages/Spectrum";
 import PathStage from "./components/PathStage";
 import MediaCard from "./components/MediaCard";
+import FeedCard from "./components/FeedCard";
 import { buildPath } from "./lib/path";
 
 const react = {
@@ -276,6 +277,24 @@ function MediaPreview() {
   );
 }
 
+const FEED = [
+  { c:"code", t:"Next Js", i:{ title:"vercel/next.js", url:"https://github.com/vercel/next.js", snippet:"The React Framework", thumbnail:"https://avatars.githubusercontent.com/u/14985020?v=4", published_at:"2026-09-01", signal:128000 }},
+  { c:"podcasts", t:"Stoicism", i:{ title:"Stoicism Meditation", url:"https://podcasts.apple.com/x", snippet:"Stoicism Meditation · Education · 720 episodes", author:"Stoicism Meditation", published_at:"2025-12-09", signal:720 }},
+  { c:"discussions", t:"Sleep", i:{ title:"American Academy of Sleep Medicine calls for elimination of daylight saving time", url:"https://aasm.org/x", snippet:"1600 points, 486 comments", published_at:"2020-08-29", signal:1600 }},
+  { c:"websites", t:"Sleep", i:{ title:"nytimes.com", url:"https://nytimes.com/x", snippet:null, thumbnail:"https://www.google.com/s2/favicons?domain=nytimes.com&sz=128" }},
+];
+
+function FeedPreview() {
+  return (
+    <div className="page page-wide feed">
+      <h1 className="prism-title" style={{ marginBottom: 24 }}>Because you searched</h1>
+      <section className="feed-section"><div className="fcard-grid">
+        {FEED.map((x,i)=><FeedCard key={i} item={x.i} topic={x.t} category={x.c} />)}
+      </div></section>
+    </div>
+  );
+}
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <MemoryRouter>
@@ -283,6 +302,7 @@ createRoot(document.getElementById("root")).render(
       {location.hash === "#spectrum" ? <Spectrum /> : null}
       {location.hash === "#path" ? <PathPreview /> : null}
       {location.hash === "#media" ? <MediaPreview /> : null}
+      {location.hash === "#feed" ? <FeedPreview /> : null}
       <div className="page page-wide" hidden={location.hash !== ""}>
         <PrismBody bundle={react} />
         <hr style={{ margin: "56px 0", border: 0, borderTop: "2px solid #1c1c20" }} />
