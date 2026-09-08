@@ -2775,11 +2775,13 @@ nav {
  * card's own `overflow: hidden` crops them to the rounded shape.
  *
  * It loops rather than firing once: the point is to say "this is live" for as
- * long as the pointer is on it. The crossing takes eight and a half seconds
- * and then rests — sunlight moves because the earth does, and anything quick
- * enough to watch reads as a swipe animation instead. Timed linearly for the
- * same reason: eased travel has a visible push and settle, and light drifting
- * across a surface has neither.
+ * long as the pointer is on it. The crossing is a shade under five seconds —
+ * fast enough to read as light moving, slow enough not to read as a swipe.
+ * Timed linearly, because eased travel has a visible push and settle and light
+ * crossing a surface has neither.
+ *
+ * The white is warmed slightly off pure. Sunlight is not #fff, and at these
+ * opacities that small shift is most of what separates "sunlit" from "lit".
  */
 .fcard::before {
   content: "";
@@ -2790,19 +2792,19 @@ nav {
   opacity: 0;
   background: linear-gradient(
     104deg,
-    transparent 26%,
-    rgba(255, 255, 255, 0.055) 33%,
-    transparent 39%,
-    rgba(255, 255, 255, 0.09) 47%,
-    transparent 54%,
-    rgba(255, 255, 255, 0.04) 60%,
-    transparent 67%
+    transparent 24%,
+    rgba(255, 249, 236, 0.085) 32%,
+    transparent 38%,
+    rgba(255, 250, 240, 0.16) 47%,
+    transparent 55%,
+    rgba(255, 249, 236, 0.07) 61%,
+    transparent 69%
   );
   transform: translate3d(-42%, 0, 0);
 }
 
 .fcard:hover::before {
-  animation: card-rays 14s linear infinite;
+  animation: card-rays 8s linear infinite;
 }
 
 @keyframes card-rays {
@@ -2812,13 +2814,13 @@ nav {
   }
   /* Long fades at both ends, so the shafts arrive and leave rather than
      switching on mid-card and cutting out at the edge. */
-  14% {
+  12% {
     opacity: 1;
   }
   48% {
     opacity: 1;
   }
-  61% {
+  60% {
     opacity: 0;
     transform: translate3d(42%, 0, 0);
   }
@@ -2855,15 +2857,15 @@ nav {
   background:
     radial-gradient(
       118% 92% at 26% -6%,
-      rgba(255, 255, 255, 0.085),
-      rgba(255, 255, 255, 0) 60%
+      rgba(255, 250, 240, 0.14),
+      rgba(255, 250, 240, 0) 62%
     ),
     radial-gradient(
       112% 88% at 26% -6%,
-      color-mix(in srgb, var(--band-lit, #a1a1aa) 20%, transparent),
-      transparent 58%
+      color-mix(in srgb, var(--band-lit, #a1a1aa) 30%, transparent),
+      transparent 60%
     );
-  opacity: 0.55;
+  opacity: 0.5;
   transform: translate3d(0, 0, 0);
   transition:
     opacity 0.7s var(--ease-settle),
@@ -2959,7 +2961,7 @@ nav {
     transparent 66%
   );
   transform: translateX(-130%);
-  transition: transform 2.2s var(--ease-settle);
+  transition: transform 1.5s var(--ease-settle);
 }
 
 .fcard:hover .fcard-crest {
