@@ -2775,9 +2775,11 @@ nav {
  * card's own `overflow: hidden` crops them to the rounded shape.
  *
  * It loops rather than firing once: the point is to say "this is live" for as
- * long as the pointer is on it. The pass takes two and a half seconds and then
- * rests, which is slow enough to be atmosphere rather than an effect
- * demanding attention.
+ * long as the pointer is on it. The crossing takes eight and a half seconds
+ * and then rests — sunlight moves because the earth does, and anything quick
+ * enough to watch reads as a swipe animation instead. Timed linearly for the
+ * same reason: eased travel has a visible push and settle, and light drifting
+ * across a surface has neither.
  */
 .fcard::before {
   content: "";
@@ -2800,7 +2802,7 @@ nav {
 }
 
 .fcard:hover::before {
-  animation: card-rays 5.4s var(--ease-settle) infinite;
+  animation: card-rays 14s linear infinite;
 }
 
 @keyframes card-rays {
@@ -2808,13 +2810,15 @@ nav {
     opacity: 0;
     transform: translate3d(-42%, 0, 0);
   }
-  10% {
-    opacity: 1;
-  }
-  38% {
+  /* Long fades at both ends, so the shafts arrive and leave rather than
+     switching on mid-card and cutting out at the edge. */
+  14% {
     opacity: 1;
   }
   48% {
+    opacity: 1;
+  }
+  61% {
     opacity: 0;
     transform: translate3d(42%, 0, 0);
   }
@@ -2955,7 +2959,7 @@ nav {
     transparent 66%
   );
   transform: translateX(-130%);
-  transition: transform 0.85s var(--ease-settle);
+  transition: transform 2.2s var(--ease-settle);
 }
 
 .fcard:hover .fcard-crest {
