@@ -2766,73 +2766,37 @@ nav {
 /* Lights up where it stands. The card used to lift on hover as well, which
    on a dense grid read as the row twitching; the glow alone says the same
    thing and says it on every side. */
-/* Sun through a window: shafts crossing the card while you point at it.
+/* One shine crossing the card, the same gesture the crest makes at its own
+ * scale — a single soft band, one pass, driven by the hover transition rather
+ * than a loop. A repeating sweep asks to be watched; this one just answers the
+ * pointer and stops.
  *
- * Three soft parallel bands at a shallow angle, not one hard sweep — a single
- * highlight reads as a scanner passing over glass, where several of uneven
- * weight read as light broken up on its way in. The box is inset well past the
- * card so the bands are already at full strength when they enter, and the
- * card's own `overflow: hidden` crops them to the rounded shape.
- *
- * It loops rather than firing once: the point is to say "this is live" for as
- * long as the pointer is on it. The crossing is a shade under five seconds —
- * fast enough to read as light moving, slow enough not to read as a swipe.
- * Timed linearly, because eased travel has a visible push and settle and light
- * crossing a surface has neither.
- *
- * The white is warmed slightly off pure. Sunlight is not #fff, and at these
- * opacities that small shift is most of what separates "sunlit" from "lit".
+ * Warmed slightly off pure white, because sunlight is not #fff and at this
+ * opacity that shift is most of what separates "sunlit" from "lit".
  */
 .fcard::before {
   content: "";
   position: absolute;
-  inset: -30% -60%;
+  inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: 0;
   background: linear-gradient(
-    104deg,
-    transparent 24%,
-    rgba(255, 249, 236, 0.085) 32%,
-    transparent 38%,
-    rgba(255, 250, 240, 0.16) 47%,
-    transparent 55%,
-    rgba(255, 249, 236, 0.07) 61%,
-    transparent 69%
+    115deg,
+    transparent 34%,
+    rgba(255, 250, 240, 0.14) 50%,
+    transparent 66%
   );
-  transform: translate3d(-42%, 0, 0);
+  transform: translateX(-130%);
+  transition: transform 0.9s var(--ease-settle);
 }
 
 .fcard:hover::before {
-  animation: card-rays 8s linear infinite;
-}
-
-@keyframes card-rays {
-  0% {
-    opacity: 0;
-    transform: translate3d(-42%, 0, 0);
-  }
-  /* Long fades at both ends, so the shafts arrive and leave rather than
-     switching on mid-card and cutting out at the edge. */
-  12% {
-    opacity: 1;
-  }
-  48% {
-    opacity: 1;
-  }
-  60% {
-    opacity: 0;
-    transform: translate3d(42%, 0, 0);
-  }
-  100% {
-    opacity: 0;
-    transform: translate3d(42%, 0, 0);
-  }
+  transform: translateX(130%);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fcard:hover::before {
-    animation: none;
+  .fcard::before {
+    display: none;
   }
 }
 
@@ -2961,7 +2925,7 @@ nav {
     transparent 66%
   );
   transform: translateX(-130%);
-  transition: transform 1.5s var(--ease-settle);
+  transition: transform 0.9s var(--ease-settle);
 }
 
 .fcard:hover .fcard-crest {
