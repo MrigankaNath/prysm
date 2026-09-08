@@ -2855,48 +2855,98 @@ nav {
   gap: 11px;
 }
 
-/* The repository owner's avatar or the site's favicon, on a plate of its own.
-   Sized to be read, not to decorate: at 15px in the meta row it was a bullet
-   point, and the whole reason it is here is to say where the link goes. */
+/* The repository owner's avatar or the site's favicon, at a size that makes it
+   one of the things the card is *made of* rather than a badge attached to it.
+   Where a link goes is a primary fact about it, so it gets primary weight. */
 .fcard-crest {
+  position: relative;
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  padding: 6px;
+  width: 64px;
+  height: 64px;
+  padding: 12px;
   box-sizing: border-box;
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  background: #0f0f14;
+  overflow: hidden;
+  border: 1px solid var(--line-bold);
+  border-radius: 18px;
+  background: linear-gradient(160deg, #14141b, #0c0c11);
+  transition:
+    border-color 0.35s var(--ease-settle),
+    box-shadow 0.35s var(--ease-settle);
+}
+
+/* A light crossing the plate, once, when the card is pointed at. The border
+   warming says the card is live; the sweep is what makes it read as a surface
+   you can press rather than a panel that merely changed colour. */
+.fcard-crest::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 34%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 66%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.85s var(--ease-settle);
+}
+
+.fcard:hover .fcard-crest {
+  border-color: color-mix(in srgb, var(--band, #a1a1aa) 58%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--band, #a1a1aa) 12%, transparent),
+    0 10px 26px -10px color-mix(in srgb, var(--band, #a1a1aa) 60%, transparent);
+}
+
+.fcard:hover .fcard-crest::after {
+  transform: translateX(130%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fcard-crest::after {
+    display: none;
+  }
 }
 
 .fcard-crest img {
+  position: relative;
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
-/* The right padding clears the corner stack: 18px offset plus a 38px plate
-   plus a gutter, so the title and snippet wrap before they reach it rather
-   than running underneath. */
+/* Each row clears only what is actually beside it.
+ *
+ * Padding the whole body to the plate's width squeezed the eyebrow into an
+ * ellipsis — "Stoicism" became "St…" — when all that line has above it is the
+ * bookmark. The title and snippet run alongside the plate and need its full
+ * width; the footer is below it and needs none. */
 .fcard-body {
   display: flex;
   flex-direction: column;
   gap: 11px;
-  padding: 21px 70px 19px 22px;
+  padding: 21px 22px 19px;
+}
+
+.fcard-top {
+  padding-right: 42px;
+}
+
+.fcard-link,
+.fcard-snippet {
+  padding-right: 76px;
 }
 
 .fcard.is-compact .fcard-body {
   gap: 9px;
-  padding: 17px 62px 15px 18px;
+  padding: 17px 18px 15px;
 }
 
-/* The footer runs the card's full width; only the upper block has to dodge
-   the stack, and by then the plate is above it. */
-.fcard-foot {
-  margin-right: -48px;
-}
+
 
 /* The eyebrow answers "what is this" and "where did it come from" in one
    line — the two things the row list never showed. */
