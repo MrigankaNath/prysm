@@ -46,24 +46,27 @@ function FeedCard({ item, topic, category, compact = false }) {
       className={`fcard${compact ? " is-compact" : ""}`}
       style={{ "--band": band, "--band-lit": lighten(band, 0.4) }}
     >
+      {/* Out of the text flow and pinned to the corner: the save control on
+          top, and under it the mark for where the link actually goes. At this
+          size it is a fact about the destination rather than a decoration —
+          you can tell a Vercel repo from a Rust one before reading a word. */}
+      <div className="fcard-aside">
+        <BookmarkButton item={item} topic={topic} category={category} />
+        {ownMark && (
+          <span className="fcard-crest">
+            <img src={ownMark} alt="" onError={() => setMarkBroken(true)} />
+          </span>
+        )}
+      </div>
+
       <div className="fcard-body">
         <div className="fcard-top">
           <span className="fcard-kind">
-            {ownMark ? (
-              <img
-                className="fcard-mark"
-                src={ownMark}
-                alt=""
-                onError={() => setMarkBroken(true)}
-              />
-            ) : (
-              <Icon stroke={categoryStroke(category)} />
-            )}
+            <Icon stroke={categoryStroke(category)} />
             {CATEGORY_LABELS[category] || "Articles"}
           </span>
           {topic && <span className="fcard-topic">{topic}</span>}
           {effort && <span className="fcard-effort">{effort}</span>}
-          <BookmarkButton item={item} topic={topic} category={category} />
         </div>
 
         <a

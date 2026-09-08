@@ -2766,40 +2766,40 @@ nav {
 /* Lights up where it stands. The card used to lift on hover as well, which
    on a dense grid read as the row twitching; the glow alone says the same
    thing and says it on every side. */
-/* Light on the card, not a glow around it.
+/* One light, falling across the whole card.
  *
- * The old version held the colour at zero and threw it on at hover, which read
- * as the card switching on. A surface that is already catching a little light
- * and then has that light *move* across it reads as something you are handling
- * — the same reason a physical object tells you it is there before you touch
- * it. So the sheen sits at rest, and hover slides it.
+ * The previous version placed two gradients in opposite corners, which is what
+ * made it read as smoke rather than light: two sources on one small surface
+ * have no physical reading. Both layers now originate from the same point off
+ * the top-left — a white sheen for the light itself and a whisper of the
+ * card's band under it — so the card looks lit rather than stained.
  *
- * Inset well past the card on every side: the layer is translated, and an
- * overscan this large means the gradient's own edge can never travel into
- * view. `overflow: hidden` on the card clips it back to the rounded shape.
+ * Inset well past the card on every side, because the layer is translated and
+ * this overscan means the gradient's own edge can never travel into view.
+ * `overflow: hidden` on the card clips it back to the rounded shape.
  */
 .fcard::after {
   content: "";
   position: absolute;
-  inset: -40%;
+  inset: -30%;
   z-index: 0;
   pointer-events: none;
   background:
     radial-gradient(
-      42% 38% at 24% 20%,
-      color-mix(in srgb, var(--band-lit, #a1a1aa) 30%, transparent),
-      transparent 70%
+      118% 92% at 26% -6%,
+      rgba(255, 255, 255, 0.085),
+      rgba(255, 255, 255, 0) 60%
     ),
     radial-gradient(
-      38% 34% at 76% 84%,
-      color-mix(in srgb, var(--band, #a1a1aa) 22%, transparent),
-      transparent 72%
+      112% 88% at 26% -6%,
+      color-mix(in srgb, var(--band-lit, #a1a1aa) 20%, transparent),
+      transparent 58%
     );
-  opacity: 0.42;
+  opacity: 0.55;
   transform: translate3d(0, 0, 0);
   transition:
-    opacity 0.55s var(--ease-settle),
-    transform 0.9s var(--ease-settle);
+    opacity 0.7s var(--ease-settle),
+    transform 1.1s var(--ease-settle);
 }
 
 .fcard:hover {
@@ -2807,10 +2807,12 @@ nav {
   border-color: color-mix(in srgb, var(--band, #a1a1aa) 24%, var(--line-bold));
 }
 
-/* The light travels; it does not just brighten. */
+/* The light drifts rather than jumps. Four percent over a beat is under the
+   threshold where it reads as an animation and above the one where it reads as
+   nothing — a hint that the surface is live, not an effect. */
 .fcard:hover::after {
   opacity: 1;
-  transform: translate3d(8%, -6%, 0);
+  transform: translate3d(4%, -3%, 0);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2833,26 +2835,67 @@ nav {
   border-color: color-mix(in srgb, var(--band, #a1a1aa) 55%, var(--line-bold));
 }
 
-/* The repository owner's avatar or the site's favicon, at the size of the
-   category glyph it stands in for. */
-.fcard-mark {
-  width: 15px;
-  height: 15px;
-  flex-shrink: 0;
+/* The save control and the destination's mark, stacked in the corner and out
+   of the text flow, so neither has to be squeezed into the meta line. */
+/* The shared bookmark button is absolutely positioned for the explore rows;
+   inside this stack it has to sit in flow or it escapes to the card corner and
+   the crest takes its place. */
+.fcard-aside .bookmark-btn {
+  position: static;
+}
+
+.fcard-aside {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 11px;
+}
+
+/* The repository owner's avatar or the site's favicon, on a plate of its own.
+   Sized to be read, not to decorate: at 15px in the meta row it was a bullet
+   point, and the whole reason it is here is to say where the link goes. */
+.fcard-crest {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  padding: 6px;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #0f0f14;
+}
+
+.fcard-crest img {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   border-radius: 4px;
 }
 
+/* The right padding clears the corner stack: 18px offset plus a 38px plate
+   plus a gutter, so the title and snippet wrap before they reach it rather
+   than running underneath. */
 .fcard-body {
   display: flex;
   flex-direction: column;
   gap: 11px;
-  padding: 21px 22px 19px;
+  padding: 21px 70px 19px 22px;
 }
 
 .fcard.is-compact .fcard-body {
   gap: 9px;
-  padding: 17px 18px 15px;
+  padding: 17px 62px 15px 18px;
+}
+
+/* The footer runs the card's full width; only the upper block has to dodge
+   the stack, and by then the plate is above it. */
+.fcard-foot {
+  margin-right: -48px;
 }
 
 /* The eyebrow answers "what is this" and "where did it come from" in one
