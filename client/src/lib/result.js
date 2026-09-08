@@ -74,19 +74,3 @@ export function publishedOn(item) {
     : null;
 }
 
-/* A different picture on every card that has no picture of its own.
- *
- * Seeded from the URL, so it is stable for an item across sessions and two
- * cards never collide by accident the way one gradient per category would. */
-export function artFor(url) {
-  const key = String(url || "");
-  let hash = 0;
-  for (let i = 0; i < key.length; i += 1) {
-    hash = (hash * 31 + key.charCodeAt(i)) % 100003;
-  }
-  return {
-    "--art-a": `${hash % 360}deg`,
-    "--art-b": `${(hash * 7) % 360}deg`,
-    "--art-x": `${30 + (hash % 40)}%`,
-  };
-}

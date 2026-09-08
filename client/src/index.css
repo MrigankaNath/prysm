@@ -2766,33 +2766,40 @@ nav {
 /* Lights up where it stands. The card used to lift on hover as well, which
    on a dense grid read as the row twitching; the glow alone says the same
    thing and says it on every side. */
-/* Smoke, not a ring. Lighting the whole border and throwing two halos read as
-   machinery on a grid of eight — every card announcing itself identically.
-   This drifts a soft wash of the card's own band up through it instead: the
-   colour is still there, it just isn't tracing an outline. */
+/* One light, falling across the whole card.
+ *
+ * The previous version placed two gradients in opposite corners, which is what
+ * made it read as smoke rather than light: two sources on one small surface
+ * have no physical reading. Both layers now originate from the same point off
+ * the top-left — a white sheen for the light itself and a whisper of the
+ * card's band under it — so the card looks lit rather than stained.
+ *
+ * Inset well past the card on every side, because the layer is translated and
+ * this overscan means the gradient's own edge can never travel into view.
+ * `overflow: hidden` on the card clips it back to the rounded shape.
+ */
 .fcard::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: -30%;
   z-index: 0;
   pointer-events: none;
-  opacity: 0;
   background:
     radial-gradient(
-      120% 80% at 18% 112%,
-      color-mix(in srgb, var(--band, #a1a1aa) 40%, transparent),
-      transparent 62%
+      118% 92% at 26% -6%,
+      rgba(255, 250, 240, 0.14),
+      rgba(255, 250, 240, 0) 62%
     ),
     radial-gradient(
-      90% 70% at 88% -8%,
-      color-mix(in srgb, var(--band-lit, #a1a1aa) 24%, transparent),
+      112% 88% at 26% -6%,
+      color-mix(in srgb, var(--band-lit, #a1a1aa) 30%, transparent),
       transparent 60%
     );
-  filter: blur(20px);
-  transform: scale(1.08) translateY(8px);
+  opacity: 0.5;
+  transform: translate3d(0, 0, 0);
   transition:
-    opacity 0.55s var(--ease-settle),
-    transform 0.8s var(--ease-settle);
+    opacity 0.7s var(--ease-settle),
+    transform 1.1s var(--ease-settle);
 }
 
 .fcard:hover {
@@ -2800,148 +2807,124 @@ nav {
   border-color: color-mix(in srgb, var(--band, #a1a1aa) 24%, var(--line-bold));
 }
 
+/* The light drifts rather than jumps. Four percent over a beat is under the
+   threshold where it reads as an animation and above the one where it reads as
+   nothing — a hint that the surface is live, not an effect. */
 .fcard:hover::after {
   opacity: 1;
-  transform: scale(1) translateY(0);
+  transform: translate3d(4%, -3%, 0);
 }
 
-/* Everything the card draws sits above the smoke. */
-.fcard-thumb,
+@media (prefers-reduced-motion: reduce) {
+  .fcard::after {
+    transition: opacity 0.3s ease;
+  }
+
+  .fcard:hover::after {
+    transform: none;
+  }
+}
+
+/* Everything the card draws sits above the light. */
 .fcard-body {
   position: relative;
   z-index: 1;
 }
 
-
 .fcard:focus-within {
   border-color: color-mix(in srgb, var(--band, #a1a1aa) 55%, var(--line-bold));
 }
 
-/* Full-bleed under the spectral edge, each category keeping its own aspect —
-   one crop mangles the others. */
-.fcard-thumb {
-  position: relative;
-  display: block;
-  aspect-ratio: 16 / 9;
-  overflow: hidden;
-  background: #050507;
+/* The save control and the destination's mark, stacked in the corner and out
+   of the text flow, so neither has to be squeezed into the meta line. */
+/* The shared bookmark button is absolutely positioned for the explore rows;
+   inside this stack it has to sit in flow or it escapes to the card corner and
+   the crest takes its place. */
+.fcard-aside .bookmark-btn {
+  position: static;
 }
 
-/* Stands in for artwork on every card that has none, so a row of mixed
-   categories is a row of cards rather than one image and a column of
-   half-empty boxes. It is the card's own band, kept low so it reads as a
-   header and never competes with the title under it. */
-.fcard-thumb.is-glyph {
+.fcard-aside {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 11px;
+}
+
+/* The repository owner's avatar or the site's favicon, at a size that makes it
+   one of the things the card is *made of* rather than a badge attached to it.
+   Where a link goes is a primary fact about it, so it gets primary weight. */
+.fcard-crest {
+  position: relative;
   display: grid;
   place-items: center;
-  background:
-    radial-gradient(
-      120% 140% at 50% 0%,
-      color-mix(in srgb, var(--band, #a1a1aa) 20%, transparent),
-      transparent 72%
-    ),
-    #0a0a0e;
-  border-bottom: 1px solid var(--line);
+  width: 64px;
+  height: 64px;
+  padding: 12px;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid var(--line-bold);
+  border-radius: 18px;
+  background: linear-gradient(160deg, #14141b, #0c0c11);
+  transition:
+    border-color 0.35s var(--ease-settle),
+    box-shadow 0.35s var(--ease-settle);
 }
 
-/* A different picture on every card that has none of its own: two soft arcs
-   seeded from the item's URL, so it is stable per item and no two collide the
-   way one gradient per category would. */
-.fcard-thumb.is-art {
-  background: #08080c;
-}
-
-/* Held back until hover. At rest the grid is a set of calm dark cards and the
-   glyph is the only thing in the band; the colour is the reward for pointing
-   at one, not the resting state of eight. */
-.fcard-thumb.is-art::before {
+/* A light crossing the plate, once, when the card is pointed at. The border
+   warming says the card is live; the sweep is what makes it read as a surface
+   you can press rather than a panel that merely changed colour. */
+.fcard-crest::after {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0;
-  background:
-    radial-gradient(
-      95% 78% at var(--art-x, 50%) 116%,
-      hsl(var(--art-a, 220deg) 70% 56% / 0.55),
-      transparent 68%
-    ),
-    radial-gradient(
-      72% 62% at calc(100% - var(--art-x, 50%)) -16%,
-      hsl(var(--art-b, 280deg) 64% 50% / 0.4),
-      transparent 64%
-    );
-  transition: opacity 0.5s var(--ease-settle);
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    115deg,
+    transparent 34%,
+    rgba(255, 255, 255, 0.18) 50%,
+    transparent 66%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.9s var(--ease-settle);
 }
 
-.fcard:hover .fcard-thumb.is-art::before {
-  opacity: 1;
+.fcard:hover .fcard-crest {
+  border-color: color-mix(in srgb, var(--band, #a1a1aa) 58%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--band, #a1a1aa) 12%, transparent),
+    0 10px 26px -10px color-mix(in srgb, var(--band, #a1a1aa) 60%, transparent);
 }
 
-/* The glyph carries the band at rest, so it has to actually read: lit to the
-   card's own colour and haloed, rather than a grey mark at a fifth opacity. */
-.fcard-thumb.is-glyph svg {
+.fcard:hover .fcard-crest::after {
+  transform: translateX(130%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fcard-crest::after {
+    display: none;
+  }
+}
+
+.fcard-crest img {
   position: relative;
-  width: 40px;
-  height: 40px;
-  opacity: 0.9;
-  filter:
-    drop-shadow(0 0 10px color-mix(in srgb, var(--band, #a1a1aa) 70%, transparent))
-    drop-shadow(0 0 24px color-mix(in srgb, var(--band, #a1a1aa) 45%, transparent));
-  transition: filter 0.4s var(--ease-settle);
-}
-
-.fcard:hover .fcard-thumb.is-glyph svg {
-  filter:
-    drop-shadow(0 0 14px color-mix(in srgb, var(--band, #a1a1aa) 85%, transparent))
-    drop-shadow(0 0 34px color-mix(in srgb, var(--band, #a1a1aa) 55%, transparent));
-}
-
-/* Qualified, because `.fcard-thumb img` is the video-thumbnail rule and it
-   stretches an image to fill the panel — at one class plus an element it also
-   outranks a bare `.fcard-mark`, so the favicon was being blown up to card
-   size. */
-.fcard-thumb img.fcard-mark {
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
-  border-radius: 9px;
-  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.55));
-  transition: none;
-}
-
-.fcard-thumb img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  object-fit: contain;
+  border-radius: 6px;
 }
 
-.fcard:hover .fcard-thumb img {
-  transform: scale(1.05);
-}
-
-.fcard-play {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 999px;
-  background: rgba(8, 8, 10, 0.72);
-  backdrop-filter: blur(6px);
-  color: #fafafa;
-}
-
-.fcard-play svg {
-  width: 15px;
-  height: 15px;
-  margin-left: 2px;
-}
-
+/* Each row clears only what is actually beside it.
+ *
+ * Padding the whole body to the plate's width squeezed the eyebrow into an
+ * ellipsis — "Stoicism" became "St…" — when all that line has above it is the
+ * bookmark. The title and snippet run alongside the plate and need its full
+ * width; the footer is below it and needs none. */
 .fcard-body {
   display: flex;
   flex-direction: column;
@@ -2949,10 +2932,21 @@ nav {
   padding: 21px 22px 19px;
 }
 
+.fcard-top {
+  padding-right: 42px;
+}
+
+.fcard-link,
+.fcard-snippet {
+  padding-right: 76px;
+}
+
 .fcard.is-compact .fcard-body {
   gap: 9px;
   padding: 17px 18px 15px;
 }
+
+
 
 /* The eyebrow answers "what is this" and "where did it come from" in one
    line — the two things the row list never showed. */
@@ -3167,8 +3161,7 @@ nav {
 
 @media (prefers-reduced-motion: reduce) {
   .fcard,
-  .fcard:hover,
-  .fcard:hover .fcard-thumb img {
+  .fcard:hover {
     transform: none;
   }
 }
