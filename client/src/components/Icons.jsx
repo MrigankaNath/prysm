@@ -147,6 +147,17 @@ export function IconArticles(props) {
   );
 }
 
+/* A pen over a baseline, not another sheet of paper: essays sit next to
+   Articles in the picker and a second document glyph is unreadable at 16px. */
+export function IconEssays(props) {
+  return (
+    <svg {...gradientBase} {...props}>
+      <path d="M17 3.5 20.5 7 9.5 18l-4.5 1.5L6.5 15Z" />
+      <line x1="4" y1="21.5" x2="20" y2="21.5" />
+    </svg>
+  );
+}
+
 export function IconVideos(props) {
   return (
     <svg {...gradientBase} {...props}>

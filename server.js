@@ -15,7 +15,11 @@ const { fetchStackExchange } = require("./sources/stackExchange");
 const { fetchPapers } = require("./sources/papers");
 const { fetchGithub } = require("./sources/github");
 const { fetchYoutube } = require("./sources/youtube");
-const { fetchTavily } = require("./sources/tavily");
+const {
+  fetchTavily,
+  fetchTavilyEssays,
+  fetchTavilyCommunity,
+} = require("./sources/tavily");
 const { fetchPodcasts } = require("./sources/podcasts");
 const { fetchBooks } = require("./sources/books");
 
@@ -525,6 +529,11 @@ const TTL_HOURS = {
      first would pay for both halves and discard the other. */
   overview: 24 * 30,
   articles: 24 * 30,
+  /* Same bundle as overview and articles, so the same TTL for the same
+     reason: whichever row lapsed first would pay for all four searches and
+     throw the other three halves away. */
+  essays: 24 * 30,
+  community: 24 * 30,
   books: 24 * 30,
   papers: 24 * 14,
   qa: 24 * 14,
@@ -547,6 +556,12 @@ const LIVE_CATEGORIES = {
   code: { fetch: fetchGithub, empty: [], expected: 5, saturation: 50000 },
   videos: { fetch: fetchYoutube, empty: [], expected: 5 },
   articles: { fetch: fetchTavily, empty: [], expected: 9 },
+  essays: { fetch: fetchTavilyEssays, empty: [], expected: 5 },
+  /* Merged into discussions before it ships, so it is never ranked or rendered
+     as a lane of its own — it exists as a category because the cache is keyed
+     by one, and these arrive from the metered Tavily bundle in phase two while
+     Hacker News is free and fetched in phase one. */
+  community: { fetch: fetchTavilyCommunity, empty: [], expected: 5 },
   podcasts: { fetch: fetchPodcasts, empty: [], expected: 5, saturation: 2000 },
   books: { fetch: fetchBooks, empty: [], expected: 5 },
 };
@@ -653,7 +668,7 @@ const PROBE_CATEGORIES = ["discussions", "papers", "books", "podcasts", "website
  * Tavily budget ran out — and videos is the lane with the broadest coverage of
  * any, so it was the worst possible one to drop. It now runs like every other
  * free source and fails on its own quota if it ever hits it. */
-const METERED_CATEGORIES = ["overview", "articles"];
+const METERED_CATEGORIES = ["overview", "articles", "essays", "community"];
 
 /* Articles stands in for "has anyone paid for this topic yet". It shares a
    fetch with the overview and expires on the same schedule, so if its row is
@@ -826,10 +841,16 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
       categories.overview = await fetchWikipediaOverview(topic).catch(() => null);
     }
 
+    /* Reddit and Quora are discussions; they only arrive separately because
+       they ride the Tavily bundle. Appended rather than interleaved — Hacker
+       News is already relevance-gated and point-floored, so it leads. */
+    const { community, ...lanes } = categories;
+    lanes.discussions = [...(lanes.discussions || []), ...(community || [])];
+
     res.json({
       topic,
-      categories,
-      order: rankCategories(categories),
+      categories: lanes,
+      order: rankCategories(lanes),
       profile,
       usage: {
         used: quota.used + (warm || !metered ? 0 : 1),

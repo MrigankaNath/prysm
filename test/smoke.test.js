@@ -8,6 +8,7 @@ import { provenanceOf } from "../client/src/lib/provenance.js";
 const require = createRequire(import.meta.url);
 const { isRelevant } = require("../sources/relevance.js");
 const { hostOf } = require("../sources/http.js");
+const { laneOf } = require("../sources/tavily.js");
 
 test("multi-word topics must match every term", () => {
   assert.ok(isRelevant("String theory and quantum gravity", "string theory"));
@@ -17,6 +18,16 @@ test("multi-word topics must match every term", () => {
 test("hostOf strips www and survives junk", () => {
   assert.equal(hostOf("https://www.britannica.com/x"), "britannica.com");
   assert.equal(hostOf("not a url"), null);
+});
+
+test("community platforms route out of articles, by host not substring", () => {
+  assert.equal(laneOf("https://jaredhenderson.substack.com/p/stoicism"), "essays");
+  assert.equal(laneOf("https://meganslo.medium.com/react-hooks"), "essays");
+  assert.equal(laneOf("https://www.reddit.com/r/Stoicism/x"), "community");
+  // Everything else is still an article.
+  assert.equal(laneOf("https://plato.stanford.edu/entries/stoicism"), "articles");
+  // A lookalike domain must not inherit the lane.
+  assert.equal(laneOf("https://substack.com.phish.io/x"), "articles");
 });
 
 test("provenance ranks review above popularity", () => {

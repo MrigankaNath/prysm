@@ -45,7 +45,70 @@ const TIERS = [
   { depth_level: "advanced", query: (t) => `${t} scholarly analysis` },
 ];
 
-const PER_TIER = 6;
+/* Asking for 20 costs exactly what asking for 6 does — `max_results` is free,
+   which is the same measurement that took the tiers from 3 to 6. The tail is
+   where the community platforms live: an institutional page outranks a
+   Substack post on a general query nearly every time, so with six results the
+   whole of Reddit, Substack, Medium and Quora simply never appeared. Measured
+   in the tail of these same three queries: 6 community results on "stoicism",
+   10 on "react hooks", 2 on "french revolution". */
+const PER_TIER = 20;
+
+/* Two lanes carved out of the results we already pay for, because they are not
+   articles and were never competing fairly with them.
+ *
+ * `essays` is long-form writing by a person — the Substack explainer, the
+ * Medium walkthrough. `community` is where people talk to each other. They are
+ * split rather than merged because a Substack essay is a different reading
+ * experience from a Reddit thread, and the path ranks by kind: folding them
+ * together would place an essay in the sequence as though it were a thread.
+ *
+ * The gain is not only the new lanes. Routed out, a Medium SEO post can no
+ * longer take one of the four article slots it used to win on tech topics. */
+const LANES = [
+  {
+    name: "essays",
+    type: "essay",
+    hosts: ["substack.com", "medium.com", "dev.to", "hashnode.dev", "hashnode.com"],
+  },
+  {
+    name: "community",
+    type: "discussion",
+    hosts: [
+      "reddit.com",
+      "quora.com",
+      "stackoverflow.com",
+      "stackexchange.com",
+      "lesswrong.com",
+      "lobste.rs",
+    ],
+  },
+];
+
+/* Anyone can publish on these platforms, which is the point of them and also
+   the risk: there is no editor between a first draft and the open web. So they
+   are held to a higher relevance floor than articles — measured, this keeps
+   Jared Henderson on Stoicism (0.65) and the r/Stoicism reading thread (0.50)
+   and drops the 0.44 tangents. */
+const LANE_MIN_SCORE = 0.5;
+
+/* One lane is not a reading list of one publication. Medium took 7 of 10 slots
+   on "react hooks" uncapped. */
+const LANE_PER_DOMAIN = 2;
+
+const LANE_TAKE = 8;
+
+/* The tail belongs to the new lanes, not to Articles.
+ *
+ * Asking for twenty does not reorder anything — measured, "stoicism scholarly
+ * analysis" returns an identical top six at max_results 6 and 20 — so this is
+ * not fixing a regression. It pins the article tiers to the same candidate
+ * window they were tuned against, so the one thing the extra results can still
+ * change is closed off: when the domain cap or the URL dedupe blocks a top
+ * result, a pool of twenty lets a tier backfill from far down the tail rather
+ * than simply keeping fewer. Articles sees the first six of each tier;
+ * everything past that is only ever read by the two lanes below. */
+const ARTICLE_POOL = 6;
 
 /* Domains that have their own lane, or that consistently return SEO filler in
    place of an article. Free to apply — exclusions happen at query time. */
@@ -79,6 +142,20 @@ const PER_DOMAIN = 2;
    isn't. */
 const KEEP_PER_TIER = 4;
 
+/* Subdomains are the norm on these platforms, not the exception —
+   `jaredhenderson.substack.com`, `meganslo.medium.com` — so this matches the
+   host or any subdomain of it, never a substring. */
+function laneOf(url) {
+  const host = hostOf(url);
+  if (!host) return null;
+
+  const lane = LANES.find(({ hosts }) =>
+    hosts.some((h) => host === h || host.endsWith(`.${h}`)),
+  );
+
+  return lane ? lane.name : "articles";
+}
+
 async function runTier(apiKey, topic, tier) {
   const data = await postJson(
     ENDPOINT,
@@ -97,7 +174,8 @@ async function runTier(apiKey, topic, tier) {
     top: data.results?.[0] || null,
     items: (data.results || [])
       .filter((item) => item.url && item.title && (item.score ?? 1) >= MIN_SCORE)
-      .map((item) => ({
+      .map((item, pos) => ({
+        pos,
         title: item.title,
         url: item.url,
         source: "tavily",
@@ -121,7 +199,10 @@ function dedupe(tiers) {
 
   for (const tier of tiers) {
     let kept = 0;
-    for (const item of [...tier.items].sort((a, b) => b.score - a.score)) {
+    const articles = tier.items.filter(
+      (item) => item.pos < ARTICLE_POOL && laneOf(item.url) === "articles",
+    );
+    for (const item of articles.sort((a, b) => b.score - a.score)) {
       if (kept >= KEEP_PER_TIER) break;
 
       const host = hostOf(item.url);
@@ -136,9 +217,44 @@ function dedupe(tiers) {
       perDomain.set(host, used + 1);
       // `score` was only ever for ordering and filtering; it isn't a public
       // engagement signal like stars or votes, so it doesn't ship to the client.
-      const { score, ...rest } = item;
+      const { score, pos, ...rest } = item;
       out.push(rest);
     }
+  }
+
+  return out;
+}
+
+/* The lanes are flattened across tiers rather than walked tier by tier: the
+   depth tags are a property of the *query*, and a Reddit thread that turned up
+   under "scholarly analysis" is not an advanced resource — it is a thread the
+   phrasing happened to reach. So they are ordered by relevance alone, and the
+   depth label is dropped rather than carried through as a claim it can't
+   support. */
+function collectLane(tiers, lane) {
+  const seenUrl = new Set();
+  const perDomain = new Map();
+  const out = [];
+
+  const items = tiers
+    .flatMap((tier) => tier.items)
+    .filter((item) => laneOf(item.url) === lane.name && item.score >= LANE_MIN_SCORE)
+    .sort((a, b) => b.score - a.score);
+
+  for (const item of items) {
+    if (out.length >= LANE_TAKE) break;
+
+    const host = hostOf(item.url);
+    if (!host || seenUrl.has(item.url)) continue;
+
+    const used = perDomain.get(host) || 0;
+    if (used >= LANE_PER_DOMAIN) continue;
+
+    seenUrl.add(item.url);
+    perDomain.set(host, used + 1);
+
+    const { score, pos, depth_level, ...rest } = item;
+    out.push({ ...rest, type: lane.type });
   }
 
   return out;
@@ -158,6 +274,8 @@ async function runBundle(topic) {
 
   return {
     articles: dedupe(tiers),
+    essays: collectLane(tiers, LANES[0]),
+    community: collectLane(tiers, LANES[1]),
     overview: withAnswer?.answer
       ? {
           title: `What is ${topic}?`,
@@ -203,4 +321,18 @@ async function fetchTavilyOverview(topic) {
   return (await tavilyBundle(topic)).overview;
 }
 
-module.exports = { fetchTavily, fetchTavilyOverview };
+async function fetchTavilyEssays(topic) {
+  return (await tavilyBundle(topic)).essays;
+}
+
+async function fetchTavilyCommunity(topic) {
+  return (await tavilyBundle(topic)).community;
+}
+
+module.exports = {
+  fetchTavily,
+  fetchTavilyOverview,
+  fetchTavilyEssays,
+  fetchTavilyCommunity,
+  laneOf,
+};

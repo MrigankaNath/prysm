@@ -57,6 +57,9 @@ const LANE_STAGE = {
      first stage is for. */
   websites: "orient",
   qa: "work",
+  /* Someone's own write-up of a thing they learned: read once the ground is
+     laid, not as the way in. */
+  essays: "work",
   discussions: "work",
   code: "work",
   papers: "source",
@@ -69,6 +72,7 @@ const LANE_TAKE = {
   videos: 2,
   websites: 3,
   qa: 3,
+  essays: 2,
   discussions: 3,
   code: 2,
   papers: 3,
@@ -100,8 +104,14 @@ const ARTICLE_TAKE = 3;
 const ADMITS = {
   // Either someone with the problem marked it solved, or the site voted it up.
   qa: (item) => item.accepted === true || (item.signal || 0) >= 15,
-  // This lane exists because people argued about it. No replies, no lane.
-  discussions: (item) => (item.signal || 0) >= 40,
+  /* This lane exists because people argued about it. No replies, no lane.
+   *
+   * Reddit and Quora arrive through the Tavily bundle with no vote count at
+   * all — the floor can't be applied to something that carries no number, and
+   * failing them by default would drop the whole of Reddit off the path. They
+   * clear a different bar instead: a relevance floor and a per-domain cap
+   * applied server-side, which is the strongest thing available about them. */
+  discussions: (item) => item.source === "tavily" || (item.signal || 0) >= 40,
   // A repo nobody uses is a reference for nothing.
   code: (item) => (item.signal || 0) >= 300,
   videos: (item) => (item.signal || 0) >= 15000,
@@ -230,12 +240,13 @@ const KIND_ORDER = {
   videos: 0,
   websites: 1,
   articles: 2,
-  qa: 3,
-  discussions: 4,
-  podcasts: 5,
-  code: 6,
-  books: 7,
-  papers: 8,
+  essays: 3,
+  qa: 4,
+  discussions: 5,
+  podcasts: 6,
+  code: 7,
+  books: 8,
+  papers: 9,
 };
 
 /* Reviewed and institutional work above popularity, popularity above the

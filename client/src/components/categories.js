@@ -1,6 +1,7 @@
 import {
   IconOverview,
   IconArticles,
+  IconEssays,
   IconVideos,
   IconPodcasts,
   IconBooks,
@@ -14,6 +15,7 @@ import {
 export const CATEGORY_ICONS = {
   overview: IconOverview,
   articles: IconArticles,
+  essays: IconEssays,
   videos: IconVideos,
   podcasts: IconPodcasts,
   books: IconBooks,
@@ -22,11 +24,14 @@ export const CATEGORY_ICONS = {
   qa: IconQA,
   discussions: IconDiscussions,
   websites: IconWebsites,
+  // Reddit and Quora, as the feed sees them — one cache row down from Tavily.
+  community: IconDiscussions,
 };
 
 export const CATEGORY_LABELS = {
   overview: "Overview",
   articles: "Articles",
+  essays: "Essays",
   videos: "Videos",
   podcasts: "Podcasts",
   books: "Books",
@@ -35,6 +40,10 @@ export const CATEGORY_LABELS = {
   qa: "Q&A",
   discussions: "Discussions",
   websites: "Websites",
+  /* Never its own lane on the explore page — the server folds it into
+     discussions. It surfaces here because the feed labels an item by the cache
+     row it came from, and these are Reddit and Quora threads. */
+  community: "Discussions",
 };
 
 // Fallback only — the server ranks categories per topic and returns an order.
@@ -42,6 +51,7 @@ export const CATEGORY_ORDER = [
   "overview",
   "websites",
   "articles",
+  "essays",
   "videos",
   "podcasts",
   "books",
@@ -63,6 +73,9 @@ export const CATEGORY_ORDER = [
 export const CATEGORY_GRADIENTS = {
   overview: ["#8b5cf6", "#c4b5fd"],
   articles: ["#3b82f6", "#93c5fd"],
+  /* Rose rather than another blue: essays sit beside Articles everywhere they
+     appear, and the two lanes have to be told apart at 16px. */
+  essays: ["#f43f5e", "#fda4af"],
   videos: ["#ec4899", "#f9a8d4"],
   podcasts: ["#f59e0b", "#fcd34d"],
   books: ["#10b981", "#6ee7b7"],
@@ -71,6 +84,7 @@ export const CATEGORY_GRADIENTS = {
   qa: ["#84cc16", "#bef264"],
   discussions: ["#14b8a6", "#5eead4"],
   websites: ["#f97316", "#fdba74"],
+  community: ["#14b8a6", "#5eead4"],
 };
 
 /** The `stroke` a category icon should be given. Pass it as a prop — the icon

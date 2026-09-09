@@ -43,6 +43,7 @@ const COLLAPSED_COUNT = 4;
    identical pills. Order matches CATEGORY_ORDER. */
 const PICKER_HUES = {
   articles: "#3b82f6",
+  essays: "#f43f5e",
   videos: "#ec4899",
   podcasts: "#f59e0b",
   books: "#10b981",
@@ -128,6 +129,7 @@ function CategorySection({ category, items, topic, index }) {
           : category === "discussions" ||
               category === "qa" ||
               category === "articles" ||
+              category === "essays" ||
               category === "websites"
             ? "tiles"
             : null;

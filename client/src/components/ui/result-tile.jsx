@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { ArrowUpRight, MessageSquare, Newspaper, HelpCircle, Globe } from "lucide-react";
+import {
+  ArrowUpRight,
+  MessageSquare,
+  Newspaper,
+  HelpCircle,
+  Globe,
+  PenLine,
+} from "lucide-react";
 import { BookmarkButton } from "@/components/ResultCard";
 import { recordVisit } from "@/lib/library";
 import { hostOf, formatSignal } from "@/lib/result";
@@ -16,6 +23,7 @@ import { provenanceOf } from "@/lib/provenance";
  */
 const KIND = {
   articles: { Icon: Newspaper, label: "Article" },
+  essays: { Icon: PenLine, label: "Essay" },
   discussions: { Icon: MessageSquare, label: "Discussion" },
   qa: { Icon: HelpCircle, label: "Question" },
   websites: { Icon: Globe, label: "Website" },
