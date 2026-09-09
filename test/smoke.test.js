@@ -8,7 +8,7 @@ import { provenanceOf } from "../client/src/lib/provenance.js";
 const require = createRequire(import.meta.url);
 const { isRelevant } = require("../sources/relevance.js");
 const { hostOf } = require("../sources/http.js");
-const { isDeadStatus } = require("../sources/reachable.js");
+const { isServed } = require("../sources/reachable.js");
 const { urlFor: bookUrl } = require("../sources/books.js");
 const { rankCategories } = require("../sources/rank.js");
 const { laneOf } = require("../sources/tavily.js");
@@ -181,17 +181,16 @@ test("youtube titles arrive decoded", () => {
   assert.equal(decodeEntities(null), "");
 });
 
-/* Only "provably gone" is a verdict.
- *
- * Measured, 403 comes back from ai.stanford.edu, dl.acm.org and
- * newstoicism.org — all live pages that refuse a request without a browser
- * behind it. Treating those as dead would delete the most institutional half
- * of the websites lane, which is the one lane with human curation in it. */
-test("link check drops only what the server says is gone", () => {
-  assert.ok(isDeadStatus(404));
-  assert.ok(isDeadStatus(410));
-  for (const alive of [200, 202, 301, 401, 403, 405, 429, 500, 503]) {
-    assert.ok(!isDeadStatus(alive), `${alive} must not count as gone`);
+/* A result you cannot open is worse than one that was never shown, so a page
+   that refuses us is dropped along with a page that is missing. `fetch` has
+   followed redirects by the time a status is seen, so a 3xx here is a
+   redirect that went nowhere. */
+test("only a page the server actually serves is kept", () => {
+  for (const ok of [200, 201, 204, 299]) {
+    assert.ok(isServed(ok), `${ok} is served`);
+  }
+  for (const no of [301, 302, 401, 403, 404, 410, 429, 500, 503]) {
+    assert.ok(!isServed(no), `${no} must not count as served`);
   }
 });
 

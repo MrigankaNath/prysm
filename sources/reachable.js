@@ -6,18 +6,19 @@
  * than one that was never shown — it spends the reader's click and their
  * trust.
  *
- * The whole difficulty is that "did not answer 200" and "is broken" are very
- * different claims. In the same measurement, 403 came back from ai.stanford.edu,
- * dl.acm.org and newstoicism.org — all live pages that simply refuse a request
- * without a browser behind it. Dropping those would quietly delete the most
- * institutional half of the websites lane, which is the one lane in the app
- * with human curation in it.
+ * The rule is: a link is kept only if the server actually serves the page.
  *
- * So the rule is narrow on purpose: a link is dropped only when the server
- * says the document is not there (404/410) or the host does not resolve at
- * all. Everything else — 401, 403, 405, 202, a redirect, a timeout — is kept.
- * A timeout in particular is as likely to be this machine's network as the
- * other end's.
+ * An earlier version kept anything that wasn't a hard 404, on the grounds that
+ * a 403 usually means "no bots" rather than "gone" — ai.stanford.edu and
+ * dl.acm.org both answer 403 to a request without a browser behind it. That
+ * reasoning is sound about the *server* and wrong about the *reader*: a page
+ * that refuses us will usually refuse them too, and a result you cannot open
+ * is worse than one that was never shown. So a blocked page is dropped along
+ * with a missing one.
+ *
+ * The cost of that is real and is paid in the websites lane, which is the one
+ * with human curation behind it — see the note on GET retries below, which is
+ * there to keep the cost as small as possible.
  *
  * It runs once per topic per cache fill, not per page view, so the cost is one
  * round of HEAD requests against a fetch that already takes seconds.
@@ -30,12 +31,12 @@
  * source instead — the books lane no longer guesses Amazon URLs at all.
  */
 
-const DEAD_STATUS = new Set([404, 410]);
-
-/* Hosts that answer differently to a HEAD than to a GET are common enough to
-   plan for: 405 means "method not allowed", not "gone", so it is retried once
-   as a GET before any conclusion is drawn. */
-const RETRY_AS_GET = new Set([405, 501]);
+/* A HEAD is cheap and a good number of servers handle it badly — 405, or a
+   bare 403 from a CDN rule that a real GET passes. So nothing is dropped on a
+   HEAD alone: any failure is retried once as a GET, and only that verdict
+   counts. It costs a second request on the minority of links that fail the
+   first, and it is the difference between "this server dislikes HEAD" and
+   "this page is not available". */
 
 /* A real browser's UA. Not to evade anything — the check follows whatever the
    server says either way — but because a default Node agent gets a different
@@ -45,9 +46,11 @@ const AGENT =
   "(KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
 /** The verdict for a status code, as a pure function so the rule is testable.
- *  True means "provably gone". Everything ambiguous is false. */
-function isDeadStatus(status) {
-  return DEAD_STATUS.has(status);
+ *  A page counts as served only on 2xx; `fetch` has already followed any
+ *  redirects by the time this sees a status, so a 3xx here is a redirect that
+ *  went nowhere. */
+function isServed(status) {
+  return status >= 200 && status < 300;
 }
 
 async function probe(url, method, timeoutMs) {
@@ -81,15 +84,17 @@ async function isReachable(url, { timeoutMs = 6000 } = {}) {
   if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
 
   try {
-    let res = await probe(url, "HEAD", timeoutMs);
-    if (RETRY_AS_GET.has(res.status)) res = await probe(url, "GET", timeoutMs);
-    return !isDeadStatus(res.status);
-  } catch (err) {
-    /* A name that doesn't resolve is gone; a socket that timed out or reset
-       may be anything, including this machine. Only the first is a verdict. */
-    const cause = err?.cause?.code || err?.code || "";
-    if (cause === "ENOTFOUND" || cause === "EAI_AGAIN") return false;
-    return true;
+    const head = await probe(url, "HEAD", timeoutMs);
+    if (isServed(head.status)) return true;
+  } catch {
+    /* Fall through to the GET. A HEAD that threw is not a verdict either. */
+  }
+
+  try {
+    const res = await probe(url, "GET", timeoutMs);
+    return isServed(res.status);
+  } catch {
+    return false;
   }
 }
 
@@ -122,4 +127,4 @@ async function keepReachable(items, { concurrency = 8, timeoutMs = 6000 } = {}) 
   return list.filter((_, i) => verdicts[i]);
 }
 
-module.exports = { isReachable, keepReachable, isDeadStatus, DEAD_STATUS };
+module.exports = { isReachable, keepReachable, isServed };

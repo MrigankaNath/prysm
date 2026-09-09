@@ -124,7 +124,14 @@ export const CATEGORY_GRADIENTS = {
   papers: ["#6366f1", "#a5b4fc"],
   qa: ["#84cc16", "#bef264"],
   discussions: ["#14b8a6", "#5eead4"],
-  websites: ["#f97316", "#fdba74"],
+  /* Steel, not orange. Orange sat one step from podcasts' amber, which put
+     two adjacent lanes in nearly the same hue — and this is the one lane whose
+     mark is the site's own favicon, so its ring frames artwork it does not
+     control. A saturated ring fights whatever colour the favicon happens to
+     be; a cool neutral is the only thing in the palette that doesn't. It is
+     also the one unoccupied region of the wheel here, so it stays distinct at
+     16px. */
+  websites: ["#8fa3bf", "#c8d4e4"],
   community: ["#14b8a6", "#5eead4"],
   answers: ["#84cc16", "#bef264"],
 };

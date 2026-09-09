@@ -52,7 +52,7 @@ const PICKER_HUES = {
   papers: "#8b5cf6",
   qa: "#f472b6",
   discussions: "#22d3ee",
-  websites: "#f97316",
+  websites: "#8fa3bf",
 };
 
 /* One rail item per category: a tile you can see, with its name underneath.

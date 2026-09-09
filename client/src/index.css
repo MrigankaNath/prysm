@@ -2415,6 +2415,12 @@ nav {
   display: flex;
   flex-direction: column;
   gap: 13px;
+  /* box-sizing is not global in this stylesheet, and this card carries both
+     `height: 100%` and 31px of padding and border. Without it the card
+     resolved to the full row height *plus* its own chrome and overlapped the
+     row below — which is what stacked the podcast covers on top of each
+     other. */
+  box-sizing: border-box;
   padding: 12px 12px 16px;
   border: 1px solid var(--line);
   border-radius: 20px;

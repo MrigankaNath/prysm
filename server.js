@@ -589,11 +589,14 @@ async function loadLiveCategory(topic, category, fetchFn, emptyValue, ...args) {
     let results = await fetchFn(topic, ...args);
 
     if (ROT_PRONE.has(category) && Array.isArray(results) && results.length) {
-      const live = await keepReachable(results);
-      /* Fail open. If the check removed everything, that is far more likely to
-         be this machine's network than a lane where every link died at once,
-         and an empty lane would then be cached. */
-      results = live.length ? live : results;
+      /* No fail-open. An earlier version kept the unfiltered lane when the
+         check removed everything, to guard against this machine's network
+         rather than the web's — but under the strict rule "everything failed"
+         is a plausible genuine outcome for a two-link lane, and restoring it
+         would put the blocked links straight back. The existing empty-result
+         rule is the safety net instead: an empty lane caches for one hour
+         rather than a fortnight, so a bad minute heals itself. */
+      results = await keepReachable(results);
     }
 
     /* Don't cache an empty result for a week — an adapter that failed, was
