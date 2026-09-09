@@ -1,8 +1,7 @@
-import { useState } from "react";
 import { BookmarkButton } from "./ResultCard";
 import { recordVisit } from "../lib/library";
 import { topicColor, lighten } from "../lib/topicIcon";
-import { IconPrism } from "./Icons";
+import BrandMark from "./BrandMark";
 
 /* Books are objects, so they get drawn as objects — and every one is typeset
  * rather than photographed.
@@ -17,15 +16,6 @@ import { IconPrism } from "./Icons";
  * plate that carries the type — and everything on it is sized in container
  * units, so the whole cover scales as one object at any shelf width rather
  * than needing a breakpoint per size.
- *
- * The real jacket goes on that board wherever there is one. The typeset cover
- * was written when this lane was filtered to free public-domain scans, where
- * the artwork genuinely was a photograph of a title page and unreadable at
- * shelf size. Opening the lane to every book changed the input: measured
- * across four topics, 19 of 20 results carry a cover and at -L they are real
- * jackets, around 330x500 for 11-59 kB. The design survives as the fallback,
- * which is what it is good at — a book with no artwork still looks made
- * rather than broken.
  */
 /* The lane is no longer all free scans, so the card has to say which it is —
    otherwise every board makes the same promise and one in three keeps it. */
@@ -37,8 +27,6 @@ const ACCESS_LABEL = {
 
 function BookCard({ item, topic, category = "books" }) {
   const band = topicColor(item.title || "");
-  const [artBroken, setArtBroken] = useState(false);
-  const art = item.thumbnail && !artBroken ? item.thumbnail : null;
 
   /* Author and year come through as fields now; the joined snippet is the
      fallback for anything cached before that change shipped. */
@@ -71,36 +59,18 @@ function BookCard({ item, topic, category = "books" }) {
 
             <span className="book-plate">
               <span className="book-bind is-soft" aria-hidden="true" />
-              <span className={`book-cover${art ? " has-art" : ""}`}>
-                {art ? (
-                  <img
-                    className="book-art"
-                    src={art}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    onError={() => setArtBroken(true)}
-                    /* Open Library serves whatever it has at -L, and a few are
-                       thumbnails: one measured cover was 152px wide, which
-                       upscales to mush on a 168px board. Under the floor the
-                       typeset cover is the better picture. */
-                    onLoad={(e) => {
-                      if (e.currentTarget.naturalWidth < 200) setArtBroken(true);
-                    }}
-                  />
-                ) : (
-                  <>
-                    <span className="book-cover-text">
-                      <span className="book-cover-title">{item.title}</span>
-                      {author && (
-                        <span className="book-cover-author">{author}</span>
-                      )}
-                    </span>
-                    {/* A prism. The book is one object in a set, and this is
-                        the mark the set is named for. */}
-                    <IconPrism className="book-mark" />
-                  </>
-                )}
+              <span className="book-cover">
+                <span className="book-cover-text">
+                  <span className="book-cover-title">{item.title}</span>
+                  {author && (
+                    <span className="book-cover-author">{author}</span>
+                  )}
+                </span>
+                {/* The Prysm mark, colophon-style in the bottom corner — where
+                    a publisher's device goes on a real jacket. It was an
+                    outline triangle, which is the shape the logo is built from
+                    but not the logo. */}
+                <BrandMark className="book-mark" />
               </span>
             </span>
 

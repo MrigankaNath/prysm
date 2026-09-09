@@ -2066,16 +2066,19 @@ nav {
   color: rgba(250, 250, 250, 0.52);
 }
 
+/* The publisher's device, bottom corner, where a real jacket puts one.
+ *
+ * BrandMark fills with its own gradient rather than stroking with
+ * `currentColor`, so none of the stroke treatment the outline triangle needed
+ * applies — setting `stroke` here would draw an outline around the fill. It
+ * carries its own blue against the topic's band, which is the point: the band
+ * says what the book is about and the mark says who shelved it. */
 .book-mark {
-  width: 9cqw;
-  height: 9cqw;
+  width: 10.5cqw;
+  height: 10.5cqw;
   flex-shrink: 0;
-  color: var(--band-lit);
-  /* The category icons stroke with the shared prism gradient, which needs its
-     defs mounted and tints toward pink whatever the band is. */
-  stroke: currentColor;
-  stroke-width: 2;
-  opacity: 0.55;
+  align-self: flex-end;
+  opacity: 0.9;
 }
 
 /* Cloth grain over the whole board — the same feTurbulence texture the topic
@@ -7710,41 +7713,3 @@ nav {
   }
 }
 
-/* The real jacket on the board.
- *
- * The typeset cover stays the fallback and keeps its padding; a photograph
- * needs none — it is the whole face. `object-fit: cover` because Open
- * Library's jackets are not one aspect (measured, 331x500 through 425x500 and
- * a few at 475 tall), and letterboxing them would put grey bars down the side
- * of half the shelf. The binding still runs over the top, so the object reads
- * as a book rather than a pasted-on image. */
-.book-cover.has-art {
-  padding: 0;
-  display: block;
-}
-
-.book-art {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  /* Matches the plate's own corner so the artwork doesn't square off inside a
-     rounded board. */
-  border-radius: inherit;
-}
-
-/* A hint of the topic's band over the artwork, so a shelf of real jackets
-   still reads as one set rather than a row of unrelated rectangles. Kept
-   under a tenth — any more and it tints the cover rather than tying it in. */
-.book-cover.has-art::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    155deg,
-    color-mix(in srgb, var(--band-lit, #a1a1aa) 9%, transparent),
-    transparent 62%
-  );
-  pointer-events: none;
-}

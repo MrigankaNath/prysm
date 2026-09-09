@@ -234,25 +234,20 @@ gets no chip rather than a guess.
 **Books are a shelf and papers are documents.** Two lanes hold objects rather
 than links, so they are drawn as objects.
 
-*Books:* the **real jacket** on a slab wherever Open Library has one, with a
-**banded cover** as the fallback. The typeset design came first and was right
-while the lane was filtered to free public-domain scans, where the artwork was
-a photograph of a title page and unreadable at shelf size; opening the lane to
-every book changed the input. Measured across four topics, 19 of 20 results
-carry a cover, and at `-L` they are real jackets around 330x500 for 11-59 kB.
-A cover under 200px wide falls back to the typeset design rather than
-upscaling into mush, as does a book with no artwork at all — so a shelf never
-shows a broken board. `object-fit: cover`, because the jackets are not one
-aspect and letterboxing would put grey bars down half the shelf, and a 9% wash
-of the topic's band over the artwork keeps a shelf reading as one set.
-
-The fallback is a panel of the topic's colour over a
+*Books:* a **banded cover** on a slab. A panel of the topic's colour over a
 dark plate that carries the type, with a fore-edge panel stood on end
 (`rotateY(90deg)`) and a back board at `translateZ(-29cqw)`. **The front board
 is the reference plane and the depth runs behind it**, so the book opens away
 from the reader rather than swinging through them. It turns about its own
 centre, `0deg` to `-24deg` over 0.5s; an earlier version pivoted on the
 binding, which foreshortened the cover into itself and read as a squeeze.
+
+**The mark in the bottom corner is the Prysm logo**, set where a publisher's
+device goes on a real jacket. It was an outline triangle — the shape the logo
+is built from, but not the logo. It fills with its own gradient rather than
+stroking with `currentColor`, so it keeps its blue against whatever band the
+topic takes: the band says what the book is about, the mark says who shelved
+it.
 
 **The whole cover is drawn in `cqw`** against a `container-type: inline-size`
 slab — type, padding, the mark and the board's own thickness. A 148px book on
