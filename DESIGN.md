@@ -234,7 +234,19 @@ gets no chip rather than a guess.
 **Books are a shelf and papers are documents.** Two lanes hold objects rather
 than links, so they are drawn as objects.
 
-*Books:* a **banded cover** on a slab. A panel of the topic's colour over a
+*Books:* the **real jacket** on a slab wherever Open Library has one, with a
+**banded cover** as the fallback. The typeset design came first and was right
+while the lane was filtered to free public-domain scans, where the artwork was
+a photograph of a title page and unreadable at shelf size; opening the lane to
+every book changed the input. Measured across four topics, 19 of 20 results
+carry a cover, and at `-L` they are real jackets around 330x500 for 11-59 kB.
+A cover under 200px wide falls back to the typeset design rather than
+upscaling into mush, as does a book with no artwork at all — so a shelf never
+shows a broken board. `object-fit: cover`, because the jackets are not one
+aspect and letterboxing would put grey bars down half the shelf, and a 9% wash
+of the topic's band over the artwork keeps a shelf reading as one set.
+
+The fallback is a panel of the topic's colour over a
 dark plate that carries the type, with a fore-edge panel stood on end
 (`rotateY(90deg)`) and a back board at `translateZ(-29cqw)`. **The front board
 is the reference plane and the depth runs behind it**, so the book opens away

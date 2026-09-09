@@ -8,6 +8,9 @@ import { provenanceOf } from "../client/src/lib/provenance.js";
 const require = createRequire(import.meta.url);
 const { isRelevant } = require("../sources/relevance.js");
 const { hostOf } = require("../sources/http.js");
+const { isDeadStatus } = require("../sources/reachable.js");
+const { urlFor: bookUrl } = require("../sources/books.js");
+const { rankCategories } = require("../sources/rank.js");
 const { laneOf } = require("../sources/tavily.js");
 const { hostRank, RANK } = require("../sources/quality.js");
 const { isRelevant: bookIsRelevant } = require("../sources/books.js");
@@ -176,4 +179,88 @@ test("youtube titles arrive decoded", () => {
   assert.equal(decodeEntities("&notreal; kept"), "&notreal; kept");
   assert.equal(decodeEntities(""), "");
   assert.equal(decodeEntities(null), "");
+});
+
+/* Only "provably gone" is a verdict.
+ *
+ * Measured, 403 comes back from ai.stanford.edu, dl.acm.org and
+ * newstoicism.org — all live pages that refuse a request without a browser
+ * behind it. Treating those as dead would delete the most institutional half
+ * of the websites lane, which is the one lane with human curation in it. */
+test("link check drops only what the server says is gone", () => {
+  assert.ok(isDeadStatus(404));
+  assert.ok(isDeadStatus(410));
+  for (const alive of [200, 202, 301, 401, 403, 405, 429, 500, 503]) {
+    assert.ok(!isDeadStatus(alive), `${alive} must not count as gone`);
+  }
+});
+
+/* An ISBN-10 is only an Amazon ASIN for the edition Amazon stocks, and Open
+   Library's isbn array spans every edition ever catalogued. Measured, 6 of 19
+   book links 404ed and all six were this guess. */
+test("a book to buy links its record, never a guessed Amazon ASIN", () => {
+  const url = bookUrl({
+    key: "/works/OL2W",
+    isbn: ["0262305240"],
+    ebook_access: "no_ebook",
+  });
+  assert.equal(url, "https://openlibrary.org/works/OL2W");
+  assert.ok(!/amazon\./.test(url));
+});
+
+test("a readable book still goes to the scan", () => {
+  assert.equal(
+    bookUrl({ ia: ["somescan"], ebook_access: "public" }),
+    "https://archive.org/details/somescan",
+  );
+});
+
+/* Tiers beat scores. The whole reason this is not a pure ranking is that
+   engagement measures how busy a lane is, not whether it is the right one. */
+const RANK_CONFIG = {
+  overview: { expected: 1 },
+  videos: { expected: 5 },
+  articles: { expected: 9 },
+  websites: { expected: 5 },
+  discussions: { expected: 20, saturation: 1000 },
+  podcasts: { expected: 5, saturation: 2000 },
+  papers: { expected: 6 },
+  code: { expected: 5, saturation: 50000 },
+  books: { expected: 5, saturation: 500 },
+};
+
+const FULL_LANES = {
+  overview: { text: "x" },
+  books: [{ signal: 500 }],
+  code: [{ signal: 58000 }],
+  papers: [{}, {}],
+  videos: [{}],
+  websites: [{}],
+  discussions: [{ signal: 900 }],
+  articles: [{}, {}],
+  podcasts: [{ signal: 1900 }],
+};
+
+test("videos, articles and websites lead every topic that has them", () => {
+  const order = rankCategories(FULL_LANES, RANK_CONFIG);
+  assert.deepEqual(order.slice(0, 4), ["overview", "videos", "articles", "websites"]);
+});
+
+test("a 58k-star repo still ranks below the general lanes", () => {
+  const order = rankCategories(FULL_LANES, RANK_CONFIG);
+  assert.ok(order.indexOf("code") > order.indexOf("podcasts"));
+  assert.ok(order.indexOf("papers") > order.indexOf("discussions"));
+});
+
+test("books rank last even with a canonical book in the lane", () => {
+  const order = rankCategories(FULL_LANES, RANK_CONFIG);
+  assert.equal(order[order.length - 1], "books");
+});
+
+test("a pinned lane with no results is skipped, not left empty", () => {
+  const order = rankCategories(
+    { overview: { text: "x" }, articles: [{}], books: [] },
+    RANK_CONFIG,
+  );
+  assert.deepEqual(order, ["overview", "articles"]);
 });

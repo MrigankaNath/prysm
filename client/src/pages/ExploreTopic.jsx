@@ -24,7 +24,7 @@ import {
 } from "../lib/library";
 import { buildPath, pathItems } from "../lib/path";
 import PathStage from "../components/PathStage";
-import { apiFetch, apiJson } from "../lib/api";
+import { apiFetch } from "../lib/api";
 import {
   IconChevronDown,
   IconGrid,
@@ -53,7 +53,6 @@ const PICKER_HUES = {
   qa: "#f472b6",
   discussions: "#22d3ee",
   websites: "#f97316",
-  curated: "#a3e635",
 };
 
 /* One rail item per category: a tile you can see, with its name underneath.
@@ -61,7 +60,7 @@ const PICKER_HUES = {
    meant the row was unreadable until you moved a cursor over it — and on
    touch, where there is no hover, never readable at all. */
 function RailItem({ id, label, count, hue, active, onSelect }) {
-  const Icon = id === "all" ? IconGrid : CATEGORY_ICONS[id] || IconGrid;
+  const Icon = CATEGORY_ICONS[id] || IconGrid;
   const art = CATEGORY_ART[id];
 
   return (
@@ -69,8 +68,8 @@ function RailItem({ id, label, count, hue, active, onSelect }) {
       type="button"
       className={`rail-item${active ? " active" : ""}`}
       style={{ "--hue": hue }}
-      onClick={() => onSelect(id)}
-      aria-label={`${label}, ${count} results`}
+      onClick={onSelect}
+      aria-label={`${label}, ${count} results${active ? " — showing only these" : ""}`}
       aria-pressed={active}
     >
       <span className="rail-tile">
@@ -86,17 +85,15 @@ function RailItem({ id, label, count, hue, active, onSelect }) {
   );
 }
 
-function CategoryRail({ sections, active, onSelect, total }) {
+/* No "Everything" tile.
+ *
+ * It was a filter that showed what the page already shows — scrolling gets you
+ * the same thing — and it carried a count of every result, which is a number
+ * nobody acts on. Clearing a filter is now the same gesture that set it:
+ * pressing the active category again returns to all. */
+function CategoryRail({ sections, active, onSelect }) {
   return (
     <nav className="rail" aria-label="Filter results by category">
-      <RailItem
-        id="all"
-        label="Everything"
-        count={total}
-        hue="#a1a1aa"
-        active={active === "all"}
-        onSelect={onSelect}
-      />
       {sections.map(({ key, items }) => (
         <RailItem
           key={key}
@@ -105,7 +102,7 @@ function CategoryRail({ sections, active, onSelect, total }) {
           count={items.length}
           hue={PICKER_HUES[key] || "#a1a1aa"}
           active={active === key}
-          onSelect={onSelect}
+          onSelect={() => onSelect(active === key ? "all" : key)}
         />
       ))}
     </nav>
@@ -261,7 +258,7 @@ function QuotaNotice({ usage }) {
         <p className="quota-notice-body">
           {appWide
             ? "Prysm's shared search budget is spent. Everything already explored still opens in full, and new topics come back on the 1st."
-            : "The overview, curated articles and videos below need a fresh search. Everything else on this page is here, and any topic someone has already explored still opens in full."}
+            : "The overview and articles below need a fresh search. Everything else on this page is here, and any topic someone has already explored still opens in full."}
         </p>
       </div>
       {!appWide && (
@@ -417,7 +414,6 @@ function RouteCard({ topic, path, doneUrls, total, doneCount, next }) {
 
 function ExploreTopic() {
   const { topic = "" } = useParams();
-  const [curated, setCurated] = useState([]);
   const [categories, setCategories] = useState(null);
   const [order, setOrder] = useState(CATEGORY_ORDER);
   const [loading, setLoading] = useState(true);
@@ -442,15 +438,12 @@ function ExploreTopic() {
     setActive("all");
     window.scrollTo(0, 0);
 
-    Promise.all([
-      apiJson(`/api/feed?topic=${encodeURIComponent(topic)}`, []),
-      apiFetch(`/api/explore/${encodeURIComponent(topic)}/live`).then((res) => {
+    apiFetch(`/api/explore/${encodeURIComponent(topic)}/live`)
+      .then((res) => {
         if (!res.ok) throw new Error(`live search failed: ${res.status}`);
         return res.json();
-      }),
-    ])
-      .then(([curatedItems, live]) => {
-        setCurated(Array.isArray(curatedItems) ? curatedItems : []);
+      })
+      .then((live) => {
         setCategories(live.categories || null);
         setOrder(live.order?.length ? live.order : CATEGORY_ORDER);
         setUsage(live.usage || null);
@@ -601,25 +594,6 @@ function ExploreTopic() {
 
           <Overview overview={overview} topic={topic} />
 
-          {curated.length > 0 && (
-            <section className="cat-section">
-              <header className="cat-head">
-                <h3 className="cat-head-title">From Prysm</h3>
-                <span className="cat-head-count">{curated.length}</span>
-              </header>
-              <div className="cat-cols">
-                {curated.map((item) => (
-                  <ResultCard
-                    key={`curated-${item.id}`}
-                    item={item}
-                    topic={topic}
-                    category="curated"
-                  />
-                ))}
-              </div>
-            </section>
-          )}
-
           {/* Two ways to read the same results. The path is the default and the
               reason the page exists; Everything is the raw lanes, for when you
               know what you're looking for and want the shelf, not the route. */}
@@ -701,7 +675,6 @@ function ExploreTopic() {
                   sections={sections}
                   active={active}
                   onSelect={setActive}
-                  total={total}
                 />
               )}
 
@@ -717,7 +690,7 @@ function ExploreTopic() {
             </>
           )}
 
-          {total === 0 && curated.length === 0 && (
+          {total === 0 && (
             <p className="explore-error">
               Nothing found for &ldquo;{topic}&rdquo;. Try a broader phrase.
             </p>

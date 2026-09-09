@@ -7709,3 +7709,42 @@ nav {
     margin-top: 0;
   }
 }
+
+/* The real jacket on the board.
+ *
+ * The typeset cover stays the fallback and keeps its padding; a photograph
+ * needs none — it is the whole face. `object-fit: cover` because Open
+ * Library's jackets are not one aspect (measured, 331x500 through 425x500 and
+ * a few at 475 tall), and letterboxing them would put grey bars down the side
+ * of half the shelf. The binding still runs over the top, so the object reads
+ * as a book rather than a pasted-on image. */
+.book-cover.has-art {
+  padding: 0;
+  display: block;
+}
+
+.book-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* Matches the plate's own corner so the artwork doesn't square off inside a
+     rounded board. */
+  border-radius: inherit;
+}
+
+/* A hint of the topic's band over the artwork, so a shelf of real jackets
+   still reads as one set rather than a row of unrelated rectangles. Kept
+   under a tenth — any more and it tints the cover rather than tying it in. */
+.book-cover.has-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    155deg,
+    color-mix(in srgb, var(--band-lit, #a1a1aa) 9%, transparent),
+    transparent 62%
+  );
+  pointer-events: none;
+}

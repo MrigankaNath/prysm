@@ -15,6 +15,8 @@ const { fetchStackExchange } = require("./sources/stackExchange");
 const { fetchPapers } = require("./sources/papers");
 const { fetchGithub } = require("./sources/github");
 const { fetchYoutube } = require("./sources/youtube");
+const { keepReachable } = require("./sources/reachable");
+const { rankCategories } = require("./sources/rank");
 const {
   fetchTavily,
   fetchTavilyEssays,
@@ -579,83 +581,20 @@ const LIVE_CATEGORIES = {
   books: { fetch: fetchBooks, empty: [], expected: 5, saturation: 500 },
 };
 
-// Sources without an engagement metric (arXiv, YouTube search, Tavily, Open
-// Library) can't be scored on quality, so they sit at a fixed middling value:
-// a category with genuinely strong engagement should outrank them, a weak one
-// should fall below them.
-const UNSCORED_BASELINE = 0.6;
-
-/* Videos and articles lead whenever they have anything, because they are where
-   most people should start on most topics. A multiplier wasn't enough — on
-   "react hooks" a 58k-star repo still outranked them — and the ordering is a
-   deliberate editorial choice rather than a popularity contest. Categories
-   with no results are skipped, so a topic with nothing on YouTube still won't
-   open with an empty Videos section. Everything else stays score-ranked. */
-const START_HERE = ["videos", "articles"];
-
-// Not every topic is best served by the same medium: philosophy lives in
-// podcasts and books, a JS library lives in code and Q&A. Rank categories per
-// topic instead of showing one fixed order. Deterministic for now — the
-// embedding/quality model in the AI phase replaces this.
-function rankCategories(categories) {
-  const scored = Object.entries(categories)
-    .filter(([, value]) => (Array.isArray(value) ? value.length > 0 : Boolean(value)))
-    .map(([name, value]) => {
-      const config = LIVE_CATEGORIES[name];
-      const items = Array.isArray(value) ? value : [value];
-      const fill = Math.min(items.length / (config.expected || 1), 1);
-
-      let quality = UNSCORED_BASELINE;
-      /* Only over the items that actually carry a number. Reddit and Quora
-         arrive through Tavily with no vote count, so a discussions lane made
-         entirely of them had a peak signal of 0 — which scores 0 and sinks the
-         lane to the bottom of the page. Absent evidence is not evidence of a
-         weak lane; it falls back to the neutral baseline, same as YouTube and
-         arXiv, which have never carried one either. */
-      const signals = items
-        .map((item) => item.signal)
-        .filter((n) => typeof n === "number" && n > 0);
-
-      if (config.saturation && signals.length) {
-        const peak = Math.max(...signals);
-        // Log-scaled so quality lifts a category without one outlier dominating:
-        // 58k-star React repos score ~1, the 140-star repos a philosophy search
-        // turns up score ~0.45, which drops Code below the neutral categories.
-        quality = Math.min(Math.log10(peak + 1) / Math.log10(config.saturation), 1);
-      }
-
-      /* Videos and articles are where most people should start on most
-         topics — one is the lowest-effort way in, the other is the most
-         complete. They earn a boost rather than a fixed slot, so a topic that
-         genuinely has nothing on YouTube still won't lead with an empty
-         Videos section. */
-      return { name, score: fill * quality };
-    })
-    .sort((a, b) => b.score - a.score)
-    .map(({ name }) => name);
-
-  const has = (name) => {
-    const value = categories[name];
-    return Array.isArray(value) ? value.length > 0 : Boolean(value);
-  };
-
-  const lead = START_HERE.filter(has);
-  const rest = scored.filter(
-    (name) => name !== "overview" && !lead.includes(name),
-  );
-
-  // The overview is a primer, so it always leads regardless of score.
-  return ["overview", ...lead, ...rest].filter(
-    (name) => name === "overview" ? Boolean(categories.overview) : true,
-  );
-}
-
 async function loadLiveCategory(topic, category, fetchFn, emptyValue, ...args) {
   try {
     const cached = await getCached(topic, category);
     if (cached) return cached;
 
-    const results = await fetchFn(topic, ...args);
+    let results = await fetchFn(topic, ...args);
+
+    if (ROT_PRONE.has(category) && Array.isArray(results) && results.length) {
+      const live = await keepReachable(results);
+      /* Fail open. If the check removed everything, that is far more likely to
+         be this machine's network than a lane where every link died at once,
+         and an empty lane would then be cached. */
+      results = live.length ? live : results;
+    }
 
     /* Don't cache an empty result for a week — an adapter that failed, was
        rate-limited, or filtered everything out would otherwise pin the topic
@@ -886,7 +825,7 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
     res.json({
       topic,
       categories: lanes,
-      order: rankCategories(lanes),
+      order: rankCategories(lanes, LIVE_CATEGORIES),
       profile,
       usage: {
         used: quota.used + (warm || !metered ? 0 : 1),

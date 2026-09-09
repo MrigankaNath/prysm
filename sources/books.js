@@ -75,18 +75,25 @@ function accessOf(doc) {
 
 const ACCESS_LABEL = { free: "free to read", borrow: "borrowable", buy: "in print" };
 
-/* An ISBN-10 doubles as an Amazon ASIN for books, which is the one link that
-   goes straight to a buyable copy without an API key or an affiliate account.
-   Note `quality.js` drops amazon.com from the *articles* lane — a product page
-   is never the article you wanted. Here the product page is the point. */
+/* Where to send someone who has to buy it.
+ *
+ * This used to build `amazon.com/dp/<isbn10>` on the rule that an ISBN-10
+ * doubles as an ASIN. It does — but only for the edition Amazon actually
+ * stocks, and Open Library's `isbn` array spans every edition ever catalogued,
+ * so the first ISBN-10 is usually one Amazon has never carried. Measured
+ * across three topics, **six of nineteen book links 404ed and every single
+ * failure was one of these**; on "machine learning" four of eight were dead,
+ * including Géron, which is the best-known book on the subject.
+ *
+ * The work's own Open Library page always resolves — it is the record this
+ * result was built from — and it carries the buy links for the editions that
+ * do exist, chosen by someone who can see which those are. That is a better
+ * answer than guessing, and it is the only one that cannot 404. */
 function buyUrl(doc) {
-  const isbn10 = (doc.isbn || []).find((n) => /^\d{9}[\dX]$/i.test(n));
-  if (isbn10) return `https://www.amazon.com/dp/${isbn10}`;
+  if (doc.key) return `https://openlibrary.org${doc.key}`;
 
   const isbn = (doc.isbn || [])[0];
-  if (isbn) return `https://openlibrary.org/isbn/${isbn}`;
-
-  return doc.key ? `https://openlibrary.org${doc.key}` : null;
+  return isbn ? `https://openlibrary.org/isbn/${isbn}` : null;
 }
 
 /* Where the title goes: the scan if there is one to read or borrow, a shop if
@@ -147,14 +154,21 @@ async function fetchBooks(topic) {
       year: doc.first_publish_year || null,
       // How many people have this on a shelf. Ranks the lane, and badges it.
       signal: doc.readinglog_count || 0,
-      /* ?default=false matters: without it Open Library serves a blank 1px
+      /* -L, not -M. When the lane was free scans only, the artwork was mostly
+         photographs of a title page and not worth the bytes; opening it to
+         every book changed that — measured across four topics, 19 of 20
+         results carry a cover and at -L they are real jackets, 330x500 or so
+         for 11-59 kB. That is small enough to ship and large enough to draw
+         at shelf size without softening.
+
+         ?default=false matters: without it Open Library serves a blank 1px
          image for a cover it doesn't have, instead of a 404. The <img> then
          "loads" successfully and onError never fires, so the board came up
          empty rather than falling back to a typeset cover. */
       thumbnail: doc.cover_i
-        ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg?default=false`
+        ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-L.jpg?default=false`
         : null,
     }));
 }
 
-module.exports = { fetchBooks, isRelevant, accessOf };
+module.exports = { fetchBooks, isRelevant, accessOf, urlFor };
