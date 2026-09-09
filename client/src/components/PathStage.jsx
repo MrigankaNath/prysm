@@ -4,6 +4,7 @@ import { recordVisit } from "../lib/library";
 import { hostOf, formatSignal } from "../lib/result";
 import {
   CATEGORY_ICONS,
+  CATEGORY_ART,
   CATEGORY_LABELS,
   CATEGORY_GRADIENTS,
 } from "./categories";
@@ -44,6 +45,7 @@ const VISIBLE = 5;
 
 function Stop({ item, side, state, topic, open, onOpen, onToggle }) {
   const Icon = CATEGORY_ICONS[item.category];
+  const art = CATEGORY_ART[item.category];
   const [hue, lit] = CATEGORY_GRADIENTS[item.category] || ["#8b5cf6", "#c4b5fd"];
   const host = hostOf(item.url);
   const mark = provenanceOf(item);
@@ -83,10 +85,16 @@ function Stop({ item, side, state, topic, open, onOpen, onToggle }) {
                 alt=""
                 onError={() => setMarkBroken(true)}
               />
+            ) : art ? (
+              /* The marker is a dark disc so the artwork can be the lit thing
+                 on it — the inverse of the flat-glyph-on-a-coloured-disc it
+                 replaced. The lane's hue survives in the rim and the halo. */
+              <img className="stop-node-art" src={art} alt="" />
             ) : (
               Icon && (
-                /* currentColor, not the category gradient: the marker is a
-                   lit disc and the glyph has to be the dark thing on it. */
+                /* currentColor for the fallback: an unknown category has no
+                   artwork, and the icon's own gradient is a light ramp, which
+                   is the one thing that cannot read on the dark face. */
                 <Icon className="stop-node-icon" stroke="currentColor" />
               )
             )}

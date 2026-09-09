@@ -6874,10 +6874,8 @@ nav {
    case still needs to confirm which marker the open card belongs to, so it
    takes the ring without the rest of the treatment. */
 .stop.is-done.is-open .stop-node-face {
-  border-color: color-mix(in srgb, var(--type) 62%, transparent);
-  box-shadow:
-    0 6px 0 color-mix(in srgb, var(--type) 20%, #000),
-    0 0 0 5px color-mix(in srgb, var(--type) 13%, transparent);
+  --ring: 6px;
+  --ring-a: 30%;
 }
 
 /* The lean lives here, not on the row. It used to shift the whole stop, which
@@ -6916,32 +6914,38 @@ nav {
   transition-timing-function: linear;
 }
 
-/* The marker itself: a struck disc with a solid bottom edge, so it reads as
-   something with thickness that can be pressed rather than a flat circle.
-   Darkening the underside is invisible on a black page, so the edge is a
-   deeper tone of the marker's own hue. */
-/* Lit glass, not a flat disc: a light source at the top left, the lane's hue
-   through the body and a darker rim under it. Two near-blacks on a black page
-   made an unread marker a hole rather than an object. */
+/* Dark glass, not a lit disc — the inverse of what this was.
+   The marker now carries the lane's 3D artwork, and that artwork is the lit
+   object: a coloured icon on a coloured disc has nothing to sit against, so
+   the face went black and the hue moved to the rim and the halo around it.
+   The drop shadow is black rather than tinted for the same reason — the glow
+   reads as depth under the disc instead of a second copy of its colour.
+
+   Every state changes only --ring and --ring-a. The stack used to be written
+   out in full five times, and a state that forgot a layer lost it: the "next"
+   marker rendered flat for exactly that reason. */
 .stop-node-face {
+  --ring: 9px;
+  --ring-a: 15%;
   position: relative;
   display: grid;
   place-items: center;
   width: var(--node);
   height: var(--node);
   border-radius: 50%;
-  color: #07070c;
+  color: var(--type-lit, #e4e4ec);
   background:
     radial-gradient(
       circle at 34% 26%,
-      color-mix(in srgb, var(--type) 42%, #ffffff) 0%,
-      var(--type) 52%,
-      color-mix(in srgb, var(--type) 84%, #000000) 100%
+      color-mix(in srgb, var(--type) 22%, #17171f) 0%,
+      #0e0e14 56%,
+      #06060a 100%
     );
   box-shadow:
-    0 0 0 9px color-mix(in srgb, var(--type) 16%, transparent),
-    0 14px 32px -10px color-mix(in srgb, var(--type) 62%, transparent),
-    inset 0 -3px 9px color-mix(in srgb, var(--type) 72%, #000000);
+    0 0 0 var(--ring) color-mix(in srgb, var(--type) var(--ring-a), transparent),
+    0 16px 34px -12px rgba(0, 0, 0, 0.95),
+    inset 0 0 0 1px color-mix(in srgb, var(--type) 38%, transparent),
+    inset 0 -4px 14px rgba(0, 0, 0, 0.8);
   transition:
     box-shadow 0.3s var(--ease-settle),
     filter 0.3s var(--ease-settle);
@@ -6955,27 +6959,29 @@ nav {
   border-radius: 50%;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.5),
-    rgba(255, 255, 255, 0.06) 70%,
+    rgba(255, 255, 255, 0.14),
+    rgba(255, 255, 255, 0.02) 70%,
     transparent
   );
   pointer-events: none;
 }
 
 .stop-node:hover .stop-node-face {
-  box-shadow:
-    0 0 0 11px color-mix(in srgb, var(--type) 20%, transparent),
-    0 20px 40px -10px color-mix(in srgb, var(--type) 70%, transparent),
-    inset 0 -3px 9px color-mix(in srgb, var(--type) 72%, #000000);
+  --ring: 11px;
+  --ring-a: 22%;
 }
 
 /* Ahead of you: dimmed, never locked. Every stop opens, in any order. */
 .stop.is-ahead .stop-node-face {
-  filter: brightness(0.86);
+  --ring-a: 10%;
 }
 
-.stop.is-ahead .stop-node:hover .stop-node-face {
-  filter: none;
+.stop.is-ahead .stop-node-art {
+  opacity: 0.82;
+}
+
+.stop.is-ahead .stop-node:hover .stop-node-art {
+  opacity: 1;
 }
 
 /* Weight and full opacity, because these are thin strokes on a lit disc and
@@ -7001,11 +7007,22 @@ nav {
   filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.6));
 }
 
+/* The artwork is drawn inside its own 40-unit box, with the extrusion and the
+   lean taking up the margin, so it lands smaller than the 30px glyph it
+   replaces at the same declared size. The drop shadow seats it on the glass —
+   without it a flat-lit icon floats. */
+.stop-node-art {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.55));
+}
+
 .stop-node-check {
   position: relative;
   width: 30px;
   height: 30px;
-  color: #07070c;
+  color: var(--type-lit);
 }
 
 /* Ahead of you. Quiet, never disabled — every stop opens, in any order. */
@@ -7022,15 +7039,12 @@ nav {
    saturation these were the brightest things on the page, which put the
    loudest marker on the one stop that needs nothing from you. */
 .stop.is-done .stop-node-face {
-  filter: saturate(0.6) brightness(0.72);
+  --ring-a: 8%;
+  filter: saturate(0.7);
 }
 
 .stop.is-done .stop-node:hover .stop-node-face {
-  box-shadow: 0 8px 0 color-mix(in srgb, var(--type) 20%, #000);
-}
-
-.stop.is-done .stop-node-check {
-  color: var(--type-lit);
+  --ring-a: 24%;
 }
 
 .stop.is-done .stop-name {
@@ -7045,17 +7059,13 @@ nav {
    The old rules replaced the background outright, which is why a "next" marker
    rendered as a dark disc beside glossy ones. */
 .stop.is-next .stop-node-face {
-  box-shadow:
-    0 0 0 12px color-mix(in srgb, var(--type) 22%, transparent),
-    0 18px 40px -10px color-mix(in srgb, var(--type) 78%, transparent),
-    inset 0 -3px 9px color-mix(in srgb, var(--type) 72%, #000000);
+  --ring: 13px;
+  --ring-a: 26%;
 }
 
 .stop.is-next .stop-node:hover .stop-node-face {
-  box-shadow:
-    0 8px 0 color-mix(in srgb, var(--type) 34%, #000),
-    0 0 0 8px color-mix(in srgb, var(--type) 13%, transparent),
-    0 20px 52px -10px color-mix(in srgb, var(--type) 85%, transparent);
+  --ring: 15px;
+  --ring-a: 30%;
 }
 
 /* The pool the marker stands in. Wider and softer than the marker's own
@@ -7393,6 +7403,11 @@ nav {
   .stop-node-check {
     width: 26px;
     height: 26px;
+  }
+
+  .stop-node-art {
+    width: 36px;
+    height: 36px;
   }
 
   .stop.is-next .stop-marker::after {

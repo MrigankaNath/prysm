@@ -144,6 +144,40 @@ It steps down once to the concept glyph, then to a compass.
 query parameter, where a CSS function arrives as literal text and the icon
 silently falls back to black. `iconUrl` guards on a hex pattern for that reason.
 
+## Category icons
+
+Two sets, one per category, and the size decides which is used
+(`components/categories.js`).
+
+| | `CATEGORY_ICONS` | `CATEGORY_ART` |
+|---|---|---|
+| what | 24px stroked line glyph | 40-unit glossy 3D object |
+| colour | recolourable — takes a `stroke` prop | fixed, its own gradients |
+| drawn at | 13px (feed card's kind chip) | 28px and up |
+
+The art is loaded as **URLs, never inlined**. Each file carries its own
+gradient ids (`articles-face`, `articles-depth`…), so several inlined copies on
+one page would all resolve to whichever rendered first. As `<img src>` each
+stays its own document and the question doesn't arise. All are under 4kB, so
+Vite inlines them as data URIs at build time — no extra requests either way.
+
+**Where the art appears, its container gives up its own frame.** The explore
+rail's tile keeps its well because the tile *is* the control; the lane header's
+chip drops its border and tint (`:has(.cat-art)`), because the artwork already
+has an edge and a shadow and a second frame around it reads as a mistake.
+
+**The roadmap marker is dark glass so the artwork can be the lit thing on it.**
+This is the inverse of what it replaced — a flat dark glyph on a disc filled
+with the lane's hue — and it had to invert, because a coloured icon on a
+coloured disc has nothing to sit against. The hue survives in the rim and the
+halo; the drop shadow is black rather than tinted, so the depth under the disc
+doesn't read as a second copy of its colour.
+
+Every marker state changes only `--ring` and `--ring-a` on `.stop-node-face`.
+The `box-shadow` stack used to be written out in full in five places and a
+state that forgot a layer lost it — which is how the "next" marker once
+rendered flat beside glossy ones.
+
 ## Result presentation
 
 Two presentations, and which one applies is decided by the job the screen is

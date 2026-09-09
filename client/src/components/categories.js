@@ -16,10 +16,13 @@ import articlesArt from "../assets/content-icons/articles.svg";
 import booksArt from "../assets/content-icons/books.svg";
 import codeArt from "../assets/content-icons/code.svg";
 import discussionsArt from "../assets/content-icons/discussions.svg";
+import essaysArt from "../assets/content-icons/essays.svg";
+import overviewArt from "../assets/content-icons/overview.svg";
 import papersArt from "../assets/content-icons/papers.svg";
 import podcastsArt from "../assets/content-icons/podcasts.svg";
 import qaArt from "../assets/content-icons/qa.svg";
 import videosArt from "../assets/content-icons/videos.svg";
+import websitesArt from "../assets/content-icons/websites.svg";
 
 export const CATEGORY_ICONS = {
   overview: IconOverview,
@@ -41,17 +44,19 @@ export const CATEGORY_ICONS = {
 /* Glossy 3D artwork, one per lane, drawn at illustration scale.
  *
  * Kept separate from CATEGORY_ICONS rather than replacing it: these are
- * full-colour and fixed, and two places need a glyph they can recolour — the
- * roadmap marker is a dark shape on a lit disc, and the feed card's kind chip
- * draws at 13px, where an extruded solid is a coloured blob. Both keep the
- * stroked icon; anything drawn at 28px or larger uses the art.
+ * full-colour and fixed, and the feed card's kind chip draws at 13px, where an
+ * extruded solid is a coloured blob rather than a glyph. That one keeps the
+ * stroked icon; everything drawn at 28px or larger uses the art.
  *
  * Loaded as URLs (Vite's default for .svg) rather than inlined, so each file
  * stays its own document — the artwork carries its own gradient ids, and
  * inlining several copies would have them all resolve to whichever rendered
- * first. overview, essays and websites have no artwork and fall back. */
+ * first. Covers every lane; the fallback is only for an unknown category. */
 export const CATEGORY_ART = {
+  overview: overviewArt,
   articles: articlesArt,
+  essays: essaysArt,
+  websites: websitesArt,
   videos: videosArt,
   podcasts: podcastsArt,
   books: booksArt,
