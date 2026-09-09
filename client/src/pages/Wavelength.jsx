@@ -10,6 +10,7 @@ import {
 import ResultCard from "../components/ResultCard";
 import TopicIcon from "../components/TopicIcon";
 import { IconBookmark, IconHistory, IconTarget } from "../components/Icons";
+import wavelengthIllo from "../assets/wavelength.svg";
 
 const TABS = [
   { id: "saved", label: "Saved", Icon: IconBookmark },
@@ -54,11 +55,7 @@ function Wavelength() {
           </p>
         </div>
 
-        {/*  ILLUSTRATION SLOT — "your wavelength", ~200x140.
-            A personal/abstract mark next to the page title.  */}
-        <div className="illo-slot illo-slot-head" aria-hidden="true">
-          <span className="illo-hint">illustration</span>
-        </div>
+        <img className="wl-illo" src={wavelengthIllo} alt="" aria-hidden="true" />
       </header>
 
       <div className="wl-tabs">
