@@ -15,7 +15,7 @@ const { fetchStackExchange } = require("./sources/stackExchange");
 const { fetchPapers } = require("./sources/papers");
 const { fetchGithub } = require("./sources/github");
 const { fetchYoutube } = require("./sources/youtube");
-const { keepReachable } = require("./sources/reachable");
+const { keepReachable, ROT_PRONE } = require("./sources/reachable");
 const { rankCategories } = require("./sources/rank");
 const {
   fetchTavily,

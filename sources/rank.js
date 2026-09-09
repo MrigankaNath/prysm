@@ -97,26 +97,6 @@ function rankCategories(categories, config) {
   );
 }
 
-/* Lanes whose links point at the open web, where pages rot.
- *
- * Measured across three topics: books lost 6 of 19 (all of them the Amazon
- * guess, now replaced), and articles, websites and Hacker News each turned up
- * a dead one. The lanes left out are the ones whose URLs are built from a live
- * API record — a youtube.com/watch, a github.com repo, an arxiv.org/abs — and
- * those do not 404 while the record still exists, so checking them would be
- * forty HEAD requests a topic to confirm what the API already said.
- *
- * The check runs before the row is cached, so it costs one round per topic per
- * TTL rather than anything per page view. */
-const ROT_PRONE = new Set([
-  "articles",
-  "essays",
-  "community",
-  "answers",
-  "websites",
-  "books",
-  "discussions",
-]);
 
 
 module.exports = { rankCategories, START_HERE, SPECIALIST, TAIL, UNSCORED_BASELINE };
