@@ -265,14 +265,27 @@ than an auto-fill grid. A grid stretches its columns to fill the row, so a
 shelf of four and a shelf of five drew books at different sizes — and a book is
 a physical object, so two of them being different widths reads as a mistake.
 
-**Every cover is typeset; none are photographed.** Open Library has an image
-for roughly half of what it returns, and most of those are scans of a *title
-page* — a sheet of cream paper with a paragraph of 8pt type in the middle of
-it. At shelf size that is unreadable, and beside a real jacket it looks broken.
-Designing all of them is the only way the shelf is consistent, and it means the
-title and author are set at a size you can actually read: a book mark, the
+**The jacket leads; the typeset board is the fallback.** This was the other way
+round while the lane was free scans only — their artwork is mostly a photograph
+of a *title page*, a sheet of cream paper with a paragraph of 8pt type in the
+middle of it, unreadable at shelf size. Opening the lane to every book changed
+what the images are: measured across three topics, 18 of 18 covers were real
+jackets. A book with no cover still gets the designed board — a book mark, the
 title in the display face (`text-wrap: balance`, four lines), the author under
-it at 66% white.
+it at 66% white — and the two sit on one shelf without reading as two designs,
+because they are the same object at the same size.
+
+**The board is `2/3`, which is what a book is.** It was `49/60` — wider than
+almost any jacket printed. Measured, Open Library's covers run 0.59 to 0.85
+with the mass at 0.66, so at the old ratio every photograph had to be cropped
+to a shape no book has. At 2/3 the common cover lands within five per cent, and
+the taller plate is where the typeset board's fourth title line came from.
+
+`object-fit: cover`, not `contain` — a letterboxed photograph on a coloured bar
+is a picture of a book rather than a book. Anchored to the top, so the little
+that is ever cropped is the publisher's line at the foot and never the title.
+The hinge and the grain are drawn **over** the photograph: without them the
+image sits on the page as a pasted rectangle instead of a printed board.
 
 The cloth is the topic's band under the same `feTurbulence` grain the topic
 plates and the auth card use — flat colour is exactly what makes a drawn book
@@ -675,7 +688,7 @@ deliberately high — a badge most items earn is decoration, not a signal.
 
 | lane | component | treatment |
 |---|---|---|
-| books | `BookCard` | turned 3D board, typeset cover, cloth grain |
+| books | `BookCard` | turned 3D board, real jacket or typeset cover, cloth grain |
 | papers | `PaperCard` | sheet with masthead, labelled abstract, citation figure |
 | videos, podcasts | `MediaCard` | artwork leads, native aspect per kind |
 | articles, discussions, Q&A | `ui/result-tile` | Tailwind glass card |

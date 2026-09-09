@@ -1904,7 +1904,13 @@ nav {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 49 / 60;
+  /* A real book, so a real book's proportion. It was 49/60, which is wider
+     than almost any jacket printed — measured across three topics, 18 Open
+     Library covers ran 0.59 to 0.85 with the mass at 0.66, so at the old ratio
+     every photograph had to be cropped to fit a shape no book is. At 2/3 the
+     common cover lands within five per cent and the typeset board gets a
+     taller plate out of it, which is where the fourth title line came from. */
+  aspect-ratio: 2 / 3;
   transform-style: preserve-3d;
   transform: rotateY(0deg);
   transition: transform 0.5s ease;
@@ -1933,6 +1939,18 @@ nav {
   box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.5),
     0 14px 30px -12px rgba(0, 0, 0, 0.85);
+}
+
+/* The jacket, when there is one. `cover` rather than `contain` because a
+   letterboxed photograph on a coloured bar is a picture of a book, not a book
+   — but anchored to the top, so the little that is ever cropped is the
+   publisher's line at the foot and never the title. */
+.book-jacket {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
 }
 
 /* An inset hairline rather than a border, so it sits inside the radius and
@@ -2035,15 +2053,15 @@ nav {
 
 /* Sized in cqw, so a 150px book on mobile and a 196px one on the shelf are the
    same cover at two scales rather than two different designs. */
-/* Three lines, not four. The plate is a fixed share of the board, so a title
-   long enough to fill it pushed the author and the mark past the bottom edge —
-   they were clipped rather than laid out. Three leaves room for both on every
-   book, which is the point of fixing the split in the first place. */
+/* Four lines. Three was the limit at the old 49/60 board, where a longer title
+   pushed the author and the colophon past the bottom edge and they were
+   clipped rather than laid out. The 2/3 board's plate is 23% taller, which
+   buys exactly one more line with the author and mark still seated. */
 .book-cover-title {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  line-clamp: 3;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
   overflow: hidden;
   font-family: var(--font-display);
   font-size: 10.5cqw;
