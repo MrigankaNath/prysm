@@ -1612,6 +1612,20 @@ nav {
   height: 16px;
 }
 
+/* The artwork is already a lit object with its own edge and shadow, so the
+   chip it would sit in is a second frame around a thing that has one. Drop
+   the well and let the icon be the mark. */
+.cat-head-icon:has(.cat-art) {
+  border-color: transparent;
+  background: none;
+}
+
+.cat-art {
+  display: block;
+  width: 28px;
+  height: 28px;
+}
+
 .cat-head-title {
   margin: 0;
   font-size: 1.08rem;
@@ -2622,7 +2636,7 @@ nav {
 
 /* --- the section header wears its category's colour ----------------------- */
 
-.cat-section .cat-head-icon {
+.cat-section .cat-head-icon:not(:has(.cat-art)) {
   border-color: color-mix(in srgb, var(--cat, #a1a1aa) 34%, var(--line));
   background: color-mix(in srgb, var(--cat, #a1a1aa) 10%, var(--surface));
 }
@@ -5015,6 +5029,14 @@ nav {
   height: 30px;
 }
 
+/* Larger than the 30px glyph it replaces: the artwork is drawn inside its own
+   40-unit box with the extrusion and its lean taking up the margin, so at the
+   glyph's size the object itself lands smaller than the line icon did. */
+.rail-tile .cat-art {
+  width: 44px;
+  height: 44px;
+}
+
 .rail-count {
   position: absolute;
   right: 9px;
@@ -5087,6 +5109,11 @@ nav {
   .rail-tile svg {
     width: 25px;
     height: 25px;
+  }
+
+  .rail-tile .cat-art {
+    width: 37px;
+    height: 37px;
   }
 }
 

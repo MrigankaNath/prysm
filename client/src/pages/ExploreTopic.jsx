@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   CATEGORY_ICONS,
+  CATEGORY_ART,
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   categoryStroke,
@@ -61,6 +62,7 @@ const PICKER_HUES = {
    touch, where there is no hover, never readable at all. */
 function RailItem({ id, label, count, hue, active, onSelect }) {
   const Icon = id === "all" ? IconGrid : CATEGORY_ICONS[id] || IconGrid;
+  const art = CATEGORY_ART[id];
 
   return (
     <button
@@ -72,7 +74,11 @@ function RailItem({ id, label, count, hue, active, onSelect }) {
       aria-pressed={active}
     >
       <span className="rail-tile">
-        <Icon stroke={categoryStroke(id)} />
+        {art ? (
+          <img className="cat-art" src={art} alt="" />
+        ) : (
+          <Icon stroke={categoryStroke(id)} />
+        )}
         <span className="rail-count">{count}</span>
       </span>
       <span className="rail-label">{label}</span>
@@ -109,6 +115,7 @@ function CategoryRail({ sections, active, onSelect, total }) {
 function CategorySection({ category, items, topic, index }) {
   const [expanded, setExpanded] = useState(false);
   const Icon = CATEGORY_ICONS[category];
+  const art = CATEGORY_ART[category];
   const visible = expanded ? items : items.slice(0, COLLAPSED_COUNT);
   const hidden = items.length - visible.length;
   /* Four lanes hold objects rather than links and are laid out as such: a
@@ -144,7 +151,11 @@ function CategorySection({ category, items, topic, index }) {
     >
       <header className="cat-head">
         <span className="cat-head-icon">
-          {Icon && <Icon stroke={categoryStroke(category)} />}
+          {art ? (
+            <img className="cat-art" src={art} alt="" />
+          ) : (
+            Icon && <Icon stroke={categoryStroke(category)} />
+          )}
         </span>
         <h3 className="cat-head-title">{CATEGORY_LABELS[category] || category}</h3>
         <span className="cat-head-count">{items.length}</span>
