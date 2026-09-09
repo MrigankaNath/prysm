@@ -9,6 +9,7 @@ const require = createRequire(import.meta.url);
 const { isRelevant } = require("../sources/relevance.js");
 const { hostOf } = require("../sources/http.js");
 const { laneOf } = require("../sources/tavily.js");
+const { hostRank, RANK } = require("../sources/quality.js");
 
 test("multi-word topics must match every term", () => {
   assert.ok(isRelevant("String theory and quantum gravity", "string theory"));
@@ -28,6 +29,21 @@ test("community platforms route out of articles, by host not substring", () => {
   assert.equal(laneOf("https://plato.stanford.edu/entries/stoicism"), "articles");
   // A lookalike domain must not inherit the lane.
   assert.equal(laneOf("https://substack.com.phish.io/x"), "articles");
+});
+
+test("articles are ordered by what the site is, and storefronts are dropped", () => {
+  assert.equal(hostRank("https://plato.stanford.edu/entries/stoicism"), RANK.institutional);
+  assert.equal(hostRank("https://blog.cloudflare.com/x"), RANK.written);
+  assert.equal(hostRank("https://netflixtechblog.com/a"), RANK.written);
+  assert.equal(hostRank("https://stripe.com/blog/x"), RANK.written);
+  assert.equal(hostRank("https://www.cedars-sinai.org/health-library/x"), RANK.ordinary);
+  // Observed on "stoicism" and "sleep deprivation", outscoring real writing.
+  assert.equal(hostRank("https://custommapposter.com/x"), RANK.drop);
+  assert.equal(hostRank("https://www.midlandbookshop.com/x"), RANK.drop);
+  assert.equal(hostRank("https://www.scribd.com/doc/x"), RANK.drop);
+  // The bounded words must not eat ordinary hosts.
+  assert.equal(hostRank("https://www.restoration-hardware.com/x"), RANK.ordinary);
+  assert.equal(hostRank("https://buyer-guide.org/x"), RANK.ordinary);
 });
 
 test("provenance ranks review above popularity", () => {

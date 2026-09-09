@@ -11,12 +11,15 @@ const TIMEOUT_MS = 8000;
    several other APIs rate-limit it harder. */
 const USER_AGENT = "Prysm/1.0 (+https://github.com/MrigankaNath/prysm)";
 
-async function request(url, { method = "GET", headers, body, label = "Upstream" } = {}) {
+async function request(
+  url,
+  { method = "GET", headers, body, label = "Upstream", timeoutMs } = {},
+) {
   const res = await fetch(url, {
     method,
     headers: { "User-Agent": USER_AGENT, ...headers },
     body,
-    signal: AbortSignal.timeout(TIMEOUT_MS),
+    signal: AbortSignal.timeout(timeoutMs || TIMEOUT_MS),
   });
 
   if (!res.ok) throw new Error(`${label} returned ${res.status}`);

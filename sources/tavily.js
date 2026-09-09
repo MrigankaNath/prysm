@@ -19,6 +19,7 @@
  */
 
 const { postJson, hostOf } = require("./http");
+const { hostRank, RANK } = require("./quality");
 
 const ENDPOINT = "https://api.tavily.com/search";
 
@@ -74,15 +75,12 @@ const LANES = [
   {
     name: "community",
     type: "discussion",
-    hosts: [
-      "reddit.com",
-      "quora.com",
-      "stackoverflow.com",
-      "stackexchange.com",
-      "lesswrong.com",
-      "lobste.rs",
-    ],
+    hosts: ["reddit.com", "lesswrong.com", "lobste.rs"],
   },
+  /* Quora is a question with answers under it, so it belongs in Q&A rather
+     than in discussions — and it leads that lane, because Stack Exchange is
+     the one people already know how to find. */
+  { name: "answers", type: "question", hosts: ["quora.com"] },
 ];
 
 /* Anyone can publish on these platforms, which is the point of them and also
@@ -121,6 +119,12 @@ const EXCLUDE = [
   "facebook.com",
   "x.com",
   "twitter.com",
+  /* Has its own lane too, through the Stack Exchange API, which returns vote
+     counts and accepted flags that a web result does not carry. */
+  "stackoverflow.com",
+  "stackexchange.com",
+  "serverfault.com",
+  "superuser.com",
   // Observed returning SEO filler in place of an article.
   "patsnap.com",
   "eurekamag.com",
@@ -166,7 +170,12 @@ async function runTier(apiKey, topic, tier) {
       exclude_domains: EXCLUDE,
       ...(tier.answer ? { include_answer: "basic" } : {}),
     },
-    { label: "Tavily API" },
+    /* Longer than the 8s the other adapters get, because this is the one call
+       that costs money and the one whose failure is charged for: the quota is
+       consumed before the fetch, so a timeout here bills a topic and returns
+       an empty page. Measured, a tier takes anywhere from 0.5s to 4.5s
+       depending on nothing the caller controls. */
+    { label: "Tavily API", timeoutMs: 20_000 },
   );
 
   return {
@@ -192,21 +201,45 @@ async function runTier(apiKey, topic, tier) {
 /* Tiers overlap: a good explainer ranks for "beginner introduction" and
    "in-depth guide" alike. First tier to claim a URL keeps it, so the depth
    label stays the one the query actually asked for. */
+/* Two URLs, one page. The same article is served under a tracking suffix, a
+   locale prefix or a trailing slash, and Udemy returned the identical title
+   twice on "stoicism" — the URL set can't see it, and a reader who opens both
+   has been sent to the same place twice. */
+function titleKey(title) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
 function dedupe(tiers) {
   const seenUrl = new Set();
+  const seenTitle = new Set();
   const perDomain = new Map();
   const out = [];
 
   for (const tier of tiers) {
     let kept = 0;
     const articles = tier.items.filter(
-      (item) => item.pos < ARTICLE_POOL && laneOf(item.url) === "articles",
+      (item) =>
+        item.pos < ARTICLE_POOL &&
+        laneOf(item.url) === "articles" &&
+        hostRank(item.url) !== RANK.drop,
     );
-    for (const item of articles.sort((a, b) => b.score - a.score)) {
+
+    /* What the site is, before how well it matched. Tavily's score is a
+       relevance measure and orders a university page, an engineering blog and
+       a keyword-farm page by how thoroughly each says the topic's name — which
+       is the one thing they all do equally well. */
+    articles.sort(
+      (a, b) => hostRank(a.url) - hostRank(b.url) || b.score - a.score,
+    );
+
+    for (const item of articles) {
       if (kept >= KEEP_PER_TIER) break;
 
       const host = hostOf(item.url);
       if (!host || seenUrl.has(item.url)) continue;
+
+      const key = titleKey(item.title);
+      if (seenTitle.has(key)) continue;
 
       const used = perDomain.get(host) || 0;
       if (used >= PER_DOMAIN) continue;
@@ -214,6 +247,7 @@ function dedupe(tiers) {
       kept += 1;
 
       seenUrl.add(item.url);
+      seenTitle.add(key);
       perDomain.set(host, used + 1);
       // `score` was only ever for ordering and filtering; it isn't a public
       // engagement signal like stars or votes, so it doesn't ship to the client.
@@ -276,6 +310,7 @@ async function runBundle(topic) {
     articles: dedupe(tiers),
     essays: collectLane(tiers, LANES[0]),
     community: collectLane(tiers, LANES[1]),
+    answers: collectLane(tiers, LANES[2]),
     overview: withAnswer?.answer
       ? {
           title: `What is ${topic}?`,
@@ -329,10 +364,15 @@ async function fetchTavilyCommunity(topic) {
   return (await tavilyBundle(topic)).community;
 }
 
+async function fetchTavilyAnswers(topic) {
+  return (await tavilyBundle(topic)).answers;
+}
+
 module.exports = {
   fetchTavily,
   fetchTavilyOverview,
   fetchTavilyEssays,
   fetchTavilyCommunity,
+  fetchTavilyAnswers,
   laneOf,
 };

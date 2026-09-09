@@ -102,8 +102,13 @@ const ARTICLE_TAKE = 3;
  * lane on the server: no result is a fact, three wrong ones is a lie.
  */
 const ADMITS = {
-  // Either someone with the problem marked it solved, or the site voted it up.
-  qa: (item) => item.accepted === true || (item.signal || 0) >= 15,
+  /* Either someone with the problem marked it solved, or the site voted it up
+     — and Quora, which arrives through the Tavily bundle carrying neither, on
+     the same terms as Reddit below. */
+  qa: (item) =>
+    item.source === "tavily" ||
+    item.accepted === true ||
+    (item.signal || 0) >= 15,
   /* This lane exists because people argued about it. No replies, no lane.
    *
    * Reddit and Quora arrive through the Tavily bundle with no vote count at

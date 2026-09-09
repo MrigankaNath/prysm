@@ -26,6 +26,7 @@ export const CATEGORY_ICONS = {
   websites: IconWebsites,
   // Reddit and Quora, as the feed sees them — one cache row down from Tavily.
   community: IconDiscussions,
+  answers: IconQA,
 };
 
 export const CATEGORY_LABELS = {
@@ -44,6 +45,7 @@ export const CATEGORY_LABELS = {
      discussions. It surfaces here because the feed labels an item by the cache
      row it came from, and these are Reddit and Quora threads. */
   community: "Discussions",
+  answers: "Q&A",
 };
 
 // Fallback only — the server ranks categories per topic and returns an order.
@@ -85,6 +87,7 @@ export const CATEGORY_GRADIENTS = {
   discussions: ["#14b8a6", "#5eead4"],
   websites: ["#f97316", "#fdba74"],
   community: ["#14b8a6", "#5eead4"],
+  answers: ["#84cc16", "#bef264"],
 };
 
 /** The `stroke` a category icon should be given. Pass it as a prop — the icon

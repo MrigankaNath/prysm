@@ -19,6 +19,7 @@ const {
   fetchTavily,
   fetchTavilyEssays,
   fetchTavilyCommunity,
+  fetchTavilyAnswers,
 } = require("./sources/tavily");
 const { fetchPodcasts } = require("./sources/podcasts");
 const { fetchBooks } = require("./sources/books");
@@ -534,6 +535,7 @@ const TTL_HOURS = {
      throw the other three halves away. */
   essays: 24 * 30,
   community: 24 * 30,
+  answers: 24 * 30,
   books: 24 * 30,
   papers: 24 * 14,
   qa: 24 * 14,
@@ -556,12 +558,18 @@ const LIVE_CATEGORIES = {
   code: { fetch: fetchGithub, empty: [], expected: 5, saturation: 50000 },
   videos: { fetch: fetchYoutube, empty: [], expected: 5 },
   articles: { fetch: fetchTavily, empty: [], expected: 9 },
-  essays: { fetch: fetchTavilyEssays, empty: [], expected: 5 },
+  /* Three is a full lane here, not a thin one: these are individual writers,
+     and a topic with three good essays on it has as many as it has. Rated
+     against five it would score 0.6 of a lane it had actually filled, and rank
+     below lanes that pad. */
+  essays: { fetch: fetchTavilyEssays, empty: [], expected: 3 },
   /* Merged into discussions before it ships, so it is never ranked or rendered
      as a lane of its own — it exists as a category because the cache is keyed
      by one, and these arrive from the metered Tavily bundle in phase two while
      Hacker News is free and fetched in phase one. */
   community: { fetch: fetchTavilyCommunity, empty: [], expected: 5 },
+  // Quora, merged into qa the same way. Also never a lane of its own.
+  answers: { fetch: fetchTavilyAnswers, empty: [], expected: 3 },
   podcasts: { fetch: fetchPodcasts, empty: [], expected: 5, saturation: 2000 },
   books: { fetch: fetchBooks, empty: [], expected: 5 },
 };
@@ -593,8 +601,18 @@ function rankCategories(categories) {
       const fill = Math.min(items.length / (config.expected || 1), 1);
 
       let quality = UNSCORED_BASELINE;
-      if (config.saturation) {
-        const peak = Math.max(...items.map((item) => item.signal || 0));
+      /* Only over the items that actually carry a number. Reddit and Quora
+         arrive through Tavily with no vote count, so a discussions lane made
+         entirely of them had a peak signal of 0 — which scores 0 and sinks the
+         lane to the bottom of the page. Absent evidence is not evidence of a
+         weak lane; it falls back to the neutral baseline, same as YouTube and
+         arXiv, which have never carried one either. */
+      const signals = items
+        .map((item) => item.signal)
+        .filter((n) => typeof n === "number" && n > 0);
+
+      if (config.saturation && signals.length) {
+        const peak = Math.max(...signals);
         // Log-scaled so quality lifts a category without one outlier dominating:
         // 58k-star React repos score ~1, the 140-star repos a philosophy search
         // turns up score ~0.45, which drops Code below the neutral categories.
@@ -668,7 +686,13 @@ const PROBE_CATEGORIES = ["discussions", "papers", "books", "podcasts", "website
  * Tavily budget ran out — and videos is the lane with the broadest coverage of
  * any, so it was the worst possible one to drop. It now runs like every other
  * free source and fails on its own quota if it ever hits it. */
-const METERED_CATEGORIES = ["overview", "articles", "essays", "community"];
+const METERED_CATEGORIES = [
+  "overview",
+  "articles",
+  "essays",
+  "community",
+  "answers",
+];
 
 /* Articles stands in for "has anyone paid for this topic yet". It shares a
    fetch with the overview and expires on the same schedule, so if its row is
@@ -841,11 +865,18 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
       categories.overview = await fetchWikipediaOverview(topic).catch(() => null);
     }
 
-    /* Reddit and Quora are discussions; they only arrive separately because
-       they ride the Tavily bundle. Appended rather than interleaved — Hacker
-       News is already relevance-gated and point-floored, so it leads. */
-    const { community, ...lanes } = categories;
-    lanes.discussions = [...(lanes.discussions || []), ...(community || [])];
+    /* Reddit leads discussions and Quora leads Q&A; Hacker News and Stack
+       Exchange follow. They arrive as separate cache rows only because they
+       ride the metered Tavily bundle in phase two while the two APIs are free
+       and run in phase one.
+       The order is the editorial call, not an accident of which fetch
+       returned first: HN and Stack Exchange answer a narrow slice of the web
+       well — one skews to what a tech forum stayed up arguing about, the other
+       to what has a single correct answer — and neither is where most people
+       find the discussion they wanted. They are kept, ranked last. */
+    const { community, answers, ...lanes } = categories;
+    lanes.discussions = [...(community || []), ...(lanes.discussions || [])];
+    lanes.qa = [...(answers || []), ...(lanes.qa || [])];
 
     res.json({
       topic,
