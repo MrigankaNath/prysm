@@ -10,6 +10,7 @@ const { isRelevant } = require("../sources/relevance.js");
 const { hostOf } = require("../sources/http.js");
 const { laneOf } = require("../sources/tavily.js");
 const { hostRank, RANK } = require("../sources/quality.js");
+const { isRelevant: bookIsRelevant } = require("../sources/books.js");
 
 test("multi-word topics must match every term", () => {
   assert.ok(isRelevant("String theory and quantum gravity", "string theory"));
@@ -44,6 +45,28 @@ test("articles are ordered by what the site is, and storefronts are dropped", ()
   // The bounded words must not eat ordinary hosts.
   assert.equal(hostRank("https://www.restoration-hardware.com/x"), RANK.ordinary);
   assert.equal(hostRank("https://buyer-guide.org/x"), RANK.ordinary);
+});
+
+test("a book must match every topic term, not any one of them", () => {
+  const timeMachine = { title: "The Time Machine", subject: ["Machine", "Fiction"] };
+  const geron = {
+    title: "Hands-On Machine Learning",
+    subject: ["Machine learning", "Python (Computer program language)"],
+  };
+  const tokens = ["machine", "learning"];
+
+  // 1,917 readers — ranked by popularity it leads the lane if this gate leaks.
+  assert.ok(!bookIsRelevant(timeMachine, tokens, "machine learning"));
+  assert.ok(bookIsRelevant(geron, tokens, "machine learning"));
+
+  // Tokens may be spread across separate subjects.
+  assert.ok(
+    bookIsRelevant(
+      { title: "x", subject: ["Machine theory", "Learning, Psychology of"] },
+      tokens,
+      "machine learning",
+    ),
+  );
 });
 
 test("provenance ranks review above popularity", () => {

@@ -571,7 +571,12 @@ const LIVE_CATEGORIES = {
   // Quora, merged into qa the same way. Also never a lane of its own.
   answers: { fetch: fetchTavilyAnswers, empty: [], expected: 3 },
   podcasts: { fetch: fetchPodcasts, empty: [], expected: 5, saturation: 2000 },
-  books: { fetch: fetchBooks, empty: [], expected: 5 },
+  /* The lane now carries a reading-log count, so it can be scored like the
+     other engagement lanes instead of sitting at the neutral baseline. 500 is
+     the observed top of the range — Géron's Hands-On ML on "machine
+     learning" — so a topic with a canonical book on it leads, and one with
+     three thinly-shelved scans does not. */
+  books: { fetch: fetchBooks, empty: [], expected: 5, saturation: 500 },
 };
 
 // Sources without an engagement metric (arXiv, YouTube search, Tavily, Open

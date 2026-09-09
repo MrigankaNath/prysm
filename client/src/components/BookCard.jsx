@@ -17,6 +17,14 @@ import { IconPrism } from "./Icons";
  * units, so the whole cover scales as one object at any shelf width rather
  * than needing a breakpoint per size.
  */
+/* The lane is no longer all free scans, so the card has to say which it is —
+   otherwise every board makes the same promise and one in three keeps it. */
+const ACCESS_LABEL = {
+  free: "Free to read",
+  borrow: "Borrow free",
+  buy: "Buy",
+};
+
 function BookCard({ item, topic, category = "books" }) {
   const band = topicColor(item.title || "");
 
@@ -77,7 +85,11 @@ function BookCard({ item, topic, category = "books" }) {
           say: whether it's readable, when it's from, and the control to keep
           it. Repeating the title would print it twice at two sizes. */}
       <div className="book-meta">
-        <span className="book-free">Free to read</span>
+        {/* Books cached before the lane admitted paid titles carry no `access`
+            field, and every one of those was free to read. */}
+        <span className={`book-free is-${item.access || "free"}`}>
+          {ACCESS_LABEL[item.access] || "Free to read"}
+        </span>
         {item.year && <span className="book-year">{item.year}</span>}
         <BookmarkButton item={item} topic={topic} category={category} />
       </div>

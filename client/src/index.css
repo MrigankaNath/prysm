@@ -2131,6 +2131,13 @@ nav {
   min-width: 0;
 }
 
+/* Three states, one slot. Green reads as "yours now" and is reserved for the
+   two you can open without paying; buying is a neutral fact, not a warning,
+   so it takes the muted text colour rather than a colour of its own. */
+.book-free.is-buy {
+  color: var(--text-faint);
+}
+
 .book-free {
   color: #6ee7b7;
   font-size: 0.66rem;

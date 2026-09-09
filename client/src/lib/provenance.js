@@ -40,6 +40,11 @@ const MUCH_WATCHED = 100000;
    the only durable fact iTunes gives, and longevity is the honest reading of
    it — not quality, but not nothing either. */
 const LONG_RUNNING = 100;
+/* Open Library reading logs, so this counts people who catalogued the book on
+   that one site — a fraction of its readers, and skewed to what gets shelved
+   online. A hundred of them is a lot: measured, "machine learning" clears it
+   with Géron (532) and Mueller (131) and nothing else does. */
+const WIDELY_READ = 100;
 
 /**
  * The single strongest claim that can be made about an item, or null.
@@ -92,12 +97,24 @@ export function provenanceOf(item) {
     return { label: "Long running", tone: "running" };
   }
 
-  /* Every book in this lane is readable in full, for free, right now — Open
-     Library is filtered to `ebook_access:public` and the adapter re-checks it.
-     Universal within the lane, but a strong claim about a book in general:
-     most of them you cannot open. */
-  if (item.category === "books" || item.source === "openlibrary") {
-    return { label: "Full text", tone: "free" };
+  /* Books.
+   *
+   * "Full text" used to be unconditional here, because the lane was filtered
+   * to `ebook_access:public` and every book in it really was readable in full.
+   * The lane now admits books you have to buy, so the same badge on the same
+   * branch would print a claim that is false for most of it — the one thing a
+   * provenance badge may never do.
+   *
+   * Widely read leads where it applies: it is the lane's ranking signal and
+   * the closer answer to "is this the book on this subject". Full text is a
+   * fact about access rather than about the book, so it takes second place
+   * and, now, only when it is true. */
+  if (item.category === "books" || item.source === "books") {
+    if (n >= WIDELY_READ) return { label: "Widely read", tone: "running" };
+    if (item.access === "free" || (!item.access && item.source === "books")) {
+      return { label: "Full text", tone: "free" };
+    }
+    return null;
   }
 
   /* A preprint is not a flaw — most of the strongest work in ML appears there
