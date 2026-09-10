@@ -16,6 +16,12 @@ import { IconChevronRight } from "./Icons";
  * The vertical tag on the panel's edge is the one place a count belongs — it
  * fills the gutter the rotated text needs anyway, and it answers "how much is
  * in here" before the click.
+ *
+ * Nothing here draws a coloured stroke on hover. The active state is three
+ * things that are all light: the card's own surface brightens, a blurred disc
+ * behind the icon fades up, and the arrow token fills. An outline in the
+ * domain's hue reads as neon on a black page; a surface getting lighter reads
+ * as a thing being pointed at.
  */
 function BentoCard({ to, art, hue, title, blurb, tag, wide = false }) {
   return (
@@ -26,6 +32,10 @@ function BentoCard({ to, art, hue, title, blurb, tag, wide = false }) {
     >
       <span className="bento-panel">
         <span className="bento-rule" aria-hidden="true" />
+        {/* Sits between the ruling and the icon, so when it fades up it lights
+            the grid lines from under the object rather than washing over
+            them. */}
+        <span className="bento-halo" aria-hidden="true" />
         {art ? (
           <img className="bento-art" src={art} alt="" loading="lazy" decoding="async" />
         ) : (

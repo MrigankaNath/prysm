@@ -216,9 +216,26 @@ backfilled. Topic cards are uniform: the wide cell exists to give a blurb room,
 and a topic has none, so a two-column card holding one short title is mostly
 empty space.
 
-**Hover is lights and shades only** — no lift, no scale. The card is a surface
-being lit: its border takes the hue, the ruling brightens, the icon's bloom
-widens. On a grid of 33 anything that moves reads as a twitch.
+**The active state is three lights and no strokes.** An outline in the domain's
+hue reads as neon on a black page — that was the first version and it was
+wrong. Instead: the card's own surface goes from `rgba(255,255,255,.022)` to
+`.06` over 200ms, so the whole card is obviously live without a single coloured
+pixel on its edge; an 80px disc of the domain's colour behind the icon fades
+`0 → .4` under a `blur(24px)`, lighting the ruling from *beneath* the object
+and pushing it forward; and the arrow token fills to a medium slate carrying
+20% of the hue, with the arrow going pure white. That last one is the point of
+the set — it sends the eye to the way forward rather than around the perimeter.
+
+No lift and no scale: on a grid of 33, anything that moves reads as a twitch.
+The icon keeps only a black seating shadow, never a coloured bloom — two
+sources of one hue on a 78px asset just muddies it.
+
+**One card per row below 600px.** Two columns there gave each card about 160px,
+at which a two-line blurb broke to six lines and the pair read as two tall
+ragged strips. Furniture shrinks earlier, at 820px, so a two-up tablet grid is
+not just the desktop card squeezed. Note `span 2` has to become `span 1` in the
+one-column block, or a wide cell creates an implicit second column and comes
+out a different width from everything else.
 
 **The vertical tag fills the gutter the rotated text needs anyway**, and
 answers "how much is in here" before the click — `8 topics` on a domain, the
