@@ -144,7 +144,9 @@ function Feed({ session }) {
           </p>
         </div>
 
-        <img className="feed-illo" src={feedIllo} alt="" aria-hidden="true" />
+        <figure className="feed-illo" aria-hidden="true">
+          <img src={feedIllo} alt="" />
+        </figure>
       </header>
 
       {isEmpty && (

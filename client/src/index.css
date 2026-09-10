@@ -1414,20 +1414,73 @@ nav {
   border-radius: var(--radius-xl);
 }
 
-/* Wider than the 220px slot it replaces. The drawing is one beam entering a
+/* The drawing is transparent and made of light, so on a black page it had no
+   edge and read as floating rather than as a thing on the page. It gets the
+   same shell every card here has -- bold outline, a heavier bottom edge for
+   thickness, the extra-large radius -- so the header's one piece of artwork
+   belongs to the same set as everything under it.
+
+   Wider than the 220px the slot reserved: the drawing is one beam entering a
    prism and seven trails leaving it, and the icons those trails end on sit at
-   the far right of a 1600-unit frame — at placeholder width the whole right
-   half is unreadable and it reads as a smudge rather than as the thing the
-   page does. It is the only illustration on the feed, so it can afford the
-   room. */
+   the far right of a 1600-unit frame. At placeholder width the whole right
+   half collapses and the picture stops meaning anything. */
 .feed-illo {
-  width: clamp(260px, 30vw, 420px);
-  height: auto;
+  position: relative;
+  /* Not global in this stylesheet, so the padding and border have to be told
+     to sit inside the declared width. */
+  box-sizing: border-box;
   flex-shrink: 0;
-  /* The frame carries air on every side, so the optical edge of the drawing
-     sits well inside the box — pulled up and out, it lines up with the title
-     rather than floating below it. */
-  margin: -18px -22px -26px 0;
+  width: clamp(272px, 32vw, 448px);
+  margin: 0;
+  padding: 12px 14px;
+  overflow: hidden;
+  border: 1.5px solid var(--line-bold);
+  border-bottom-width: 4px;
+  border-bottom-color: #3d3d49;
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+}
+
+/* The light the prism is throwing, behind the drawing rather than in it -- the
+   artwork's own glow stops at its edges, and a lit object in an unlit box is
+   the tell that it was pasted in. Centred on the exit face, not the box. */
+.feed-illo::before {
+  content: "";
+  position: absolute;
+  left: 42%;
+  top: 52%;
+  width: 78%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(93, 203, 255, 0.15),
+    rgba(120, 130, 255, 0.06) 45%,
+    rgba(93, 203, 255, 0) 72%
+  );
+  pointer-events: none;
+}
+
+/* The same feTurbulence texture the topic plates, the auth card and the book
+   boards carry, so the well has a finish rather than being flat black. */
+.feed-illo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.14;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.feed-illo img {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .illo-slot-banner {
@@ -3460,12 +3513,10 @@ nav {
     height: 132px;
   }
 
-  /* The head stacks here, so the drawing gets the full column and centres
-     rather than hanging off the right edge of a one-column layout. */
+  /* The head stacks here, so the frame gets the full column rather than
+     hanging off the right edge of a one-column layout. */
   .feed-head .feed-illo {
-    width: min(100%, 380px);
-    align-self: center;
-    margin: -12px 0 -18px;
+    width: 100%;
   }
 
   .feed-sub {
