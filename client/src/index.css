@@ -7737,3 +7737,66 @@ nav {
   }
 }
 
+
+/* --------------------------------------------------------- spectrum art --- */
+
+/* The topic pack's artwork.
+ *
+ * These are full-colour 3D objects with their own gradients, reflections and
+ * glow, so they get the opposite treatment to the monotone glyphs: the plate
+ * stays dark and the hue moves to the rim. A coloured icon on a plate filled
+ * with the same hue has nothing to sit against — the same note DESIGN.md
+ * records against the roadmap marker.
+ */
+.spec-art {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 34px;
+  height: 34px;
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--hue, #a1a1aa) 34%, var(--line-bold));
+  border-radius: 11px;
+  background: linear-gradient(150deg, #16161c, #0c0c11);
+}
+
+/* The domain header carries its icon at reading size beside a title and a
+   line of copy, so it is drawn large enough to be read as an object. */
+.spec-art.is-head {
+  width: 52px;
+  height: 52px;
+  padding: 6px;
+  border-radius: 16px;
+}
+
+.spec-art-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* On Spectrum the tile is stripped (`.spec-grid .rail-tile` clears its border
+   and background), so the artwork stands on the page unframed. The pack is
+   drawn for 40-96px and these are detailed objects — at the 30px the monotone
+   glyph used, the bevels and reflections turn to mud. */
+.spec-grid .rail-tile > .spec-art-img {
+  width: 46px;
+  height: 46px;
+}
+
+@media (max-width: 620px) {
+  .spec-grid .rail-tile > .spec-art-img {
+    width: 38px;
+    height: 38px;
+  }
+
+  .spec-art.is-head {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+}

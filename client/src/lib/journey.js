@@ -54,7 +54,6 @@ export function domainCoverage() {
       id: cluster.id,
       label: cluster.label,
       hue: cluster.hue,
-      icon: cluster.icon,
       covered: hits.length,
       of: cluster.topics.length,
     };

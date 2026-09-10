@@ -178,6 +178,26 @@ The `box-shadow` stack used to be written out in full in five places and a
 state that forgot a layer lost it — which is how the "next" marker once
 rendered flat beside glossy ones.
 
+**The Spectrum icon pack follows the marker, not the topic plate.** Its 281
+icons — one per domain, one per topic — are full-colour 3D objects with their
+own gradients, reflections and glow, so they take the same inversion: a dark
+plate with the domain's hue in the rim (`.spec-art`), never `TopicIcon`'s plate
+filled with that hue. `SpectrumIcon` falls back to `TopicIcon` when the pack
+has nothing for a label, so an edited label degrades to the Iconify glyph
+rather than to a broken image.
+
+They load through `<img>`, never inlined. Two reasons, and both bite: several
+inline copies would all resolve to whichever instance rendered first, because
+each file carries its own gradient ids; and `<img loading="lazy">` is what
+keeps a 10,600px page from fetching 1.26 MB of artwork nobody has scrolled to.
+Vite is told not to data-URI them either (`assetsInlineLimit` in
+`vite.config.js`) — 25 of the 281 fall under its 4 kB threshold, and inlining
+those put one page's below-the-fold artwork into the entry chunk every visitor
+downloads. Excluding them took the entry chunk from 732 kB to 627 kB.
+
+**Drawn at 46px on Spectrum, not 30.** The pack is designed for 40–96px; at
+the size the monotone glyph used, the bevels and reflections turn to mud.
+
 ## Result presentation
 
 Two presentations, and which one applies is decided by the job the screen is

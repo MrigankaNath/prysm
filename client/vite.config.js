@@ -6,6 +6,19 @@ import path from 'node:path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    /* Never inline the Spectrum icon pack.
+     *
+     * Vite inlines any asset under 4 kB as a data URI, and 24 of the 281 icons
+     * fall under it — which put them in the entry chunk, where they are
+     * downloaded by every visitor on every route. They belong to one page,
+     * they sit below the fold, and they are immutable artwork that wants a
+     * content-hashed URL and a forever cache. Returning false opts just these
+     * out; `undefined` leaves Vite's own rule in place for everything else. */
+    assetsInlineLimit: (filePath) =>
+      filePath.includes("assets/spectrum-icons/") ? false : undefined,
+  },
+
   /* Honour the port the harness assigns. Vite does not read PORT on its own —
      it defaults to 5173 and increments if that is taken — so without this an
      auto-assigned port is ignored and the server lands somewhere the harness

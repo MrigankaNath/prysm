@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getTopics, subscribe } from "../lib/library";
 import { IconCompass, IconHistory } from "../components/Icons";
-import TopicIcon from "../components/TopicIcon";
 import { CLUSTERS } from "../lib/clusters";
+import SpectrumIcon from "../components/SpectrumIcon";
 
 function Spectrum() {
   const [recent, setRecent] = useState(() => getTopics().slice(0, 6));
@@ -60,11 +60,7 @@ function Spectrum() {
             className="spec-domain"
             style={{ "--hue": cluster.hue }}
           >
-            <TopicIcon
-              topic={cluster.label}
-              icon={cluster.icon}
-              color={cluster.hue}
-            />
+            <SpectrumIcon domain={cluster.id} hue={cluster.hue} />
             <span className="spec-domain-name">{cluster.label}</span>
           </a>
         ))}
@@ -79,10 +75,10 @@ function Spectrum() {
             style={{ "--hue": cluster.hue }}
           >
             <header className="spec-head">
-              <TopicIcon
-                topic={cluster.label}
-                icon={cluster.icon}
-                color={cluster.hue}
+              <SpectrumIcon
+                domain={cluster.id}
+                hue={cluster.hue}
+                className="is-head"
               />
               <div className="spec-head-copy">
                 <h3 className="spec-cluster-label">{cluster.label}</h3>
@@ -103,7 +99,7 @@ function Spectrum() {
                   style={{ "--hue": cluster.hue }}
                 >
                   <span className="rail-tile">
-                    <TopicIcon topic={topic} color={cluster.hue} />
+                    <SpectrumIcon topic={topic} hue={cluster.hue} bare />
                   </span>
                   <span className="rail-label">{topic}</span>
                 </Link>
