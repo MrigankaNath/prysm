@@ -1,5 +1,4 @@
 import { useState } from "react";
-import WebGLShader from "../components/WebGLShader";
 import PrismModel from "../components/PrismModel";
 import AuthModal from "../components/AuthModal";
 
@@ -9,8 +8,6 @@ function Hero() {
   return (
     <div className="hero-page">
       <section className="hero-content">
-        <WebGLShader />
-
         <div className="hero-content-inner">
           <h1 className="hero-title">Prysm</h1>
           <p className="hero-tagline">
