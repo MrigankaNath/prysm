@@ -3753,7 +3753,7 @@ nav {
   height: 80px;
   margin: -40px 0 0 -40px;
   border-radius: 50%;
-  background: var(--hue, #a1a1aa);
+  background: var(--glow, #a1a1aa);
   filter: blur(24px);
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -3821,6 +3821,10 @@ nav {
   color: var(--text-faint);
 }
 
+/* The border is transparent so the second background layer can paint it:
+   `padding-box` fills the disc, `border-box` draws the ring. That is the same
+   two-layer trick the active nav item and the auth button use, which is why
+   the ring can become the prism sweep on hover without restructuring. */
 .bento-go {
   display: grid;
   place-items: center;
@@ -3828,22 +3832,18 @@ nav {
   width: 34px;
   height: 34px;
   flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid transparent;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
+  background:
+    linear-gradient(#141419, #141419) padding-box,
+    linear-gradient(rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.1)) border-box;
   color: var(--text-dim);
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    color 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .bento-go svg {
   width: 15px;
   height: 15px;
-  /* The chevron the app already ships, turned into the corner arrow the
-     reference uses — one icon rather than a second one for one card. */
-  transform: rotate(-45deg);
 }
 
 /* Three things, all of them light. No lift, no scale, no coloured stroke. */
@@ -3857,16 +3857,40 @@ nav {
   opacity: 0.4;
 }
 
-/* The eye is sent to the way forward rather than around the card's edge. */
+/* The eye is sent to the way forward rather than around the card's edge — and
+   the ring is the prism sweep this app already uses for "this is the live
+   thing" on the active nav item and on the auth button once it can be
+   submitted. Reusing it here is consistency; putting it on the card's own edge
+   would be the coloured stroke this design just removed, at six times the
+   length. One card is hovered at a time, so one ring turns at a time. */
 .bento:hover .bento-go,
 .bento:focus-visible .bento-go {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: color-mix(in srgb, var(--hue, #a1a1aa) 20%, #2b3040);
+  animation: rainbow-spin 9s linear infinite;
+  background:
+    linear-gradient(#1c2130, #1c2130) padding-box,
+    conic-gradient(
+        from var(--rainbow-angle),
+        #3b82f6,
+        #8b5cf6,
+        #ec4899,
+        #f59e0b,
+        #10b981,
+        #06b6d4,
+        #3b82f6
+      )
+      border-box;
   color: #fff;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .bento:hover .bento-go,
+  .bento:focus-visible .bento-go {
+    animation: none;
+  }
+}
+
 .bento:focus-visible {
-  outline: 2px solid var(--hue, #a78bfa);
+  outline: 2px solid #a78bfa;
   outline-offset: 3px;
 }
 

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { IconChevronRight } from "./Icons";
+import { ArrowUpRight } from "lucide-react";
 
 /**
  * One cell of the Spectrum bento.
@@ -17,18 +17,21 @@ import { IconChevronRight } from "./Icons";
  * fills the gutter the rotated text needs anyway, and it answers "how much is
  * in here" before the click.
  *
- * Nothing here draws a coloured stroke on hover. The active state is three
+ * Nothing here draws a coloured stroke on the card. The active state is three
  * things that are all light: the card's own surface brightens, a blurred disc
- * behind the icon fades up, and the arrow token fills. An outline in the
- * domain's hue reads as neon on a black page; a surface getting lighter reads
- * as a thing being pointed at.
+ * behind the icon fades up, and the arrow token fills and takes the prism ring
+ * the nav and the auth button already use. An outline in a flat hue reads as
+ * neon on a black page; a surface getting lighter reads as a thing being
+ * pointed at.
  */
-function BentoCard({ to, art, hue, title, blurb, tag, wide = false }) {
+function BentoCard({ to, art, glow, title, blurb, tag, wide = false }) {
   return (
     <Link
       to={to}
       className={`bento${wide ? " is-wide" : ""}`}
-      style={{ "--hue": hue }}
+      /* The light under the icon is the icon's own colour, not the domain's
+         band — see the note in lib/spectrumIcons.js. */
+      style={{ "--glow": glow || "#a1a1aa" }}
     >
       <span className="bento-panel">
         <span className="bento-rule" aria-hidden="true" />
@@ -50,7 +53,7 @@ function BentoCard({ to, art, hue, title, blurb, tag, wide = false }) {
           {blurb && <span className="bento-blurb">{blurb}</span>}
         </span>
         <span className="bento-go" aria-hidden="true">
-          <IconChevronRight />
+          <ArrowUpRight />
         </span>
       </span>
     </Link>

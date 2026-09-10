@@ -1,6 +1,6 @@
 import { Link, Navigate, useParams } from "react-router-dom";
 import { CLUSTERS } from "../lib/clusters";
-import { domainArt, topicArt } from "../lib/spectrumIcons";
+import { artColor, domainArt, topicArt } from "../lib/spectrumIcons";
 import BentoCard from "../components/BentoCard";
 import { IconChevronRight } from "../components/Icons";
 
@@ -29,7 +29,11 @@ function SpectrumDomain() {
         Spectrum
       </Link>
 
-      <header className="spec-domain-hero" style={{ "--hue": cluster.hue }}>
+      {/* Lit by the artwork's own colour, for the same reason the cards are. */}
+      <header
+        className="spec-domain-hero"
+        style={{ "--hue": artColor(cluster.id) || cluster.hue }}
+      >
         <span className="spec-domain-art">
           <img src={domainArt(cluster.id)} alt="" decoding="async" />
         </span>
@@ -51,7 +55,7 @@ function SpectrumDomain() {
             key={topic}
             to={`/explore/${encodeURIComponent(topic)}`}
             art={topicArt(topic)}
-            hue={cluster.hue}
+            glow={artColor(topic)}
             title={topic}
             tag={cluster.label}
           />

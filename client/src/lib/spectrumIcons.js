@@ -18,6 +18,18 @@
  * without its file being renamed simply resolves to nothing, which the
  * caller draws as a fallback rather than as a broken image.
  */
+/* Each icon's own dominant colour, from the pack's manifest.
+ *
+ * The halo behind an icon used to take the *domain's* band hue, which is
+ * assigned by position and has nothing to do with the artwork — so a green
+ * shield sat in an amber glow and an orange flask in a violet one. The pack's
+ * README is explicit that its colours do not encode categories, so there was
+ * never a relationship to find. Lighting an object in its own colour is the
+ * only version of this that can look right.
+ *
+ * Generated alongside the SVGs, so regenerating the pack regenerates this. */
+import FACES from "../assets/spectrum-icons/colors.json";
+
 const FILES = import.meta.glob("../assets/spectrum-icons/**/*.svg", {
   eager: true,
   query: "?url",
@@ -52,6 +64,11 @@ export function topicArt(topic) {
 /** The artwork for a domain, keyed by the cluster id (which is its slug). */
 export function domainArt(id) {
   return DOMAINS.get(id) || null;
+}
+
+/** The dominant colour of a topic's or a domain's artwork, for lighting it. */
+export function artColor(name) {
+  return FACES[slugify(name)] || null;
 }
 
 /** Counts, so a test can assert the pack arrived intact. */

@@ -4,7 +4,7 @@ import { getTopics, subscribe } from "../lib/library";
 import { IconCompass, IconHistory } from "../components/Icons";
 import { CLUSTERS } from "../lib/clusters";
 import BentoCard from "../components/BentoCard";
-import { domainArt } from "../lib/spectrumIcons";
+import { artColor, domainArt } from "../lib/spectrumIcons";
 
 function Spectrum() {
   const [recent, setRecent] = useState(() => getTopics().slice(0, 6));
@@ -61,7 +61,7 @@ function Spectrum() {
             key={cluster.id}
             to={`/spectrum/${cluster.id}`}
             art={domainArt(cluster.id)}
-            hue={cluster.hue}
+            glow={artColor(cluster.id)}
             title={cluster.label}
             blurb={cluster.blurb}
             tag={`${cluster.topics.length} topics`}

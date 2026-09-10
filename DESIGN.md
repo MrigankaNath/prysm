@@ -220,11 +220,32 @@ empty space.
 hue reads as neon on a black page — that was the first version and it was
 wrong. Instead: the card's own surface goes from `rgba(255,255,255,.022)` to
 `.06` over 200ms, so the whole card is obviously live without a single coloured
-pixel on its edge; an 80px disc of the domain's colour behind the icon fades
-`0 → .4` under a `blur(24px)`, lighting the ruling from *beneath* the object
-and pushing it forward; and the arrow token fills to a medium slate carrying
-20% of the hue, with the arrow going pure white. That last one is the point of
-the set — it sends the eye to the way forward rather than around the perimeter.
+pixel on its edge; an 80px disc **in the icon's own colour** fades `0 → .4` under a
+`blur(24px)`, lighting the ruling from *beneath* the object and pushing it
+forward; and the arrow token fills to a medium slate and takes the prism ring,
+with the arrow going pure white. That last one is the point of the set — it
+sends the eye to the way forward rather than around the perimeter.
+
+**The halo takes the artwork's colour, never the domain's band.** The band hue
+is assigned by position, and the icon pack's README is explicit that its
+colours do not encode categories — so a green shield sat in an amber glow and
+an orange flask in a violet one, and there was no relationship to find. Every
+icon's dominant colour is in the pack's manifest; `colors.json` is generated
+beside the SVGs and `artColor()` reads it. Measured after the change: 33 cards,
+33 distinct glows, none of them a band hue.
+
+**The token's ring is the prism sweep the app already owns** — the same
+`rainbow-spin` on `--rainbow-angle` that marks the active nav item and the auth
+button once it can be submitted. It belongs on the 34px token and nowhere near
+the card: on the card's own edge it would be the coloured stroke this design
+just removed, at six times the length and turning. One card is hovered at a
+time, so one ring turns at a time. The two-layer `padding-box` / `border-box`
+background is what lets a plain ring become a conic one without restructuring.
+
+**The arrow is a real arrow.** It was `IconChevronRight` rotated -45°, which is
+a chevron with no shaft — at 15px it reads as a bent corner mark, not a
+direction. `ArrowUpRight` from lucide, already used for "open this" on the path
+popover and the result tile.
 
 No lift and no scale: on a grid of 33, anything that moves reads as a twitch.
 The icon keeps only a black seating shadow, never a coloured bloom — two
