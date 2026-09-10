@@ -351,21 +351,6 @@ nav {
 }
 
 
-@media (max-width: 760px) {
-  .command-hint-keys {
-    display: none;
-  }
-
-  .command-hint {
-    padding: 7px;
-  }
-
-  .command-hint-icon {
-    width: 16px;
-    height: 16px;
-  }
-}
-
 .explore-eyebrow {
   font-size: 0.72rem;
   font-weight: 600;
@@ -3201,12 +3186,6 @@ nav {
   text-overflow: ellipsis;
 }
 
-.fcard-signal {
-  flex-shrink: 0;
-  color: var(--text-dim);
-  font-weight: 600;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .fcard,
   .fcard:hover {
@@ -3955,14 +3934,6 @@ nav {
 
 
 
-@media (max-width: 560px) {
-  .spec-banner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-}
-
 
 /* ==========================================================================
    Wavelength (saved / history / topics)
@@ -4223,21 +4194,6 @@ nav {
 }
 
 .stage-advanced {
-  --band: #ec4899;
-  --band-lit: #f9a8d4;
-}
-
-.pstep-beginner {
-  --band: #10b981;
-  --band-lit: #6ee7b7;
-}
-
-.pstep-intermediate {
-  --band: #3b82f6;
-  --band-lit: #93c5fd;
-}
-
-.pstep-advanced {
   --band: #ec4899;
   --band-lit: #f9a8d4;
 }

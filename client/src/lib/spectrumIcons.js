@@ -36,8 +36,9 @@ const FILES = import.meta.glob("../assets/spectrum-icons/**/*.svg", {
   import: "default",
 });
 
-/** The pack's own slug rule. Must stay in step with its `render_collection.py`. */
-export function slugify(label) {
+/* The pack's own slug rule. Must stay in step with its `render_collection.py`.
+   Private: nothing outside this module should be building icon keys. */
+function slugify(label) {
   return String(label)
     .toLowerCase()
     .trim()
@@ -70,6 +71,3 @@ export function domainArt(id) {
 export function artColor(name) {
   return FACES[slugify(name)] || null;
 }
-
-/** Counts, so a test can assert the pack arrived intact. */
-export const ART_COUNTS = { topics: TOPICS.size, domains: DOMAINS.size };
