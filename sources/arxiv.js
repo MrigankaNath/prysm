@@ -1,5 +1,5 @@
 
-const { getJson, getText } = require("./http");
+const { getText } = require("./http");
 const { XMLParser } = require("fast-xml-parser");
 const { isRelevant } = require("./relevance");
 

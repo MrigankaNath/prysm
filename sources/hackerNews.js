@@ -1,5 +1,5 @@
 
-const { getJson, getText } = require("./http");
+const { getJson } = require("./http");
 const { isRelevant } = require("./relevance");
 
 /* Algolia's `query` is a loose match, and this was the one keyword source with

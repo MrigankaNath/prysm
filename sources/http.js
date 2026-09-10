@@ -18,7 +18,8 @@ async function request(
   const res = await fetch(url, {
     method,
     headers: { "User-Agent": USER_AGENT, ...headers },
-    body,
+    // Only when there is one: `body: undefined` on a GET is an invalid pairing.
+    ...(body === undefined ? {} : { body }),
     signal: AbortSignal.timeout(timeoutMs || TIMEOUT_MS),
   });
 

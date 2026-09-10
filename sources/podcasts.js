@@ -1,5 +1,5 @@
 
-const { getJson, getText } = require("./http");
+const { getJson } = require("./http");
 const { isRelevant } = require("./relevance");
 
 async function fetchPodcasts(topic) {
