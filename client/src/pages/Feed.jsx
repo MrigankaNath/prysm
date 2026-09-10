@@ -14,6 +14,7 @@ import {
   IconChevronRight,
   IconGrid,
 } from "../components/Icons";
+import feedIllo from "../assets/feed.svg";
 
 /* Every topic card carries its own band of the spectrum: the base hue drives
    the stroke and the glow, the lightened one fills the button — a solid fill
@@ -143,10 +144,7 @@ function Feed({ session }) {
           </p>
         </div>
 
-        {/*  ILLUSTRATION SLOT — "feed mark", ~220x160.  */}
-        <div className="illo-slot illo-slot-head" aria-hidden="true">
-          <span className="illo-hint">illustration</span>
-        </div>
+        <img className="feed-illo" src={feedIllo} alt="" aria-hidden="true" />
       </header>
 
       {isEmpty && (

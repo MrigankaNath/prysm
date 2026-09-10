@@ -1414,6 +1414,22 @@ nav {
   border-radius: var(--radius-xl);
 }
 
+/* Wider than the 220px slot it replaces. The drawing is one beam entering a
+   prism and seven trails leaving it, and the icons those trails end on sit at
+   the far right of a 1600-unit frame — at placeholder width the whole right
+   half is unreadable and it reads as a smudge rather than as the thing the
+   page does. It is the only illustration on the feed, so it can afford the
+   room. */
+.feed-illo {
+  width: clamp(260px, 30vw, 420px);
+  height: auto;
+  flex-shrink: 0;
+  /* The frame carries air on every side, so the optical edge of the drawing
+     sits well inside the box — pulled up and out, it lines up with the title
+     rather than floating below it. */
+  margin: -18px -22px -26px 0;
+}
+
 .illo-slot-banner {
   width: 100%;
   height: 190px;
@@ -3442,6 +3458,14 @@ nav {
   .feed-head .illo-slot-head {
     width: 100%;
     height: 132px;
+  }
+
+  /* The head stacks here, so the drawing gets the full column and centres
+     rather than hanging off the right edge of a one-column layout. */
+  .feed-head .feed-illo {
+    width: min(100%, 380px);
+    align-self: center;
+    margin: -12px 0 -18px;
   }
 
   .feed-sub {
