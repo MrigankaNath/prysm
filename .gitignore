@@ -4,6 +4,8 @@ dist/
 .DS_Store
 PRD.md
 CLAUDE.md
+AGENTS.md
+GEMINI.md
 .claude/
 .claude-plugin/
 .mcp.json
