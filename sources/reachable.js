@@ -41,6 +41,65 @@
 /* A real browser's UA. Not to evade anything — the check follows whatever the
    server says either way — but because a default Node agent gets a different
    answer from the same page, which would make the measurement about us. */
+const dns = require("node:dns").promises;
+const net = require("node:net");
+
+/* Only public addresses may be probed.
+ *
+ * This checker fetches URLs that arrive from other people's search indexes, and
+ * one of the lanes it guards is Hacker News, where the URL is whatever a
+ * stranger submitted. Without this it was a server-side request forgery
+ * primitive: `isReachable("http://169.254.169.254/latest/meta-data/")` — or any
+ * localhost port — returned an honest `true`, which is an internal port scanner
+ * with the result leaking one bit at a time. Verified against a live local
+ * server before the fix: 127.0.0.1, localhost and [::1] all returned true.
+ *
+ * Blocking by hostname is not enough (a public name can resolve to 127.0.0.1,
+ * and a redirect can land anywhere), so the host is resolved and every address
+ * checked, and redirects are followed by hand with the same check on each hop. */
+function v4Blocked(ip) {
+  const [a, b] = ip.split(".").map(Number);
+  if (a === 0 || a === 10 || a === 127) return true;
+  if (a === 169 && b === 254) return true;            // link-local + cloud metadata
+  if (a === 172 && b >= 16 && b <= 31) return true;   // 172.16/12
+  if (a === 192 && b === 168) return true;
+  if (a === 192 && b === 0) return true;              // 192.0.0/24 protocol assignments
+  if (a === 100 && b >= 64 && b <= 127) return true;  // CGNAT
+  if (a === 198 && (b === 18 || b === 19)) return true; // benchmarking
+  if (a >= 224) return true;                          // multicast + reserved
+  return false;
+}
+
+function v6Blocked(ip) {
+  const low = ip.toLowerCase();
+  if (low === "::" || low === "::1") return true;
+  if (low.startsWith("fc") || low.startsWith("fd")) return true; // unique-local
+  if (low.startsWith("fe8") || low.startsWith("fe9") ||
+      low.startsWith("fea") || low.startsWith("feb")) return true; // link-local
+  // IPv4-mapped (::ffff:127.0.0.1) — judge the embedded address.
+  const mapped = low.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/);
+  return mapped ? v4Blocked(mapped[1]) : false;
+}
+
+function isPublicAddress(ip) {
+  const kind = net.isIP(ip);
+  if (kind === 4) return !v4Blocked(ip);
+  if (kind === 6) return !v6Blocked(ip);
+  return false;
+}
+
+/** Every address the host resolves to must be public. Fails closed: a host that
+ *  cannot be resolved is not probed. */
+async function hostIsPublic(hostname) {
+  if (net.isIP(hostname)) return isPublicAddress(hostname);
+  try {
+    const records = await dns.lookup(hostname, { all: true });
+    return records.length > 0 && records.every((r) => isPublicAddress(r.address));
+  } catch {
+    return false;
+  }
+}
+
 const AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
   "(KHTML, like Gecko) Chrome/124.0 Safari/537.36";
@@ -53,19 +112,39 @@ function isServed(status) {
   return status >= 200 && status < 300;
 }
 
+const MAX_HOPS = 4;
+
+/* Redirects are followed by hand, because `redirect: "follow"` would land on
+   whatever the last hop names without the address check ever seeing it — which
+   is the easiest way to walk a public URL into a private one. */
 async function probe(url, method, timeoutMs) {
-  const control = new AbortController();
-  const timer = setTimeout(() => control.abort(), timeoutMs);
-  try {
-    return await fetch(url, {
-      method,
-      redirect: "follow",
-      signal: control.signal,
-      headers: { "user-agent": AGENT, accept: "*/*" },
-    });
-  } finally {
-    clearTimeout(timer);
+  let current = url;
+
+  for (let hop = 0; hop < MAX_HOPS; hop += 1) {
+    const parsed = new URL(current);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    if (!(await hostIsPublic(parsed.hostname))) return null;
+
+    const control = new AbortController();
+    const timer = setTimeout(() => control.abort(), timeoutMs);
+    let res;
+    try {
+      res = await fetch(current, {
+        method,
+        redirect: "manual",
+        signal: control.signal,
+        headers: { "user-agent": AGENT, accept: "*/*" },
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+
+    const location = res.status >= 300 && res.status < 400 && res.headers.get("location");
+    if (!location) return res;
+    current = new URL(location, current).toString();
   }
+
+  return null; // redirect loop, or too many hops
 }
 
 /**
@@ -85,14 +164,14 @@ async function isReachable(url, { timeoutMs = 6000 } = {}) {
 
   try {
     const head = await probe(url, "HEAD", timeoutMs);
-    if (isServed(head.status)) return true;
+    if (head && isServed(head.status)) return true;
   } catch {
     /* Fall through to the GET. A HEAD that threw is not a verdict either. */
   }
 
   try {
     const res = await probe(url, "GET", timeoutMs);
-    return isServed(res.status);
+    return Boolean(res) && isServed(res.status);
   } catch {
     return false;
   }
@@ -108,7 +187,7 @@ async function keepReachable(items, { concurrency = 8, timeoutMs = 6000 } = {}) 
   const list = Array.isArray(items) ? items : [];
   if (list.length === 0) return list;
 
-  const verdicts = new Array(list.length);
+  const verdicts = Array.from({ length: list.length });
   let cursor = 0;
 
   async function worker() {
@@ -148,4 +227,4 @@ const ROT_PRONE = new Set([
   "discussions",
 ]);
 
-module.exports = { isReachable, keepReachable, isServed, ROT_PRONE };
+module.exports = { isReachable, keepReachable, isServed, isPublicAddress, ROT_PRONE };

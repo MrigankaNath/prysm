@@ -8,7 +8,7 @@ import { provenanceOf } from "../client/src/lib/provenance.js";
 const require = createRequire(import.meta.url);
 const { isRelevant } = require("../sources/relevance.js");
 const { hostOf } = require("../sources/http.js");
-const { isServed } = require("../sources/reachable.js");
+const { isServed, isPublicAddress } = require("../sources/reachable.js");
 const { urlFor: bookUrl } = require("../sources/books.js");
 const { rankCategories } = require("../sources/rank.js");
 const { laneOf } = require("../sources/tavily.js");
@@ -262,4 +262,24 @@ test("a pinned lane with no results is skipped, not left empty", () => {
     RANK_CONFIG,
   );
   assert.deepEqual(order, ["overview", "articles"]);
+});
+
+/* The link checker fetches URLs that strangers put into other people's indexes
+   — a Hacker News submission is whatever someone posted — so an address it will
+   probe must be public. Before this guard, isReachable("http://127.0.0.1:3000/")
+   returned true against a live local server. */
+test("the reachability checker refuses private and internal addresses", () => {
+  for (const ip of [
+    "127.0.0.1", "10.0.0.1", "192.168.1.1", "172.16.0.1", "172.31.255.255",
+    "169.254.169.254", "0.0.0.0", "100.64.0.1", "::1", "fd00::1", "fe80::1",
+    "::ffff:127.0.0.1",
+  ]) {
+    assert.equal(isPublicAddress(ip), false, `${ip} must be blocked`);
+  }
+
+  for (const ip of ["8.8.8.8", "1.1.1.1", "172.32.0.1", "192.169.0.1", "2606:4700::1111"]) {
+    assert.equal(isPublicAddress(ip), true, `${ip} must be allowed`);
+  }
+
+  assert.equal(isPublicAddress("not-an-ip"), false);
 });
