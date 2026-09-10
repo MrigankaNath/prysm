@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { getTopics, subscribe } from "../lib/library";
 import { IconCompass, IconHistory } from "../components/Icons";
 import { CLUSTERS } from "../lib/clusters";
-import SpectrumIcon from "../components/SpectrumIcon";
+import BentoCard from "../components/BentoCard";
+import { domainArt } from "../lib/spectrumIcons";
 
 function Spectrum() {
   const [recent, setRecent] = useState(() => getTopics().slice(0, 6));
@@ -45,74 +46,31 @@ function Spectrum() {
         </section>
       )}
 
-      {/* An index, not a tab bar.
-          The first version of this showed one domain at a time and hid the
-          other twenty-three, which is the wrong trade for a page whose whole
-          job is browsing: it put 144 of the 150 topics behind a click, and the
-          panel opened below the grid rather than where the eye was. These jump
-          to a section instead. Everything stays on the page; this is for
-          getting to it quickly. */}
-      <nav className="spec-index" aria-label="Jump to a domain">
-        {CLUSTERS.map((cluster) => (
-          <a
+      {/* Domains only.
+          Every topic on one page was 248 tiles down ten thousand pixels — a
+          reference table, not somewhere to browse. The domains are the choice
+          worth putting in front of someone; the topics are what they came for
+          once they have made it, and they live a click in.
+
+          `dense` because the wide cells would otherwise leave holes: auto-flow
+          skips a two-column card that will not fit the remaining space, and
+          dense backfills the gap with the next card that does. */}
+      <div className="bento-grid">
+        {CLUSTERS.map((cluster, i) => (
+          <BentoCard
             key={cluster.id}
-            href={`#domain-${cluster.id}`}
-            className="spec-domain"
-            style={{ "--hue": cluster.hue }}
-          >
-            <span className="spec-domain-name">{cluster.label}</span>
-          </a>
-        ))}
-      </nav>
-
-      <div className="spec-clusters">
-        {CLUSTERS.map((cluster) => (
-          <section
-            key={cluster.id}
-            id={`domain-${cluster.id}`}
-            className="spec-cluster"
-            style={{ "--hue": cluster.hue }}
-          >
-            {/* A child of the card, not of the header. `.spec-cluster > *` gives
-                every direct child `position: relative`, so nested inside the
-                header this anchored to the header's box and sat 33px *inside*
-                the card instead of overhanging it. */}
-            <SpectrumIcon
-              domain={cluster.id}
-              hue={cluster.hue}
-              className="is-head"
-            />
-
-            <header className="spec-head">
-              <div className="spec-head-copy">
-                <h3 className="spec-cluster-label">{cluster.label}</h3>
-                <p className="spec-cluster-blurb">{cluster.blurb}</p>
-              </div>
-            </header>
-
-            {/* Wraps rather than scrolls. A rail made sense when the tiles
-                were connected and a wrapped row would have drawn a connector
-                into the gutter; without them, a horizontal scroller just hides
-                topics behind a gesture nobody knows is available. */}
-            <div className="spec-grid">
-              {cluster.topics.map((topic) => (
-                <Link
-                  key={topic}
-                  to={`/explore/${encodeURIComponent(topic)}`}
-                  className="rail-item"
-                  style={{ "--hue": cluster.hue }}
-                >
-                  <span className="rail-tile">
-                    <SpectrumIcon topic={topic} hue={cluster.hue} bare />
-                  </span>
-                  <span className="rail-label">{topic}</span>
-                </Link>
-              ))}
-            </div>
-          </section>
+            to={`/spectrum/${cluster.id}`}
+            art={domainArt(cluster.id)}
+            hue={cluster.hue}
+            title={cluster.label}
+            blurb={cluster.blurb}
+            tag={`${cluster.topics.length} topics`}
+            /* One wide cell per row of four keeps a rhythm without the page
+               reading as two different grids stacked. */
+            wide={i % 7 === 0}
+          />
         ))}
       </div>
-
     </div>
   );
 }

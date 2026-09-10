@@ -13,6 +13,7 @@ import ExploreTopic from "./pages/ExploreTopic";
 import Prisms from "./pages/Prisms";
 import PrismDetail from "./pages/PrismDetail";
 import Spectrum from "./pages/Spectrum";
+import SpectrumDomain from "./pages/SpectrumDomain";
 import Wavelength from "./pages/Wavelength";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
@@ -132,6 +133,7 @@ function AppRoutes({ session, authReady, onOpenSearch }) {
         <Route path="/explore/:topic" element={gated(<ExploreTopic />)} />
         <Route path="/prisms/:id" element={gated(<PrismDetail />)} />
         <Route path="/spectrum" element={gated(<Spectrum />)} />
+        <Route path="/spectrum/:id" element={gated(<SpectrumDomain />)} />
         <Route
           path="/wavelength"
           element={gated(<Wavelength session={session} />)}

@@ -195,35 +195,37 @@ Vite is told not to data-URI them either (`assetsInlineLimit` in
 those put one page's below-the-fold artwork into the entry chunk every visitor
 downloads. Excluding them took the entry chunk from 732 kB to 627 kB.
 
-**Spectrum is a bento of frosted cards, one per domain.** Thirty-three sections
-on a flat page were a list with headings in it; a card is what turns 248 topics
-into chunks the eye can take one at a time. Each carries the domain's hue once,
-as a wash behind its hero and faded out well before the topics — the artwork
-below is already vivid, and a tint across the whole card competes with it.
+**Spectrum is two pages, not one.** The index shows the 33 domains; a domain's
+topics live a click in at `/spectrum/:id`. Every topic on one page was 248
+tiles down ten thousand pixels — a reference table, not somewhere to browse.
+Split, the index is 3,300px and the choice it asks for is the only one on it.
 
-**The hero icon overhangs the card's top edge**, 76px breaking out by 25 (62 by
-21 on mobile). That break-out is the whole trick: an icon fully inside its
-container is a bullet, and one crossing the container's edge reads as an object
-sitting on it — spatial depth without putting a drop shadow on everything. It
-is a direct child of the card, never of the header: `.spec-cluster > *` sets
-`position: relative` on every direct child, so nested one level deeper it
-anchors to the header's box and sits *inside* the card instead. It shares the
-card's left rule with the title, so the two line up exactly.
+**The artwork sits on a ruled panel, never on the card itself.** These are
+small, saturated 3D objects, and on a flat dark card they float with nothing to
+give them scale. A drawn grid behind them reads as a surface the object is
+resting on — it is the difference between a photographed thing and a sticker.
+The ruling is masked to fade at the edges, so it reads as a surface receding
+rather than a table drawn inside a box, and the icon carries two drop shadows:
+black to seat it on the ruling, the domain's hue as a bloom so it looks lit.
 
-**Topic tiles are uniform and left-aligned**, icon in its own darker bounding
-frame beside the label. The frame is darker than the tile it sits in, so the
-artwork is lit against something rather than floating on a second sheet of the
-same glass. The grid is `align-items: stretch` — a two-line label must not
-leave the tile beside it short, or the bento is a ragged list again.
+**A bento needs cells that differ** — 33 identical cards is a table. Every
+seventh index card spans two columns and lays its panel beside the copy instead
+of above it. The grid is `grid-auto-flow: dense`, without which a wide cell
+that will not fit the space left on a row punches a hole instead of being
+backfilled. Topic cards are uniform: the wide cell exists to give a blurb room,
+and a topic has none, so a two-column card holding one short title is mostly
+empty space.
 
-**Drawn at 36px in a 46px frame** (32 in 40 on mobile). The pack is designed
-for 40–96px; at the 30px the monotone glyph used, the bevels and reflections
-turn to mud, and filling the frame edge to edge loses the reveal that makes it
-read as *in* something.
+**Hover is lights and shades only** — no lift, no scale. The card is a surface
+being lit: its border takes the hue, the ruling brightens, the icon's bloom
+widens. On a grid of 33 anything that moves reads as a twitch.
 
-**The index at the top carries no icons.** Thirty-three marks in a jump list is
-a second, competing display of the same artwork, and the list only has to be
-scannable — a coloured dot per domain is enough to tell them apart.
+**The vertical tag fills the gutter the rotated text needs anyway**, and
+answers "how much is in here" before the click — `8 topics` on a domain, the
+domain's name on a topic.
+
+**The index carries no icons in its jump list.** Thirty-three marks there is a
+second, competing display of the same artwork.
 
 ## Result presentation
 

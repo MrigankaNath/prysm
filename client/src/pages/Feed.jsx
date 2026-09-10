@@ -215,7 +215,7 @@ function Feed({ session }) {
             {touchedDomains.map((d) => (
               <Link
                 key={d.id}
-                to={`/spectrum#domain-${d.id}`}
+                to={`/spectrum/${d.id}`}
                 className="cover"
                 style={{ "--hue": d.hue }}
               >

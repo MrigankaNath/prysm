@@ -1,11 +1,12 @@
 /* Scratch preview — the real pages sit behind the auth gate. Delete before merging. */
 import { StrictMode, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import "./index.css";
 import { PrismGradientDefs } from "./components/Icons";
 import { PrismBody } from "./pages/PrismDetail";
 import Spectrum from "./pages/Spectrum";
+import SpectrumDomain from "./pages/SpectrumDomain";
 import PathStage from "./components/PathStage";
 import MediaCard from "./components/MediaCard";
 import FeedCard from "./components/FeedCard";
@@ -297,9 +298,15 @@ function FeedPreview() {
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <MemoryRouter>
+    <MemoryRouter initialEntries={["/spectrum/physics"]}>
       <PrismGradientDefs />
       {location.hash === "#spectrum" ? <Spectrum /> : null}
+      {/* Needs a real route, since the page reads its id from useParams. */}
+      {location.hash === "#domain" ? (
+        <Routes>
+          <Route path="/spectrum/:id" element={<SpectrumDomain />} />
+        </Routes>
+      ) : null}
       {location.hash === "#path" ? <PathPreview /> : null}
       {location.hash === "#media" ? <MediaPreview /> : null}
       {location.hash === "#feed" ? <FeedPreview /> : null}
