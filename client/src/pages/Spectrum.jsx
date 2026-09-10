@@ -60,7 +60,6 @@ function Spectrum() {
             className="spec-domain"
             style={{ "--hue": cluster.hue }}
           >
-            <SpectrumIcon domain={cluster.id} hue={cluster.hue} />
             <span className="spec-domain-name">{cluster.label}</span>
           </a>
         ))}
@@ -74,12 +73,17 @@ function Spectrum() {
             className="spec-cluster"
             style={{ "--hue": cluster.hue }}
           >
+            {/* A child of the card, not of the header. `.spec-cluster > *` gives
+                every direct child `position: relative`, so nested inside the
+                header this anchored to the header's box and sat 33px *inside*
+                the card instead of overhanging it. */}
+            <SpectrumIcon
+              domain={cluster.id}
+              hue={cluster.hue}
+              className="is-head"
+            />
+
             <header className="spec-head">
-              <SpectrumIcon
-                domain={cluster.id}
-                hue={cluster.hue}
-                className="is-head"
-              />
               <div className="spec-head-copy">
                 <h3 className="spec-cluster-label">{cluster.label}</h3>
                 <p className="spec-cluster-blurb">{cluster.blurb}</p>

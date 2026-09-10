@@ -195,8 +195,35 @@ Vite is told not to data-URI them either (`assetsInlineLimit` in
 those put one page's below-the-fold artwork into the entry chunk every visitor
 downloads. Excluding them took the entry chunk from 732 kB to 627 kB.
 
-**Drawn at 46px on Spectrum, not 30.** The pack is designed for 40–96px; at
-the size the monotone glyph used, the bevels and reflections turn to mud.
+**Spectrum is a bento of frosted cards, one per domain.** Thirty-three sections
+on a flat page were a list with headings in it; a card is what turns 248 topics
+into chunks the eye can take one at a time. Each carries the domain's hue once,
+as a wash behind its hero and faded out well before the topics — the artwork
+below is already vivid, and a tint across the whole card competes with it.
+
+**The hero icon overhangs the card's top edge**, 76px breaking out by 25 (62 by
+21 on mobile). That break-out is the whole trick: an icon fully inside its
+container is a bullet, and one crossing the container's edge reads as an object
+sitting on it — spatial depth without putting a drop shadow on everything. It
+is a direct child of the card, never of the header: `.spec-cluster > *` sets
+`position: relative` on every direct child, so nested one level deeper it
+anchors to the header's box and sits *inside* the card instead. It shares the
+card's left rule with the title, so the two line up exactly.
+
+**Topic tiles are uniform and left-aligned**, icon in its own darker bounding
+frame beside the label. The frame is darker than the tile it sits in, so the
+artwork is lit against something rather than floating on a second sheet of the
+same glass. The grid is `align-items: stretch` — a two-line label must not
+leave the tile beside it short, or the bento is a ragged list again.
+
+**Drawn at 36px in a 46px frame** (32 in 40 on mobile). The pack is designed
+for 40–96px; at the 30px the monotone glyph used, the bevels and reflections
+turn to mud, and filling the frame edge to edge loses the reveal that makes it
+read as *in* something.
+
+**The index at the top carries no icons.** Thirty-three marks in a jump list is
+a second, competing display of the same artwork, and the list only has to be
+scannable — a coloured dot per domain is enough to tell them apart.
 
 ## Result presentation
 

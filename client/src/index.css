@@ -3646,98 +3646,147 @@ nav {
   gap: clamp(40px, 4.6vw, 64px);
 }
 
+/* Bento. One frosted card per domain, with its hero icon overhanging the top
+   edge.
+   
+   The card is what groups 248 topics into something readable — thirty-three
+   sections on a flat page were a list with headings in it. The break-out is
+   the whole trick: an icon fully inside its container is a bullet, and an icon
+   crossing the container's edge reads as an object sitting on it, which is
+   what gives the page depth without a drop shadow on everything. */
 .spec-cluster {
-  /* Lands clear of the fixed nav when the index jumps to it. */
-  scroll-margin-top: 26px;
+  position: relative;
+  box-sizing: border-box;
+  /* Clears the nav *and* the part of the hero that sticks out above. */
+  scroll-margin-top: 52px;
+  padding: 58px clamp(18px, 2.2vw, 28px) clamp(20px, 2.2vw, 28px);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 28px;
+  background: linear-gradient(
+    168deg,
+    rgba(255, 255, 255, 0.052),
+    rgba(255, 255, 255, 0.013)
+  );
+  backdrop-filter: blur(20px) saturate(118%);
 }
 
-/* Compact beside the banner the explore page uses: twenty-four of these stack,
-   so the header states the domain and gets out of the way. */
+/* The domain's colour enters once, behind the hero, and fades out well before
+   the topics — the artwork below is already vivid and a wash across the whole
+   card would be competing with it. */
+.spec-cluster::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    60% 68% at 7% 0%,
+    color-mix(in srgb, var(--hue, #a1a1aa) 15%, transparent),
+    transparent 58%
+  );
+  pointer-events: none;
+}
+
+.spec-cluster > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Out of the flow so it can cross the card's edge, and anchored to the same
+   left rule the title and the first tile use. */
+.spec-art.is-head {
+  position: absolute;
+  z-index: 2;
+  top: -26px;
+  left: clamp(18px, 2.2vw, 28px);
+  width: 76px;
+  height: 76px;
+  padding: 9px;
+  border-radius: 23px;
+  border-color: color-mix(in srgb, var(--hue, #a1a1aa) 40%, rgba(255, 255, 255, 0.12));
+  background: linear-gradient(158deg, rgba(30, 30, 39, 0.95), rgba(11, 11, 15, 0.95));
+  backdrop-filter: blur(14px);
+  /* Two shadows doing different jobs: a black one to lift it off the card, and
+     the domain's hue as a halo so the 3D artwork looks lit rather than pasted. */
+  box-shadow:
+    0 18px 36px -16px rgba(0, 0, 0, 0.92),
+    0 0 32px -6px color-mix(in srgb, var(--hue, #a1a1aa) 52%, transparent);
+}
+
+/* A block, not a row: the hero sits above the title rather than beside it, so
+   both hold the card's left rule and nothing is left stranded under the icon. */
 .spec-head {
-  display: flex;
-  align-items: center;
-  gap: 15px;
+  display: block;
   margin-bottom: 22px;
   padding-bottom: 18px;
-  border-bottom: 1px solid var(--line);
-}
-
-.spec-head .topic-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-}
-
-.spec-head .topic-icon img {
-  width: 20px;
-  height: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .spec-head-copy {
   min-width: 0;
 }
 
-/* Wraps rather than scrolls. The rail scrolled because connected tiles cannot
-   wrap — the first tile on a second line would draw a connector into the
-   gutter — and the connectors are gone, so the reason went with them. A
-   horizontal scroller here would hide topics behind a gesture nobody knows is
-   available. */
+/* Uniform tiles. `stretch` rather than `start`, so a two-line label does not
+   leave the tile beside it short — a bento grid with ragged cells is just a
+   list again. */
 .spec-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(198px, 1fr));
-  gap: 2px 18px;
-  align-items: start;
+  grid-template-columns: repeat(auto-fill, minmax(206px, 1fr));
+  gap: 10px;
+  align-items: stretch;
 }
 
-/* A row, not a tile. The 108px plate around every topic was the page's main
-   texture and it carried no information — the icon already has a coloured
-   plate of its own, so the outer box was a frame around a frame. */
 .spec-grid .rail-item {
+  box-sizing: border-box;
   flex-direction: row;
   align-items: center;
-  gap: 12px;
+  gap: 13px;
   width: 100%;
-  padding: 9px 12px 9px 8px;
-  border-radius: var(--radius-md);
-  transition: background-color 0.18s ease;
+  height: 100%;
+  padding: 10px 14px 10px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 17px;
+  background: rgba(255, 255, 255, 0.032);
+  transition:
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.22s ease;
 }
 
+/* The icon's own bounding frame. Darker than the tile it sits in, so the
+   artwork has something to be lit against rather than a second sheet of the
+   same glass. */
 .spec-grid .rail-tile {
-  width: auto;
-  height: auto;
-  border: 0;
-  border-radius: 0;
-  background: none;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 13px;
+  background: rgba(0, 0, 0, 0.3);
   box-shadow: none;
-}
-
-.spec-grid .rail-tile .topic-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
-}
-
-.spec-grid .rail-tile .topic-icon img {
-  width: 17px;
-  height: 17px;
 }
 
 .spec-grid .rail-label {
   font-size: 0.88rem;
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.32;
   color: var(--text-dim);
   text-align: left;
   text-transform: capitalize;
 }
 
 .spec-grid .rail-item:hover {
-  background: color-mix(in srgb, var(--hue, #a1a1aa) 8%, transparent);
+  border-color: color-mix(in srgb, var(--hue, #a1a1aa) 40%, transparent);
+  background: color-mix(in srgb, var(--hue, #a1a1aa) 9%, rgba(255, 255, 255, 0.03));
+  box-shadow: 0 0 24px -10px color-mix(in srgb, var(--hue, #a1a1aa) 70%, transparent);
 }
 
 .spec-grid .rail-item:hover .rail-tile {
   transform: none;
-  box-shadow: none;
+  border-color: color-mix(in srgb, var(--hue, #a1a1aa) 34%, transparent);
 }
 
 .spec-grid .rail-item:hover .rail-label {
@@ -3758,6 +3807,26 @@ nav {
   color: var(--text-faint);
   font-size: 0.92rem;
 }
+
+@media (max-width: 620px) {
+  .spec-cluster {
+    padding-top: 48px;
+    border-radius: 22px;
+  }
+
+  .spec-art.is-head {
+    top: -22px;
+    width: 62px;
+    height: 62px;
+    padding: 7px;
+    border-radius: 19px;
+  }
+
+  .spec-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+}
+
 
 @media (max-width: 560px) {
   .spec-banner {
@@ -7763,15 +7832,6 @@ nav {
   background: linear-gradient(150deg, #16161c, #0c0c11);
 }
 
-/* The domain header carries its icon at reading size beside a title and a
-   line of copy, so it is drawn large enough to be read as an object. */
-.spec-art.is-head {
-  width: 52px;
-  height: 52px;
-  padding: 6px;
-  border-radius: 16px;
-}
-
 .spec-art-img {
   display: block;
   width: 100%;
@@ -7779,24 +7839,23 @@ nav {
   object-fit: contain;
 }
 
-/* On Spectrum the tile is stripped (`.spec-grid .rail-tile` clears its border
-   and background), so the artwork stands on the page unframed. The pack is
-   drawn for 40-96px and these are detailed objects — at the 30px the monotone
-   glyph used, the bevels and reflections turn to mud. */
+/* Inside its bounding frame, at the size the pack is drawn for. The frame is
+   46px, so this leaves a 5px reveal on every side — enough for the artwork to
+   sit *in* something rather than fill it. */
 .spec-grid .rail-tile > .spec-art-img {
-  width: 46px;
-  height: 46px;
+  width: 36px;
+  height: 36px;
 }
 
 @media (max-width: 620px) {
-  .spec-grid .rail-tile > .spec-art-img {
-    width: 38px;
-    height: 38px;
+  .spec-grid .rail-tile {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
   }
 
-  .spec-art.is-head {
-    width: 44px;
-    height: 44px;
-    border-radius: 14px;
+  .spec-grid .rail-tile > .spec-art-img {
+    width: 32px;
+    height: 32px;
   }
 }
