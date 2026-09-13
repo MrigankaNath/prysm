@@ -3,14 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { apiJson } from "../lib/api";
 import { getBookmarks, getHistory, getTopics } from "../lib/library";
 import { SPECTRUM_TOPICS } from "../lib/clusters";
-import BookCard from "./BookCard";
+import DiscoveryFeed from "./DiscoveryFeed";
 import {
   IconSearch,
   IconClock,
   IconCompass,
   IconChevronRight,
   IconPrism,
-  IconArticles,
 } from "./Icons";
 
 const EMPTY_RESULTS = { topics: [], bundles: [], content: [] };
@@ -28,7 +27,7 @@ const COMMANDS = [
   { key: "spectrum", hint: "topic", label: "Search the Spectrum", scope: "spectrum", to: "/spectrum", go: "Browse the Spectrum" },
   { key: "saved", hint: "title", label: "Search your saved items", scope: "saved", to: "/wavelength", go: "Open your saved items" },
   { key: "feed", hint: "topic", label: "Search your feed", scope: "feed", to: "/", go: "Open your feed" },
-  { key: "books", hint: "topic", label: "Find free books on a topic", scope: "books" },
+  { key: "books", hint: "topic", label: "Find books on a topic", scope: "books" },
 ];
 
 /* Scopes answered from what's already on the device — no request, so results
@@ -66,6 +65,7 @@ function localResults(scope, term) {
       main: b.title,
       meta: b.topic,
       url: b.url,
+      item: b,
     }));
   }
 
@@ -76,7 +76,7 @@ function localResults(scope, term) {
     if (q && !matches(item.title, q) && !matches(item.topic, q)) continue;
     if (seen.has(item.url)) continue;
     seen.add(item.url);
-    rows.push({ id: item.url, main: item.title, meta: item.topic, url: item.url });
+    rows.push({ id: item.url, main: item.title, meta: item.topic, url: item.url, item });
   }
   for (const { topic } of getTopics()) {
     if (q && !matches(topic, q)) continue;
@@ -152,14 +152,16 @@ const SCOPE_EMPTY = {
 };
 
 /** One list shape for every scope answered from this device. */
-function LocalRows({ label, rows, onPick, emptyText }) {
+function LocalRows({ label, rows, onPick, onVisit, emptyText }) {
   return (
     <div className="command-group">
       <div className="command-group-label">{label}</div>
       {rows.length === 0 ? (
         <p className="command-empty">{emptyText}</p>
       ) : (
-        rows.map((row) => (
+        rows.map((row) => row.item ? (
+          <div key={row.id} className="command-content-card"><DiscoveryFeed items={[row.item]} compact filters={false} onVisit={onVisit} /></div>
+        ) : (
           <button
             key={row.id}
             type="button"
@@ -520,6 +522,7 @@ function CommandPalette({ open, setOpen }) {
                   label={SCOPE_LABELS[command.scope]}
                   rows={localRows}
                   onPick={openRow}
+              onVisit={() => setOpen(false)}
                   emptyText={SCOPE_EMPTY[command.scope]}
                 />
               ) : (
@@ -539,24 +542,14 @@ function CommandPalette({ open, setOpen }) {
               <div className="command-group-label">
                 {books.loading
                   ? "Searching Open Library…"
-                  : `${books.items.length} free to read`}
+                  : `${books.items.length} books`}
               </div>
               {!books.loading && books.items.length === 0 ? (
                 <p className="command-empty">
-                  Nothing free to read on that. Open Library only carries books
-                  out of copyright or cleared for lending.
+                  No books found for that topic. Try a broader subject.
                 </p>
               ) : (
-                <div className="book-shelf command-shelf">
-                  {books.items.slice(0, 6).map((item) => (
-                    <BookCard
-                      key={item.url}
-                      item={item}
-                      topic={trimmedQuery}
-                      category="books"
-                    />
-                  ))}
-                </div>
+                <DiscoveryFeed items={books.items.slice(0, 6)} topic={trimmedQuery} category="books" filters={false} compact onVisit={() => setOpen(false)} />
               )}
             </div>
           )}
@@ -566,6 +559,7 @@ function CommandPalette({ open, setOpen }) {
               label={SCOPE_LABELS[command.scope]}
               rows={localRows}
               onPick={openRow}
+              onVisit={() => setOpen(false)}
               emptyText={`Nothing in ${SCOPE_LABELS[command.scope].toLowerCase()} matches that.`}
             />
           )}
@@ -632,20 +626,7 @@ function CommandPalette({ open, setOpen }) {
               {command?.scope !== "prism" && results.content.length > 0 && (
                 <div className="command-group">
                   <div className="command-group-label">Content</div>
-                  {results.content.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className="command-item"
-                      onClick={() => openContent(item.url)}
-                    >
-                      <span className="command-item-icon">
-                        <IconArticles />
-                      </span>
-                      <span className="command-item-main">{item.title}</span>
-                      <span className="command-item-meta">{item.topic}</span>
-                    </button>
-                  ))}
+                  <DiscoveryFeed items={results.content} filters={false} compact onVisit={() => setOpen(false)} />
                 </div>
               )}
 

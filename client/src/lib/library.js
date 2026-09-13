@@ -57,10 +57,11 @@ function toRecord(item, extra = {}) {
     title: item.title,
     type: item.type || null,
     source: item.source || null,
-    snippet: item.snippet || null,
+    snippet: item.snippet || item.description || null,
     thumbnail: item.thumbnail || null,
     published_at: item.published_at || null,
     signal: typeof item.signal === "number" ? item.signal : null,
+    ...Object.fromEntries(["author", "year", "access", "venue", "peer_reviewed", "duration", "updated_at", "language", "forks", "score", "accepted", "tags", "depth_level"].filter(key => item[key] !== undefined).map(key => [key, item[key]])),
     ...extra,
   };
 }
@@ -87,8 +88,8 @@ export function toggleBookmark(item, context = {}) {
 
   bookmarks.unshift(
     toRecord(item, {
-      topic: context.topic || null,
-      category: context.category || null,
+      topic: context.topic || item.topic || null,
+      category: context.category || item.category || null,
       saved_at: new Date().toISOString(),
     }),
   );
@@ -115,8 +116,8 @@ export function recordVisit(item, context = {}) {
   const history = read(KEYS.history).filter((h) => h.url !== item.url);
   history.unshift(
     toRecord(item, {
-      topic: context.topic || null,
-      category: context.category || null,
+      topic: context.topic || item.topic || null,
+      category: context.category || item.category || null,
       opened_at: new Date().toISOString(),
     }),
   );

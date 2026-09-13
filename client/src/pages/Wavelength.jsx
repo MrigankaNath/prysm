@@ -4,10 +4,9 @@ import {
   getBookmarks,
   getHistory,
   getTopics,
-  removeBookmark,
   subscribe,
 } from "../lib/library";
-import ResultCard from "../components/ResultCard";
+import DiscoveryFeed from "../components/DiscoveryFeed";
 import TopicIcon from "../components/TopicIcon";
 import { IconBookmark, IconHistory, IconTarget } from "../components/Icons";
 import wavelengthIllo from "../assets/wavelength.svg";
@@ -84,25 +83,7 @@ function Wavelength() {
             .
           </p>
         ) : (
-          <div className="cat-stack">
-            {library.bookmarks.map((item) => (
-              <div key={item.url} className="wl-saved-row">
-                <ResultCard
-                  item={item}
-                  topic={item.topic || ""}
-                  category={item.category || "articles"}
-                />
-                <button
-                  type="button"
-                  className="wl-remove"
-                  onClick={() => removeBookmark(item.url)}
-                  aria-label="Remove from saved"
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
+          <DiscoveryFeed items={library.bookmarks} />
         ))}
 
       {tab === "history" &&
@@ -111,16 +92,7 @@ function Wavelength() {
             Nothing opened yet — anything you click from a search shows up here.
           </p>
         ) : (
-          <div className="cat-stack">
-            {library.history.map((item) => (
-              <ResultCard
-                key={item.url}
-                item={item}
-                topic={item.topic || ""}
-                category={item.category || "articles"}
-              />
-            ))}
-          </div>
+          <DiscoveryFeed items={library.history} />
         ))}
 
       {tab === "topics" &&

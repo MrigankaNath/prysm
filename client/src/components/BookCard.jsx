@@ -26,40 +26,11 @@ const ACCESS_LABEL = {
   buy: "Buy",
 };
 
-function BookCard({ item, topic, category = "books" }) {
-  const band = topicColor(item.title || "");
-
-  /* Two guards, because Open Library fails in two ways. `?default=false` on
-     the adapter's URL makes a missing cover a 404, which fires onError — but
-     a row cached before that shipped still asks for the default, and what
-     comes back is a blank 1px image with HTTP 200. That "loads" successfully,
-     so onError never fires and the board came up empty. */
+export function BookVisual({ item }) {
   const [coverBroken, setCoverBroken] = useState(false);
   const cover = coverBroken ? null : item.thumbnail;
-
-  /* Author and year come through as fields now; the joined snippet is the
-     fallback for anything cached before that change shipped. */
-  const author =
-    item.author ||
-    (item.snippet || "").replace(/\s*·\s*free to read$/, "").split(" · ")[0] ||
-    "";
-
+  const author = item.author || (item.source === "books" && item.snippet?.includes(" · ") ? item.snippet.split(" · ")[0] : "");
   return (
-    <article
-      className="book"
-      style={{ "--band": band, "--band-lit": lighten(band, 0.45) }}
-    >
-      <a
-        className="book-object"
-        href={item.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => recordVisit(item, { topic, category })}
-        aria-label={`${item.title}${author ? ` by ${author}` : ""}`}
-      >
-        {/* The front board is the reference plane and the depth runs behind
-            it, so the book opens away from the reader rather than swinging
-            through them. */}
         <span className="book-slab">
           <span className="book-front">
             {cover ? (
@@ -115,6 +86,36 @@ function BookCard({ item, topic, category = "books" }) {
           <span className="book-pages" aria-hidden="true" />
           <span className="book-back" aria-hidden="true" />
         </span>
+  );
+}
+
+function BookCard({ item, topic, category = "books" }) {
+  const band = topicColor(item.title || "");
+
+  /* Author and year come through as fields now; the joined snippet is the
+     fallback for anything cached before that change shipped. */
+  const author =
+    item.author ||
+    (item.snippet || "").replace(/\s*·\s*free to read$/, "").split(" · ")[0] ||
+    "";
+
+  return (
+    <article
+      className="book"
+      style={{ "--band": band, "--band-lit": lighten(band, 0.45) }}
+    >
+      <a
+        className="book-object"
+        href={item.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => recordVisit(item, { topic, category })}
+        aria-label={`${item.title}${author ? ` by ${author}` : ""}`}
+      >
+        {/* The front board is the reference plane and the depth runs behind
+            it, so the book opens away from the reader rather than swinging
+            through them. */}
+        <BookVisual item={item} />
       </a>
 
       {/* The cover carries the title, so this is only what the cover can't

@@ -33,6 +33,9 @@ async function fetchGithub(topic) {
       signal: repo.stargazers_count || 0,
       snippet: repo.description || `${repo.stargazers_count} stars`,
       published_at: repo.updated_at,
+      updated_at: repo.pushed_at || null,
+      forks: typeof repo.forks_count === "number" ? repo.forks_count : null,
+      language: repo.language || null,
       thumbnail: repo.owner?.avatar_url || null,
     }));
 }

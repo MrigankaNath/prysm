@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import PrismCard from "../components/PrismCard";
+import DiscoveryFeed from "../components/DiscoveryFeed";
 import { IconPrism, IconChevronRight } from "../components/Icons";
 import { apiFetch } from "../lib/api";
 import { getProgress, toggleDone, subscribe } from "../lib/library";
@@ -66,17 +66,7 @@ export function PrismBody({ bundle }) {
               <span className="prism-stage-count">{stage.length}</span>
             </h3>
 
-            <div className="ptile-grid">
-              {stage.map((item) => (
-                <PrismCard
-                  key={item.id}
-                  item={item}
-                  topic={bundle.topic}
-                  done={done.has(item.url)}
-                  onToggle={() => toggleDone(key, item.url)}
-                />
-              ))}
-            </div>
+            <DiscoveryFeed items={stage} topic={bundle.topic} filters={false} doneUrls={done} onToggleDone={item => toggleDone(key, item.url)} />
           </section>
         );
       })}

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { getBookmarks, getHistory, getTopics, subscribe } from "../lib/library";
 import { inProgress, worthRevisiting, domainCoverage } from "../lib/journey";
 import { IconCheck } from "../components/Icons";
-import FeedCard from "../components/FeedCard";
+import DiscoveryFeed from "../components/DiscoveryFeed";
 import TopicIcon from "../components/TopicIcon";
 import { lighten, topicColor } from "../lib/topicIcon";
 import { apiJson } from "../lib/api";
@@ -131,7 +131,8 @@ function Feed({ session }) {
      you left off" and becomes a second Spectrum — which is what the All topics
      link is for. */
   const [lead, ...restTopics] = topicList.slice(0, 5);
-  const visibleItems = showAll ? discover.items : discover.items.slice(0, 8);
+  const discoveryItems = discover.items.filter((item) => item.category !== "podcasts");
+  const visibleItems = showAll ? discoveryItems : discoveryItems.slice(0, 8);
 
   return (
     <div className="page page-wide feed">
@@ -278,23 +279,14 @@ function Feed({ session }) {
         </section>
       )}
 
-      {discover.items.length > 0 && (
+      {discoveryItems.length > 0 && (
         <section className="feed-section">
           <h3 className="feed-section-head">
             <IconCompass className="feed-section-icon" />
             Because you searched
           </h3>
-          <div className="fcard-grid">
-            {visibleItems.map((item) => (
-              <FeedCard
-                key={item.url}
-                item={item}
-                topic={item.topic || ""}
-                category={item.category || "articles"}
-              />
-            ))}
-          </div>
-          {discover.items.length > 8 && (
+          <DiscoveryFeed items={visibleItems} />
+          {discoveryItems.length > 8 && (
             <button
               type="button"
               className="cat-expand"
@@ -302,7 +294,7 @@ function Feed({ session }) {
             >
               {showAll
                 ? "Show less"
-                : `Show ${discover.items.length - 8} more`}
+                : `Show ${discoveryItems.length - 8} more`}
             </button>
           )}
         </section>
@@ -317,17 +309,7 @@ function Feed({ session }) {
               All {bookmarks.length}
             </Link>
           </h3>
-          <div className="fcard-grid is-compact">
-            {bookmarks.slice(0, 4).map((item) => (
-              <FeedCard
-                key={item.url}
-                item={item}
-                topic={item.topic || ""}
-                category={item.category || "articles"}
-                compact
-              />
-            ))}
-          </div>
+          <DiscoveryFeed items={bookmarks.slice(0, 4)} filters={false} />
         </section>
       )}
 
@@ -340,17 +322,7 @@ function Feed({ session }) {
               All {history.length}
             </Link>
           </h3>
-          <div className="fcard-grid is-compact">
-            {history.slice(0, 4).map((item) => (
-              <FeedCard
-                key={item.url}
-                item={item}
-                topic={item.topic || ""}
-                category={item.category || "articles"}
-                compact
-              />
-            ))}
-          </div>
+          <DiscoveryFeed items={history.slice(0, 4)} filters={false} />
         </section>
       )}
     </div>

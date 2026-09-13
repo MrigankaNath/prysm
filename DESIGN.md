@@ -810,3 +810,25 @@ of the person who hit them — Supabase's `Invalid login credentials` becomes
 
 A disabled control always says what it is waiting for. A dead button with no
 explanation is the thing that makes a form feel broken.
+
+### Shared multi-format content cards
+
+`DiscoveryFeed` is the shared presentation for Feed, Explore's category results,
+Wavelength, Prism stages, search results, and roadmap detail popovers. Use it
+instead of adding another result-card variant. `presentContent` normalizes curated
+singular types and older saved records; the library preserves the metadata those
+cards need. Navigation tiles and roadmap markers retain their separate roles.
+
+Cards use black surfaces, fine texture and a broad neutral reflection under the
+content. Hover and keyboard focus brighten the border and action; corners remain
+dark. No neon rim or card lift. The book alone turns as a physical object, with
+reduced-motion support. Labels, actions and focus must work without hover.
+
+Mixed results use aligned pairs with complementary widths (5/7 or 7/5), while a
+single category uses equal widths. Rows share edges, but their heights follow the
+content. Mobile stacks in source order; compact search and path cards use a single
+column. Books keep a visible unboxed cover, papers use a folded typeset sheet,
+videos have a thumbnail frame, repositories show real metrics and a GitHub badge,
+and websites lead with a favicon, domain and globe motif. Editorial and discussion
+cards retain distinct mastheads. Show only verified metadata; do not invent read
+times, free book access, repository activity, or publication status.

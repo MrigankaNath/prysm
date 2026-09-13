@@ -8,11 +8,7 @@ import {
   categoryStroke,
   CATEGORY_GRADIENTS,
 } from "../components/categories";
-import ResultCard from "../components/ResultCard";
-import BookCard from "../components/BookCard";
-import PaperCard from "../components/PaperCard";
-import MediaCard from "../components/MediaCard";
-import ResultTile from "../components/ui/result-tile";
+import DiscoveryFeed from "../components/DiscoveryFeed";
 import Prose from "../components/Prose";
 import {
   recordTopic,
@@ -91,9 +87,9 @@ function RailItem({ id, label, count, hue, active, onSelect }) {
  * the same thing — and it carried a count of every result, which is a number
  * nobody acts on. Clearing a filter is now the same gesture that set it:
  * pressing the active category again returns to all. */
-function CategoryRail({ sections, active, onSelect }) {
+export function CategoryRail({ sections, active, onSelect }) {
   return (
-    <nav className="rail" aria-label="Filter results by category">
+    <nav className="rail explore-category-rail" aria-label="Filter results by category">
       {sections.map(({ key, items }) => (
         <RailItem
           key={key}
@@ -109,34 +105,12 @@ function CategoryRail({ sections, active, onSelect }) {
   );
 }
 
-function CategorySection({ category, items, topic, index }) {
+export function CategorySection({ category, items, topic, index, preview = false }) {
   const [expanded, setExpanded] = useState(false);
   const Icon = CATEGORY_ICONS[category];
   const art = CATEGORY_ART[category];
   const visible = expanded ? items : items.slice(0, COLLAPSED_COUNT);
   const hidden = items.length - visible.length;
-  /* Four lanes hold objects rather than links and are laid out as such: a
-     shelf of books, a stack of papers, and artwork-led cards for the two that
-     ship real images. The rest stay rows, which is right for them — an article
-     or a thread is a link and nothing more. */
-  /* Threads and answers are conversations: what decides whether one is worth
-     opening is how many people weighed in and how far it got, and as rows both
-     were the smallest text on the line. They card, on the same glass shell the
-     papers use, so the three text-only lanes read as one family. */
-  const layout =
-    category === "books"
-      ? "books"
-      : category === "papers"
-        ? "papers"
-        : category === "videos" || category === "podcasts"
-          ? "media"
-          : category === "discussions" ||
-              category === "qa" ||
-              category === "articles" ||
-              category === "essays" ||
-              category === "websites"
-            ? "tiles"
-            : null;
 
   return (
     <section
@@ -158,61 +132,7 @@ function CategorySection({ category, items, topic, index }) {
         <span className="cat-head-count">{items.length}</span>
       </header>
 
-      {layout === "books" && (
-        <div className="book-shelf">
-          {visible.map((item, i) => (
-            <BookCard key={`${item.url}-${i}`} item={item} topic={topic} />
-          ))}
-        </div>
-      )}
-
-      {layout === "papers" && (
-        <div className="paper-stack">
-          {visible.map((item, i) => (
-            <PaperCard key={`${item.url}-${i}`} item={item} topic={topic} />
-          ))}
-        </div>
-      )}
-
-      {layout === "tiles" && (
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(288px,1fr))] items-stretch gap-[18px]">
-          {visible.map((item, i) => (
-            <ResultTile
-              key={`${item.url}-${i}`}
-              item={item}
-              topic={topic}
-              category={category}
-              index={i}
-            />
-          ))}
-        </div>
-      )}
-
-      {layout === "media" && (
-        <div className="media-grid">
-          {visible.map((item, i) => (
-            <MediaCard
-              key={`${item.url}-${i}`}
-              item={item}
-              topic={topic}
-              category={category}
-            />
-          ))}
-        </div>
-      )}
-
-      {!layout && (
-        <div className="cat-cols">
-          {visible.map((item, i) => (
-            <ResultCard
-              key={`${item.url}-${i}`}
-              item={item}
-              topic={topic}
-              category={category}
-            />
-          ))}
-        </div>
-      )}
+      <DiscoveryFeed items={visible} topic={topic} category={category} filters={false} preview={preview} />
 
       {hidden > 0 && (
         <button

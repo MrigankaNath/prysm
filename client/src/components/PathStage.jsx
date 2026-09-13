@@ -1,5 +1,5 @@
 import { Fragment, useState } from "react";
-import { Check, ChevronDown, ArrowUpRight } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import { recordVisit } from "../lib/library";
 import { hostOf, formatSignal } from "../lib/result";
 import {
@@ -9,6 +9,7 @@ import {
   CATEGORY_GRADIENTS,
 } from "./categories";
 import { provenanceOf } from "../lib/provenance";
+import { DiscoveryCard } from "./DiscoveryFeed";
 import RoadRun from "./RoadRun";
 
 /* One stage of the roadmap, and the stops along it.
@@ -137,37 +138,8 @@ function Stop({ item, side, state, topic, open, onOpen, onToggle }) {
       </div>
 
       {open && (
-        <div className="stop-pop" role="dialog" aria-label={item.title}>
-          <span className="stop-pop-type">{kind}</span>
-          <h4 className="stop-pop-title">{item.title}</h4>
-
-          {item.snippet && <p className="stop-pop-note">{item.snippet}</p>}
-
-          <div className="stop-pop-meta">
-            {host && <span className="stop-pop-host">{host}</span>}
-            {mark && <span className={`mark mark-${mark.tone}`}>{mark.label}</span>}
-          </div>
-
-          <div className="stop-pop-actions">
-            <a
-              className="stop-pop-go"
-              href={item.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={visit}
-            >
-              Open
-              <ArrowUpRight className="stop-pop-go-icon" />
-            </a>
-            <button
-              type="button"
-              className="stop-pop-tick"
-              aria-pressed={done}
-              onClick={() => onToggle(item.url)}
-            >
-              {done ? "Read" : "Mark read"}
-            </button>
-          </div>
+        <div className="stop-pop discovery-stop-pop discovery-feed" role="dialog" aria-label={item.title}>
+          <DiscoveryCard item={item} topic={topic} compact done={done} onToggleDone={() => onToggle(item.url)} />
         </div>
       )}
     </li>
