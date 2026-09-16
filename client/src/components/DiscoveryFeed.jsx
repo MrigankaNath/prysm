@@ -69,6 +69,42 @@ function updatedLabel(value) {
 }
 const count = (value) => new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 
+const LANGUAGE_COLORS = { JavaScript: "#f1e05a", TypeScript: "#3178c6", Python: "#3572a5", Rust: "#dea584", Go: "#00add8", Ruby: "#701516", Java: "#b07219", "C++": "#f34b7d" };
+
+function CodeRepository({ item, title, topic, updated, preview, saved, onToggleSave, onVisit, done, onToggleDone }) {
+  const [owner = "github", repository = title] = title.split("/");
+  const visit = () => {
+    if (!preview) recordVisit(item, { topic, category: "code" });
+    onVisit?.();
+  };
+
+  return <div className="repo-panel">
+    <div className="repo-panel-bar">
+      <span className="repo-window-dots" aria-hidden="true"><i /><i /><i /></span>
+      <span className="repo-panel-context" aria-hidden="true"><GitFork size={14} /></span>
+      <span className="repo-header-actions">{onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Read" : "Mark read"}</button>}{preview ? <button className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove preview bookmark" : "Save preview item"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category="code" />}</span>
+    </div>
+    <div className="repo-panel-body">
+      <div className="repo-identity">
+        <PublisherMark host="github.com" thumbnail={item.thumbnail} />
+        <div className="repo-name"><span>{owner}</span><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{repository}</a></h4></div>
+        <ArrowUpRight className="discovery-open-indicator" size={20} aria-hidden="true" />
+      </div>
+      {item.snippet && <p className="discovery-description">{item.snippet}</p>}
+      <div className="repo-output" aria-label="Repository details">
+        {typeof item.signal === "number" && <span title={`${item.signal.toLocaleString()} stars`}><Star size={15} /><small>stars</small><strong>{count(item.signal)}</strong></span>}
+        {typeof item.forks === "number" && <span title={`${item.forks.toLocaleString()} forks`}><GitFork size={15} /><small>forks</small><strong>{count(item.forks)}</strong></span>}
+        {item.language && <span><i className="discovery-language-dot" style={{ background: LANGUAGE_COLORS[item.language] || "#aaa" }} /><small>language</small><strong>{item.language}</strong></span>}
+      </div>
+      <div className="repo-meta-line"><span aria-hidden="true">✓</span><span>{updated || "Repository available on GitHub"}</span></div>
+      <div className="discovery-tags repo-tags">
+        <span className="repo-github-tag"><GitFork size={16} /><strong>GitHub</strong><span>Repository</span></span>
+        {topic && <Link className="discovery-tag discovery-topic" onClick={onVisit} to={`/explore/${encodeURIComponent(topic)}`}><TopicIcon topic={topic} /><span>{topic}</span></Link>}
+      </div>
+    </div>
+  </div>;
+}
+
 function useCardLight() {
   const frame = useRef(0);
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
@@ -117,6 +153,7 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
 
   return <article className={`discovery-card discovery-${category}${compact ? " is-compact" : ""}`} {...light} style={{ "--band": band, "--band-lit": lighten(band, 0.45), "--card-span": span }}>
     <div className="discovery-content">
+      {category === "code" ? <CodeRepository item={item} title={title} topic={topic} updated={updated} preview={preview} saved={saved} onToggleSave={onToggleSave} onVisit={onVisit} done={done} onToggleDone={onToggleDone} /> : <>
       {!clean && <CategoryIdentity item={item} category={category} />}
       {category === "websites" && <WebsiteIdentity host={host} />}
       <div className="discovery-summary">
@@ -126,15 +163,14 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
       {!book && item.snippet && <p className="discovery-description">{item.snippet}</p>}
       {!clean && <div className="discovery-details">{item.author && !editorial && <span>{item.author}</span>}{publishedOn(item) && <span>{publishedOn(item)}</span>}{book && !publishedOn(item) && item.year && <span>{item.year}</span>}{book && item.access && <span className="discovery-book-access">{({ free: "Free to read", borrow: "Borrow free", buy: "Buy book" })[item.access]}</span>}{venue && <span className={`discovery-venue${venue.reviewed ? " is-reviewed" : ""}`}>{venue.reviewed ? "Peer reviewed" : "Preprint"}</span>}</div>}
       </div>
-      {category === "code" && <div className="discovery-repo-stats">{typeof item.signal === "number" && <span title={`${item.signal.toLocaleString()} stars`}><Star size={19} /><strong>{count(item.signal)}</strong><small>stars</small></span>}{typeof item.forks === "number" && <span title={`${item.forks.toLocaleString()} forks`}><GitFork size={19} /><strong>{count(item.forks)}</strong><small>forks</small></span>}{item.language && <span className="discovery-stack"><i className="discovery-language-dot" style={{ background: ({ JavaScript: "#f1e05a", TypeScript: "#3178c6", Python: "#3572a5", Rust: "#dea584", Go: "#00add8" })[item.language] || "#aaa" }} />{item.language}</span>}</div>}
       <div className="discovery-tags">
-        {category === "code" && <span className="discovery-platform-tag"><PublisherMark host="github.com" /><strong>GitHub</strong><span>Repository</span></span>}
         {["videos", "podcasts", "qa", "answers"].includes(category) && <SourceTag host={host} />}
         {!clean && !book && topic && <Link className="discovery-tag discovery-topic" onClick={onVisit} to={`/explore/${encodeURIComponent(topic)}`}><TopicIcon topic={topic} /><span>{topic}</span></Link>}
         {category === "websites" && topic && <Link className="discovery-tag discovery-topic" onClick={onVisit} to={`/explore/${encodeURIComponent(topic)}`}><TopicIcon topic={topic} /><span>{topic}</span></Link>}
         {questionTag && <Link className="discovery-tag discovery-topic discovery-detail-tag" title="Question topic" onClick={onVisit} to={`/explore/${encodeURIComponent(questionTag.replace(/-/g, " "))}`}><span aria-hidden="true">#</span><span>{questionTag.replace(/-/g, " ")}</span></Link>}
       </div>
       <footer><span>{category === "code" ? updated || "" : clean ? "" : effort || ""}</span><span className="discovery-footer-actions">{!book && category !== "code" && <span className={`discovery-action${category === "websites" ? " discovery-site-action" : ""}`}>{action}<ArrowUpRight size={17} /></span>}        {onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Read" : "Mark read"}</button>}{preview ? <button className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove preview bookmark" : "Save preview item"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category={category} />}</span></footer>
+      </>}
     </div>
 
   </article>;
@@ -165,7 +201,8 @@ export default function DiscoveryFeed({ items, preview = false, topic, category,
   const formats = FORMATS.filter((entry) => !entry.categories || available.some((item) => entry.categories.includes(item.category || "articles")));
   const selected = (filters && formats.find((entry) => entry.id === format)) || FORMATS[0];
   const visible = available.filter((item) => !selected.categories || selected.categories.includes(item.category || "articles"));
-  return <div className="discovery-feed">
+  const codeFeed = visible.length > 0 && visible.every((item) => item.category === "code");
+  return <div className={`discovery-feed${codeFeed ? " is-code-feed" : ""}`}>
     {filters && formats.length > 2 && <div className="discovery-formats" role="group" aria-label="Filter discoveries by format">{formats.map((entry) => <button key={entry.id} type="button" aria-pressed={selected.id === entry.id} onClick={() => setFormat(entry.id)}>{entry.label}</button>)}</div>}
     {filters && formats.length > 2 && <span className="discovery-result-count" role="status">{visible.length} {visible.length === 1 ? "discovery" : "discoveries"}</span>}
     <div className={`discovery-grid${compact ? " is-compact" : ""}`}>{visible.map((item, index) => {

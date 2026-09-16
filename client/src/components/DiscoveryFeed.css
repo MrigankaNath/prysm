@@ -94,26 +94,60 @@
 .discovery-videos:hover .discovery-screen-play { background: #ddd; color: #111; }
 .discovery-screen-caption { position: absolute; bottom: 12px; right: 12px; border: 1px solid #ffffff15; background: #000b; border-radius: 4px; padding: 4px 7px; color: #ddd; font: 10px var(--font-ui); }
 
-/* The platform is a major badge, with quiet, real repository signals above it. */
-.discovery-code .discovery-content { padding: 32px 28px 28px; }
-.discovery-code .discovery-clean-heading { display: grid; grid-template-columns: 20px minmax(0, 1fr) 20px; gap: 9px; align-items: center; }
-.discovery-code h4 { grid-column: 2; text-align: center; font: 550 23px/1.3 ui-monospace, monospace; letter-spacing: -.05em; }
-.discovery-code .discovery-open-indicator { grid-column: 3; margin-top: -12px; }
-.discovery-code .discovery-description { text-align: center; max-width: 330px; margin: 8px auto 0; }
-.discovery-repo-stats { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px 24px; margin: 27px 0 0; padding: 0; color: #c7c7cc; }
-.discovery-repo-stats > span { display: grid; grid-template-columns: 15px auto; gap: 3px 7px; align-items: center; }
-.discovery-repo-stats svg { width: 15px; height: 15px; color: #a8a295; }
-.discovery-repo-stats strong { font: 500 19px/1.2 var(--font-display); letter-spacing: -.02em; }
-.discovery-repo-stats small { grid-column: 2; font: 10px var(--font-ui); color: #888; }
-.discovery-repo-stats .discovery-stack { display: flex; justify-content: center; gap: 7px; flex-basis: 100%; font: 11px var(--font-ui); color: #aaa; }
+/* A dedicated code view owns the smoke; repositories remain crisp glass above it. */
+.page:has(.discovery-feed.is-code-feed), body:has(.discovery-feed.is-code-feed) {
+  background-color: #000;
+  background-image:
+    radial-gradient(ellipse 38% 48% at 4% 30%, #dfe5e229, transparent 74%),
+    radial-gradient(ellipse 35% 42% at 56% 4%, #b9c2bf20, transparent 75%),
+    radial-gradient(ellipse 34% 50% at 96% 52%, #e2e6e422, transparent 75%),
+    radial-gradient(ellipse 28% 38% at 48% 98%, #98a5a219, transparent 78%);
+  background-attachment: fixed;
+  background-size: 110% 110%;
+  animation: code-canvas-drift 18s ease-in-out infinite alternate;
+}
+.discovery-code { border-color: #3a403e; background: linear-gradient(145deg, #0a0d0cc9, #020303b8); box-shadow: inset 0 1px 0 #ffffff12, 0 20px 55px #000b; backdrop-filter: blur(22px) saturate(.7); -webkit-backdrop-filter: blur(22px) saturate(.7); }
+.discovery-code::before { inset: 0; border-radius: inherit; background: linear-gradient(#ffffff08 1px, transparent 1px), linear-gradient(90deg, #ffffff07 1px, transparent 1px); background-size: 34px 34px; filter: none; mask-image: radial-gradient(ellipse 90% 85% at 50% 40%, #000 25%, transparent 100%); opacity: .2; transform: none; animation: none; transition: opacity .35s; }
+.discovery-code::after { background: radial-gradient(circle at var(--light-x, 44%) var(--light-y, 34%), #edf5f128 0, #c9d3cf0f 24%, transparent 52%); mask-image: radial-gradient(ellipse 95% 90% at 50% 50%, #000 30%, transparent 100%); opacity: .08; transition: opacity .35s; }
+.discovery-code:hover, .discovery-code:has(:focus-visible) { border-color: #747d7a; box-shadow: inset 0 1px 0 #ffffff26, 0 24px 65px #000d, 0 0 28px #d8e2df0b; }
+.discovery-code:hover::before, .discovery-code:has(:focus-visible)::before { opacity: .42; }
+.discovery-code:hover::after, .discovery-code:has(:focus-visible)::after { opacity: .85; }
+.discovery-code .discovery-content { padding: 0; }
+.repo-panel { display: flex; flex-direction: column; width: 100%; min-height: 350px; overflow: hidden; background: transparent; }
+.repo-panel-bar { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 52px; padding: 0 17px; border-bottom: 1px solid #ffffff13; color: #767f7d; font: 500 9px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; }
+.repo-window-dots { display: flex; gap: 7px; }
+.repo-window-dots i { width: 7px; height: 7px; border: 1px solid #ffffff18; border-radius: 50%; background: #747a7866; box-shadow: inset 0 1px 0 #ffffff12; }
+.repo-window-dots i:nth-child(2) { opacity: .72; }
+.repo-window-dots i:nth-child(3) { opacity: .45; }
+.repo-panel-context { display: inline-flex; align-items: center; gap: 6px; color: #a7aeac; }
+.repo-header-actions { position: relative; z-index: 2; display: flex; justify-self: end; align-items: center; gap: 7px; }
+.repo-header-actions .bookmark-btn { width: 32px; height: 32px; border: 0; background: transparent; }
+.repo-header-actions .discovery-done { min-height: 32px; padding-block: 5px; background: transparent; }
+.repo-panel-body { display: flex; flex: 1; flex-direction: column; min-width: 0; padding: 25px 26px 22px; }
+.repo-identity { display: grid; grid-template-columns: 43px minmax(0, 1fr) 22px; align-items: center; gap: 13px; }
+.repo-identity .discovery-clean-mark { width: 43px; height: 43px; overflow: hidden; border: 1px solid #ffffff1c; border-radius: 10px; background: #ffffff08; box-shadow: inset 0 1px 0 #ffffff0d; }
+.repo-identity .discovery-clean-mark img { width: 31px; height: 31px; border-radius: 7px; }
+.repo-name { min-width: 0; }
+.repo-name > span { display: block; overflow: hidden; margin-bottom: 2px; color: #7f8885; font: 400 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: nowrap; }
+.discovery-code h4 { margin: 0; font: 600 24px/1.18 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: -.055em; }
+.discovery-code h4 a { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.discovery-code .discovery-open-indicator { justify-self: end; margin: 0; color: #8d9693; }
+.discovery-code .discovery-description { max-width: 46ch; margin: 18px 0 0; color: #a7aeac; font: 400 12px/1.65 var(--font-ui); -webkit-line-clamp: 2; }
+.repo-output { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 22px; }
+.repo-output > span { display: grid; grid-template-columns: 14px minmax(0, 1fr); grid-template-rows: auto auto; gap: 2px 7px; min-width: 0; padding: 10px 11px; border: 1px solid #ffffff12; border-radius: 8px; background: #ffffff05; color: #9da6a3; }
+.repo-output svg, .repo-output .discovery-language-dot { grid-row: 1 / 3; align-self: center; width: 13px; height: 13px; }
+.repo-output .discovery-language-dot { width: 7px; height: 7px; margin-left: 3px; border-radius: 50%; box-shadow: 0 0 7px currentColor; }
+.repo-output small { overflow: hidden; color: #69716f; font: 400 8px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; text-transform: uppercase; }
+.repo-output strong { overflow: hidden; color: #d9dddc; font: 500 12px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace; text-overflow: ellipsis; white-space: nowrap; }
+.repo-meta-line { display: flex; align-items: center; gap: 8px; margin-top: 10px; color: #77817e; font: 400 9px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.repo-meta-line > span:first-child { color: #80c9bc; }
+.discovery-code .repo-tags { gap: 7px; padding-top: 18px; }
+.repo-github-tag { display: inline-flex; align-items: center; gap: 7px; min-width: 0; padding: 6px 9px; border: 1px solid #80b5ad4d; border-radius: 7px; background: linear-gradient(135deg, #77b8ac19, #ffffff06); box-shadow: inset 0 1px 0 #ffffff0d, 0 0 17px #75c3b211; color: #dce3e1; font: 400 11px/1.35 var(--font-ui); }
+.repo-github-tag > span { padding-left: 7px; border-left: 1px solid #ffffff18; color: #7e8885; font-size: 9px; text-transform: uppercase; }
+.repo-tags .discovery-tag { background: #0508078c; border-color: #ffffff19; }
+.discovery-code .bookmark-btn { background: #0306069c; border-color: #ffffff1a; }
 .discovery-language-dot { width: 7px; height: 7px; border-radius: 50%; }
-.discovery-code .discovery-tags { justify-content: center; padding-top: 24px; }
-.discovery-platform-tag { display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; padding: 10px 15px; border: 1px solid #555; border-radius: 11px; background: linear-gradient(140deg, #292929, #101010); box-shadow: inset 0 1px 0 #ffffff1c; }
-.discovery-platform-tag .discovery-clean-mark { width: 25px; height: 25px; }
-.discovery-platform-tag img { width: 25px; height: 25px; }
-.discovery-platform-tag strong { color: #eee; font: 550 17px var(--font-ui); letter-spacing: -.03em; }
-.discovery-platform-tag > span:last-child { border-left: 1px solid #444; padding-left: 10px; color: #999; font: 10px var(--font-ui); }
-.discovery-code footer { border: 0; margin-top: 18px; padding-top: 0; }
+@keyframes code-canvas-drift { from { background-position: 0 0, 0 0, 0 0, 0 0; } to { background-position: -4vw 3vh, 3vw -2vh, 4vw 2vh, -2vw -3vh; } }
 
 /* Publisher, conversation, and reading cues carry identity without repeated pills. */
 .discovery-publisher-mark { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border: 1px solid #3c3c3c; border-radius: 11px; background: #151515; }
@@ -172,6 +206,9 @@
   .discovery-book-stage .book-object { --book-w: 120px; }
   .discovery-books h4 { font-size: 24px; }
   .discovery-card h4 { font-size: 23px; }
+  .repo-panel-body { padding: 21px 21px 18px; }
+  .repo-output { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .repo-output > span:last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
 @container (max-width: 340px) {
   .discovery-content { padding: 22px 22px 28px; }
@@ -182,8 +219,18 @@
   .discovery-books h4 { font-size: 24px; }
   .discovery-books footer { grid-column: 1; grid-row: 3; }
   .discovery-footer-actions { gap: 8px; }
+  .discovery-code .discovery-content { padding: 0; }
+  .repo-panel { min-height: 350px; }
+  .repo-panel-bar { grid-template-columns: 1fr auto; padding-inline: 13px; }
+  .repo-panel-context { display: none; }
+  .repo-panel-body { padding: 19px 17px 16px; }
+  .repo-identity { grid-template-columns: 38px minmax(0, 1fr) 18px; gap: 10px; }
+  .repo-identity .discovery-clean-mark { width: 38px; height: 38px; }
+  .repo-identity .discovery-clean-mark img { width: 28px; height: 28px; }
   .discovery-code h4 { font-size: 20px; }
-  .discovery-platform-tag { gap: 8px; padding: 9px 10px; }
+  .repo-output { gap: 6px; }
+  .repo-output > span { padding: 9px 8px; }
+  .repo-github-tag > span { display: none; }
   .discovery-papers .discovery-summary { padding-inline: 16px; }
   .discovery-site-identity { padding-right: 34px; gap: 10px; }
   .discovery-site-globe { width: 42px; height: 42px; top: 6px; }
@@ -207,6 +254,7 @@
   .discovery-books:hover .book-slab, .discovery-books:has(:focus-visible) .book-slab { transform: rotateY(-12deg); }
   .discovery-card::after { --light-x: 60%; --light-y: 25%; }
   .discovery-card:hover .discovery-open-indicator { transform: none; }
+  .page:has(.discovery-feed.is-code-feed), body:has(.discovery-feed.is-code-feed) { animation: none; }
 }
 .discovery-preview-note { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin: 0 0 36px; color: #969ca8; font-size: 12px; border-bottom: 1px solid #24262c; padding-bottom: 18px; }
 .discovery-preview-note strong { color: #aaa; font-weight: 500; }
@@ -222,6 +270,12 @@
 .discovery-card.is-compact .discovery-tags { padding-top: 16px; }
 .discovery-card.is-compact .discovery-eyebrow { margin-top: 16px; }
 .discovery-card.is-compact .discovery-screen { max-height: 150px; }
+.discovery-card.is-compact.discovery-code .discovery-content { padding: 0; }
+.discovery-card.is-compact .repo-panel { min-height: 315px; }
+.discovery-card.is-compact .repo-panel-body { padding: 19px 19px 16px; }
+.discovery-card.is-compact .repo-identity { margin-top: 0; }
+.discovery-card.is-compact .repo-output { margin-top: 17px; }
+.discovery-card.is-compact .repo-tags { padding-top: 14px; }
 .discovery-card.is-compact.discovery-books .discovery-content { grid-template-columns: 100px minmax(0, 1fr); grid-template-rows: 1fr auto; gap: 0 22px; min-height: 220px; }
 .discovery-card.is-compact .discovery-book-stage { grid-column: 1; grid-row: 1 / 3; min-height: 180px; margin: 0; padding: 0 5px 0 0; }
 .discovery-card.is-compact .discovery-book-stage .book-object { --book-w: 90px; }
