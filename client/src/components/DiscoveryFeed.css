@@ -94,16 +94,20 @@
 .discovery-videos:hover .discovery-screen-play { background: #ddd; color: #111; }
 .discovery-screen-caption { position: absolute; bottom: 12px; right: 12px; border: 1px solid #ffffff15; background: #000b; border-radius: 4px; padding: 4px 7px; color: #ddd; font: 10px var(--font-ui); }
 
-/* A dedicated code view owns the smoke; repositories remain crisp glass above it. */
-.page:has(.discovery-feed.is-code-feed), body:has(.discovery-feed.is-code-feed) {
-  background-color: #000;
+/* One atmospheric layer spans the feed, including the gutters between cards. */
+body:has(.page.feed, .discovery-feed.is-code-feed) { isolation: isolate; }
+body:has(.page.feed, .discovery-feed.is-code-feed)::before {
+  content: "";
+  position: fixed;
+  inset: -8%;
+  z-index: -1;
+  pointer-events: none;
   background-image:
     radial-gradient(ellipse 38% 48% at 4% 30%, #dfe5e229, transparent 74%),
     radial-gradient(ellipse 35% 42% at 56% 4%, #b9c2bf20, transparent 75%),
     radial-gradient(ellipse 34% 50% at 96% 52%, #e2e6e422, transparent 75%),
     radial-gradient(ellipse 28% 38% at 48% 98%, #98a5a219, transparent 78%);
-  background-attachment: fixed;
-  background-size: 110% 110%;
+  background-size: 100% 100%;
   animation: code-canvas-drift 18s ease-in-out infinite alternate;
 }
 .discovery-code { border-color: #3a403e; background: linear-gradient(145deg, #0a0d0cc9, #020303b8); box-shadow: inset 0 1px 0 #ffffff12, 0 20px 55px #000b; backdrop-filter: blur(22px) saturate(.7); -webkit-backdrop-filter: blur(22px) saturate(.7); }
@@ -147,7 +151,7 @@
 .repo-tags .discovery-tag { background: #0508078c; border-color: #ffffff19; }
 .discovery-code .bookmark-btn { background: #0306069c; border-color: #ffffff1a; }
 .discovery-language-dot { width: 7px; height: 7px; border-radius: 50%; }
-@keyframes code-canvas-drift { from { background-position: 0 0, 0 0, 0 0, 0 0; } to { background-position: -4vw 3vh, 3vw -2vh, 4vw 2vh, -2vw -3vh; } }
+@keyframes code-canvas-drift { from { transform: translate3d(-1%, 0, 0) scale(1); } to { transform: translate3d(2%, -2%, 0) scale(1.05); } }
 
 /* Publisher, conversation, and reading cues carry identity without repeated pills. */
 .discovery-publisher-mark { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border: 1px solid #3c3c3c; border-radius: 11px; background: #151515; }
@@ -254,7 +258,7 @@
   .discovery-books:hover .book-slab, .discovery-books:has(:focus-visible) .book-slab { transform: rotateY(-12deg); }
   .discovery-card::after { --light-x: 60%; --light-y: 25%; }
   .discovery-card:hover .discovery-open-indicator { transform: none; }
-  .page:has(.discovery-feed.is-code-feed), body:has(.discovery-feed.is-code-feed) { animation: none; }
+  body:has(.page.feed, .discovery-feed.is-code-feed)::before { animation: none; }
 }
 .discovery-preview-note { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin: 0 0 36px; color: #969ca8; font-size: 12px; border-bottom: 1px solid #24262c; padding-bottom: 18px; }
 .discovery-preview-note strong { color: #aaa; font-weight: 500; }
