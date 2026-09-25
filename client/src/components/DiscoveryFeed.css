@@ -9,16 +9,8 @@
 /* Each pair shares top and bottom edges; subsequent rows retain their own height. */
 .discovery-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 28px; align-items: stretch; }
 .discovery-card { grid-column: span var(--card-span, 6); position: relative; isolation: isolate; display: flex; min-width: 0; overflow: hidden; border: 1px solid #2c2c2c; border-radius: 18px; background: #030303; box-shadow: inset 0 1px 0 #ffffff09; cursor: pointer; container-type: inline-size; transition: border-color .25s, box-shadow .25s; }
-/* Fine grain stays in the material. A broad reflection reveals it beneath content. */
+/* A broad reflection moves with the pointer; card faces stay free of dot screens. */
 .discovery-card::before, .discovery-card::after { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; border-radius: inherit; }
-.discovery-card::before {
-  background: radial-gradient(#ffffff22 .55px, transparent .85px), radial-gradient(#ffffff0b .5px, transparent .8px);
-  background-size: 4px 4px;
-  background-position: 0 0, 2px 2px;
-  mask-image: radial-gradient(ellipse 95% 90% at 50% 50%, #000 30%, transparent 100%);
-  opacity: .32;
-  transition: opacity .35s;
-}
 .discovery-card::after {
   /* A wide plateau of reflected light avoids a bright spot or seam in the centre. */
   background: linear-gradient(115deg, transparent 5%, #ffffff14 36%, #ffffff14 64%, transparent 95%);
@@ -30,7 +22,6 @@
   transition: opacity .35s;
 }
 .discovery-card:hover, .discovery-card:has(:focus-visible) { border-color: #7c7c7c; box-shadow: inset 0 1px 0 #ffffff35, 0 0 32px #ffffff10; }
-.discovery-card:hover::before, .discovery-card:has(:focus-visible)::before { opacity: .95; }
 .discovery-card:hover::after, .discovery-card:has(:focus-visible)::after { opacity: 1; }
 .discovery-content { display: flex; flex-direction: column; min-width: 0; width: 100%; padding: 28px; }
 .discovery-summary { min-width: 0; }
@@ -184,7 +175,8 @@ body:has(.page.feed, .discovery-feed.is-code-feed)::before {
 .website-backing { position: absolute; top: 13px; right: 1px; width: 44%; height: 95px; border-radius: 23px 23px 0 0; background: linear-gradient(120deg, #4a44b7, #7065e5); box-shadow: inset 0 1px 0 #ffffff42; }
 .website-backing > span { position: absolute; z-index: 1; top: 13px; right: 20px; color: #f6f4ff; font: 600 11px/1 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; }
 .website-surface { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.website-surface path { fill: #07080a; stroke: #2b3039; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.website-surface path { fill: #07080a; stroke: #2b3039; stroke-width: 1; vector-effect: non-scaling-stroke; transition: fill .24s; }
+.discovery-websites:is(:hover, :has(:focus-visible)) .website-surface path { fill: #17181a; }
 .discovery-websites .discovery-content { position: relative; padding: 58px 22px 18px; }
 .discovery-site-identity { display: flex; align-items: center; gap: 11px; position: relative; min-height: 60px; padding: 0 45px 12px 0; margin-bottom: 14px; border-bottom: 1px solid #ffffff20; }
 .discovery-site-identity .discovery-clean-mark { width: 44px; height: 44px; border: 1px solid #79758e; border-radius: 12px; background: #0b0b10; box-shadow: 0 0 15px #ffffff1a, inset 0 1px 0 #ffffff1e; }
@@ -203,6 +195,7 @@ body:has(.page.feed, .discovery-feed.is-code-feed)::before {
 .website-curation-tag { border-color: #a29aff40; background: #a29aff0d; color: #d8d4ef; }
 .discovery-websites .discovery-description { -webkit-line-clamp: 2; }
 .discovery-site-action { border-color: #4b4b4b; background: linear-gradient(#202020, #101010); }
+.discovery-websites:is(:hover, :has(:focus-visible)) .discovery-site-action { border-color: #777; background: #030303; color: #f1f1f1; }
 @media (prefers-reduced-motion: reduce) { .discovery-site-symbol { transition: none; } }
 .discovery-question { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding-bottom: 18px; border-bottom: 1px solid #ffffff1b; }
 .discovery-question > span { color: #ddd; font: 400 32px Georgia, serif; white-space: nowrap; }
@@ -363,6 +356,7 @@ body:has(.page.feed, .discovery-feed.is-code-feed)::before {
 .discussion-masthead .discovery-source img { width: 19px; height: 19px; }
 .discovery-card:is(.discovery-discussions, .discovery-community) .discovery-summary { min-width: 0; }
 .discovery-card:is(.discovery-discussions, .discovery-community) h4 { max-width: none; margin-bottom: 0; font-size: 25px; }
+.discussion-context { max-width: 54ch; margin: 20px 0 0; padding-left: 12px; border-left: 2px solid #cb7844; color: #aeb6c0; font: 400 12px/1.55 var(--font-ui); display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .discovery-card:is(.discovery-discussions, .discovery-community) .discussion-tags { align-items: center; gap: 8px; margin-top: auto; padding-top: 18px; border-top: 1px solid #ffffff16; }
 .discovery-card:is(.discovery-discussions, .discovery-community) .discussion-related-tag { border-color: #ffffff38; background: #090a0c; color: #d3d8de; }
 .discovery-card:is(.discovery-discussions, .discovery-community) .discussion-related-tag:hover { border-color: #ffffffa0; color: #fff; }
@@ -393,8 +387,6 @@ body:has(.page.feed, .discovery-feed.is-code-feed)::before {
 .video-card-thumbnail { position: relative; aspect-ratio: 16 / 9; min-width: 0; overflow: hidden; border: 1px solid #353a42; border-radius: 9px; background: #111; }
 .video-card-thumbnail > img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .video-card-fallback { display: grid; place-items: center; width: 100%; height: 100%; color: #666; background: radial-gradient(circle, #222, #090909 70%); }
-.video-card-play { position: absolute; top: 50%; left: 50%; display: grid; place-items: center; width: 46px; height: 46px; padding-left: 3px; border: 1px solid #ffffff8c; border-radius: 50%; background: #000c; color: #fff; transform: translate(-50%, -50%); transition: background .2s, border-color .2s, transform .2s; }
-.discovery-videos:is(:hover, :has(:focus-visible)) .video-card-play { border-color: #fff; background: #ffffff32; }
 .video-card-copy { min-width: 0; }
 .discovery-videos .video-card-copy h4 { margin-bottom: 10px; font-size: 23px; line-height: 1.18; }
 .video-card-copy p { display: -webkit-box; margin: 0; overflow: hidden; color: #999ba1; font: 400 12px/1.55 var(--font-ui); -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
@@ -424,7 +416,7 @@ body:has(.page.feed, .discovery-feed.is-code-feed)::before {
   .video-card-channel { max-width: calc(100% - 43px); }
 }
 @media (max-width: 420px) { .discovery-card.discovery-videos { aspect-ratio: auto; } }
-@media (prefers-reduced-motion: reduce) { .video-card-surface path, .video-card-light, .video-card-play { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .video-card-surface path, .video-card-light { transition: none; } }
 
 /* The audio counterpart to the landscape video card: square show art and honest catalog metadata. */
 .discovery-card.discovery-podcasts { min-height: 330px; overflow: visible; border: 0; border-radius: 24px; background: transparent; box-shadow: none; }
@@ -539,9 +531,8 @@ body:has(.page.feed, .discovery-feed.is-code-feed)::before {
 
 /* Preserve the category artwork while using the feed's neutral material. */
 .explore-category-rail .rail-tile { border: 1px solid #333; border-radius: 18px; background: #050505; box-shadow: inset 0 1px 0 #ffffff0c; transition: border-color .2s, box-shadow .2s; }
-.explore-category-rail .rail-tile::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(#ffffff20 .6px, transparent .9px) 0 0 / 4px 4px; mask-image: radial-gradient(ellipse, #000, transparent 80%); opacity: .2; transition: opacity .2s; }
+.explore-category-rail .rail-tile::before { display: none; }
 .explore-category-rail .rail-item:hover .rail-tile, .explore-category-rail .rail-item.active .rail-tile { transform: none; border-color: #777; background: linear-gradient(130deg, #1c1c1c, #030303 85%); box-shadow: inset 0 1px 0 #ffffff22, 0 0 20px #ffffff08; }
-.explore-category-rail .rail-item:hover .rail-tile::before, .explore-category-rail .rail-item.active .rail-tile::before { opacity: .8; }
 .explore-category-rail .rail-item.active .rail-count { color: #eee; }
 .explore-category-rail .rail-item:focus-visible .rail-tile { outline-color: #ddd; }
 

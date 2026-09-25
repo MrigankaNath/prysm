@@ -94,6 +94,13 @@ function videoKind(item) {
   return "Video";
 }
 
+function discussionNote(item) {
+  const snippet = (item.snippet || "").replace(/\s+/g, " ").trim();
+  if (snippet && !/^\d[\d,.]* points?,\s*\d[\d,.]* comments?\.?$/i.test(snippet)) return snippet;
+  if (item.source === "hackernews") return "Featured in a Hacker News discussion.";
+  return null;
+}
+
 function VideoCard({ item, title, topic, preview, saved, onToggleSave, onVisit, done, onToggleDone, light, span }) {
   const views = typeof item.signal === "number" && item.signal > 0
     ? `${new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(item.signal)} views`
@@ -111,7 +118,6 @@ function VideoCard({ item, title, topic, preview, saved, onToggleSave, onVisit, 
         <div className="video-card-thumbnail-frame">
           <div className="video-card-thumbnail">
             {item.thumbnail ? <img src={item.thumbnail} alt="" /> : <div className="video-card-fallback"><Play size={35} aria-hidden="true" /></div>}
-            <span className="video-card-play" aria-hidden="true"><Play size={20} fill="currentColor" /></span>
           </div>
         </div>
         <div className="video-card-copy"><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{title}</a></h4>{item.snippet && <p>{item.snippet}</p>}</div>
@@ -239,6 +245,7 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
   const citationCount = paper && item.source === "openalex" && typeof item.signal === "number" && Number.isFinite(item.signal)
     ? item.signal.toLocaleString()
     : null;
+  const discussionBlurb = discussion && title.length < 105 ? discussionNote(item) : null;
   const visit = () => { if (!preview) recordVisit(item, { topic, category }); onVisit?.(); };
   const props = { item, title, topic, preview, saved, onToggleSave, onVisit, done, onToggleDone, light, span };
   if (category === "videos") return <VideoCard {...props} />;
@@ -259,6 +266,7 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
           {!kind && !clean && <div className="discovery-eyebrow"><span>{category === "essays" ? "Essay" : category === "courses" ? "Course" : CATEGORY_LABELS[category]}</span></div>}
           {paper && <div className="paper-visual" aria-hidden="true"><img src={researchArt} alt="" /></div>}
           <div className={clean || book ? "discovery-clean-heading" : "discovery-heading"}><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{title}</a></h4></div>
+          {discussionBlurb && <p className="discussion-context">{discussionBlurb}</p>}
           {paper && item.author && <p className="paper-author">{item.author}</p>}
           {paper && <p className="paper-citations"><Quote size={14} aria-hidden="true" />{citationCount === null ? "Citations unavailable" : `${citationCount} ${citationCount === "1" ? "citation" : "citations"}`}</p>}
           {book && <div className="discovery-book-meta">{item.author && <span>{item.author}</span>}{(publishedOn(item) || item.year) && <span>{publishedOn(item) || item.year}</span>}<BookDestination item={item} /></div>}

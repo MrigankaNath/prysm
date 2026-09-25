@@ -23,7 +23,15 @@ async function request(
     signal: AbortSignal.timeout(timeoutMs || TIMEOUT_MS),
   });
 
-  if (!res.ok) throw new Error(`${label} returned ${res.status}`);
+  if (!res.ok) {
+    const error = new Error(`${label} returned ${res.status}`);
+    error.status = res.status;
+    if (label === "YouTube API") {
+      const payload = await res.json().catch(() => null);
+      error.reason = payload?.error?.errors?.[0]?.reason || payload?.error?.status || null;
+    }
+    throw error;
+  }
   return res;
 }
 

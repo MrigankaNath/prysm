@@ -13,6 +13,7 @@ import {
 } from "./Icons";
 
 import articlesArt from "../assets/content-icons/articles.svg";
+import highlightsArt from "../assets/content-icons/highlights.svg";
 import booksArt from "../assets/content-icons/books.svg";
 import codeArt from "../assets/content-icons/code.svg";
 import discussionsArt from "../assets/content-icons/discussions.svg";
@@ -53,6 +54,7 @@ export const CATEGORY_ICONS = {
  * inlining several copies would have them all resolve to whichever rendered
  * first. Covers every lane; the fallback is only for an unknown category. */
 export const CATEGORY_ART = {
+  highlights: highlightsArt,
   overview: overviewArt,
   articles: articlesArt,
   essays: essaysArt,

@@ -67,12 +67,9 @@ async function fetchYoutube(topic) {
   const data = await getJson(url, { label: "YouTube API" });
   const items = data.items || [];
 
-  /* A second call for statistics. `search` costs 100 units; `videos` costs 1,
-     so this is a 1% increase on the topic for the only quality signal this
-     lane has — without it a video is the one result type on the page with
-     nothing to say for itself. Duration comes along free in the same call and
-     drops Shorts, which are never the thing someone means by "a video about
-     this". */
+  /* A second, inexpensive call adds the quality signal and duration.
+     Duration drops Shorts, which are never the thing someone means by
+     "a video about this". If enrichment fails, keep the search results. */
   const stats = await videoStats(apiKey, items.map((i) => i.id.videoId));
 
   return items

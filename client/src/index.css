@@ -1692,6 +1692,7 @@ nav {
 .explore-picks { margin-bottom: 52px; }
 .explore-picks .cat-head { margin-bottom: 20px; }
 .explore-picks-note { margin-left: auto; color: #8d939c; font: 500 0.72rem var(--font-ui); letter-spacing: .04em; }
+.explore-source-notice { margin: 18px 0 28px; padding: 12px 16px; border: 1px solid #45454f; border-radius: 10px; background: #111217; color: #bfc3cd; font: 400 0.82rem/1.5 var(--font-ui); }
 
 .cat-expand {
   display: inline-flex;
@@ -5877,21 +5878,7 @@ nav {
   overflow: hidden;
 }
 
-.pdeck-visual::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(rgba(0, 0, 0, 0.2) 1px, transparent 1px);
-  background-size: 4px 4px;
-  opacity: 0.38;
-  mix-blend-mode: overlay;
-}
-
-/* z-index matters: the dot screen is .pdeck-visual::after, which counts as the
-   last child and so painted straight over the tile — the dots showed through
-   no matter how opaque the tile's own background was. Lifting the tile above
-   it also takes the dots out of the backdrop the blur samples, so the glass
-   picks up the gradient alone. */
+/* Keep the illustration above the gradient, without a dotted overlay. */
 .pdeck-illo {
   position: relative;
   z-index: 1;
@@ -7959,5 +7946,3 @@ nav {
     margin-top: 0;
   }
 }
-
-

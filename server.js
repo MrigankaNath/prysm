@@ -5,7 +5,7 @@ const helmet = require("helmet");
 const cors = require("cors");
 const pool = require("./db");
 const { requireAuth } = require("./db/supabase");
-const { getCached, setCached } = require("./db/topicCache");
+const { getCached, getRecentCached, setCached } = require("./db/topicCache");
 const { getQuota, consumeTopic } = require("./db/usage");
 const { fetchWikipediaOverview } = require("./sources/wikipedia");
 const { fetchHackerNews } = require("./sources/hackerNews");
@@ -17,6 +17,7 @@ const { fetchGithub } = require("./sources/github");
 const { fetchYoutube } = require("./sources/youtube");
 const { keepReachable, ROT_PRONE } = require("./sources/reachable");
 const { rankCategories } = require("./sources/rank");
+const { mixDiscoveryRows } = require("./sources/feedMix");
 const {
   fetchTavily,
   fetchTavilyEssays,
@@ -252,8 +253,6 @@ app.get("/api/topics", requireAuth, async (req, res) => {
  * themselves, so no external API is called here. Expired rows are skipped
  * rather than refetched; the topic simply drops out until it's searched again.
  */
-const DISCOVER_SKIP = new Set(["overview"]);
-
 app.get("/api/feed/discover", requireAuth, async (req, res) => {
   try {
     const topics = await pool.query(
@@ -278,37 +277,7 @@ app.get("/api/feed/discover", requireAuth, async (req, res) => {
       [names],
     );
 
-    // Group by topic so the interleave below can round-robin across them.
-    const byTopic = new Map(names.map((t) => [t, []]));
-    for (const row of cached.rows) {
-      if (DISCOVER_SKIP.has(row.source)) continue;
-      const list = Array.isArray(row.results) ? row.results : [];
-      for (const item of list) {
-        if (!item?.url || !item?.title) continue;
-        byTopic.get(row.topic)?.push({ ...item, topic: row.topic, category: row.source });
-      }
-    }
-
-    /* Round-robin across topics rather than concatenating: eight items from
-       your most recent search followed by eight from the one before reads as
-       two blocks, not a feed. */
-    /* Source order is already meaningful — each adapter ranks by relevance and
-       engagement — so it's kept. (An earlier version shuffled with
-       `sort(() => Math.random() - 0.5)`, which is both a biased shuffle and
-       reorders the feed on every refresh.) */
-    const buckets = names.map((t) => byTopic.get(t) || []);
-
-    const seen = new Set();
-    const items = [];
-    const depth = Math.max(...buckets.map((b) => b.length), 0);
-    for (let i = 0; i < depth && items.length < 40; i += 1) {
-      for (const bucket of buckets) {
-        const item = bucket[i];
-        if (!item || seen.has(item.url)) continue;
-        seen.add(item.url);
-        items.push(item);
-      }
-    }
+    const items = mixDiscoveryRows(names, cached.rows);
 
     res.json({ topics: names, items });
   } catch (err) {
@@ -614,8 +583,19 @@ async function loadLiveCategory(topic, category, fetchFn, emptyValue, ...args) {
     return results;
   } catch (err) {
     console.error(`live discovery: ${category} failed for topic "${topic}"`, err);
+    if (category === "videos") {
+      const earlier = await getRecentCached(topic, "videos").catch(() => null);
+      if (Array.isArray(earlier) && earlier.length) return earlier;
+    }
     return emptyValue;
   }
+}
+
+function videoFailureReason(error) {
+  if (error?.message === "YOUTUBE_API_KEY is not set") return "configuration";
+  if (/quota/i.test(error?.reason || "")) return "quota";
+  if (error?.status === 400 || error?.status === 403) return "credentials";
+  return "unavailable";
 }
 
 // Fetched first because all five are free and keyless, so they cost nothing but
@@ -627,8 +607,8 @@ const PROBE_CATEGORIES = ["discussions", "papers", "books", "podcasts", "website
    share one round of Tavily searches.
  *
  * Videos used to be in here and shouldn't have been. The per-account quota
- * exists to protect Tavily's 1,000 credits a month; YouTube is a completely
- * separate allowance (10,000 units a day, 100 per search) that Tavily spending
+ * exists to protect Tavily's 1,000 credits a month; YouTube has a separate
+ * API search allowance that Tavily spending
  * does not touch. Gating one on the other meant videos vanished whenever the
  * Tavily budget ran out — and videos is the lane with the broadest coverage of
  * any, so it was the worst possible one to drop. It now runs like every other
@@ -749,11 +729,19 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
     return res.status(400).json({ error: "Invalid topic" });
   }
 
+  let videoFailure = null;
   const load = (name, ...args) =>
     loadLiveCategory(
       topic,
       name,
-      LIVE_CATEGORIES[name].fetch,
+      name === "videos" ? async (...fetchArgs) => {
+        try {
+          return await LIVE_CATEGORIES[name].fetch(...fetchArgs);
+        } catch (error) {
+          videoFailure = videoFailureReason(error);
+          throw error;
+        }
+      } : LIVE_CATEGORIES[name].fetch,
       LIVE_CATEGORIES[name].empty,
       ...args,
     );
@@ -810,6 +798,14 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
        out the better Tavily answer the next person with quota pays for. */
     if (!metered) {
       categories.overview = await fetchWikipediaOverview(topic).catch(() => null);
+      /* No new Tavily credits are spent: show previously found reading when
+         it exists, even if its live-search TTL has elapsed. */
+      const [articles, essays] = await Promise.all([
+        getRecentCached(topic, "articles"),
+        getRecentCached(topic, "essays"),
+      ]);
+      categories.articles = Array.isArray(articles) ? articles : [];
+      categories.essays = Array.isArray(essays) ? essays : [];
     }
 
     /* Reddit leads discussions and Quora leads Q&A; Hacker News and Stack
@@ -830,6 +826,7 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
       categories: lanes,
       order: rankCategories(lanes, LIVE_CATEGORIES),
       profile,
+      sources: { videos: videoFailure || "ok" },
       usage: {
         used: quota.used + (warm || !metered ? 0 : 1),
         limit: quota.limit,

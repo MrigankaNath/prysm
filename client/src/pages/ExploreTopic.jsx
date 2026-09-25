@@ -39,6 +39,7 @@ const COLLAPSED_COUNT = 4;
 /* One hue per category, so the row reads as a colour key rather than a list of
    identical pills. Order matches CATEGORY_ORDER. */
 const PICKER_HUES = {
+  highlights: "#8b7cf5",
   articles: "#3b82f6",
   essays: "#f43f5e",
   videos: "#ec4899",
@@ -87,9 +88,17 @@ function RailItem({ id, label, count, hue, active, onSelect }) {
  * the same thing — and it carried a count of every result, which is a number
  * nobody acts on. Clearing a filter is now the same gesture that set it:
  * pressing the active category again returns to all. */
-export function CategoryRail({ sections, active, onSelect }) {
+export function CategoryRail({ sections, active, onSelect, highlightsCount = 0 }) {
   return (
     <nav className="rail explore-category-rail" aria-label="Filter results by category">
+      {highlightsCount > 1 && <RailItem
+        id="highlights"
+        label="Best picks"
+        count={highlightsCount}
+        hue={PICKER_HUES.highlights}
+        active={active === "highlights"}
+        onSelect={() => onSelect(active === "highlights" ? "all" : "highlights")}
+      />}
       {sections.map(({ key, items }) => (
         <RailItem
           key={key}
@@ -177,8 +186,8 @@ function QuotaNotice({ usage }) {
         </p>
         <p className="quota-notice-body">
           {appWide
-            ? "Prysm's shared search budget is spent. Everything already explored still opens in full, and new topics come back on the 1st."
-            : "The overview and articles below need a fresh search. Everything else on this page is here, and any topic someone has already explored still opens in full."}
+            ? "New article searches resume on the 1st. Previously found articles are shown when available, alongside the free sources."
+            : "Fresh articles need a new search. Previously found articles are shown below when available, alongside all the free sources."}
         </p>
       </div>
       {!appWide && (
@@ -340,6 +349,7 @@ function ExploreTopic() {
   const [failed, setFailed] = useState(false);
   const [active, setActive] = useState("all");
   const [usage, setUsage] = useState(null);
+  const [sourceStatus, setSourceStatus] = useState(null);
   /* Open on the full shelf; the guided path stays one tap away. */
   const [view, setView] = useState("all");
   const [done, setDone] = useState([]);
@@ -355,6 +365,7 @@ function ExploreTopic() {
     setFailed(false);
     setCategories(null);
     setActive("all");
+    setSourceStatus(null);
     window.scrollTo(0, 0);
 
     apiFetch(`/api/explore/${encodeURIComponent(topic)}/live`)
@@ -366,6 +377,7 @@ function ExploreTopic() {
         setCategories(live.categories || null);
         setOrder(live.order?.length ? live.order : CATEGORY_ORDER);
         setUsage(live.usage || null);
+        setSourceStatus(live.sources || null);
         // Remembered twice on purpose: locally so the topic list works
         // instantly and offline, and against the account so the feed follows
         // the person to another browser rather than living in this one.
@@ -469,8 +481,7 @@ function ExploreTopic() {
      on screen and which looks like every other marker is the selection
      failing to confirm itself. */
   const litUrl = openStop || next?.url;
-  const shown =
-    active === "all" ? sections : sections.filter((s) => s.key === active);
+  const shown = active === "all" ? sections : sections.filter((s) => s.key === active);
 
   return (
     <div className="page page-wide explore">
@@ -520,6 +531,15 @@ function ExploreTopic() {
       {!loading && !failed && (
         <>
           <QuotaNotice usage={usage} />
+          {sourceStatus?.videos && sourceStatus.videos !== "ok" && !categories?.videos?.length && (
+            <p className="explore-source-notice" role="status">
+              {sourceStatus.videos === "quota"
+                ? "YouTube has reached its search limit for now; videos will return when its quota resets."
+                : sourceStatus.videos === "configuration"
+                  ? "YouTube is not configured on the API service yet, so videos are temporarily unavailable."
+                  : "YouTube videos are temporarily unavailable from the API service."}
+            </p>
+          )}
 
           <Overview overview={overview} topic={topic} />
 
@@ -598,22 +618,23 @@ function ExploreTopic() {
 
           {(view === "all" || path.length === 0) && (
             <>
-              {active === "all" && highlights.length > 1 && (
-                <section className="cat-section explore-picks" aria-labelledby="explore-picks-title">
-                  <header className="cat-head">
-                    <span className="cat-head-icon"><IconGrid /></span>
-                    <h2 className="cat-head-title" id="explore-picks-title">Best things to check out</h2>
-                    <span className="explore-picks-note">Across formats</span>
-                  </header>
-                  <DiscoveryFeed items={highlights} topic={topic} filters={false} />
-                </section>
-              )}
               {sections.length > 1 && (
                 <CategoryRail
                   sections={sections}
                   active={active}
                   onSelect={setActive}
+                  highlightsCount={highlights.length}
                 />
+              )}
+              {(active === "all" || active === "highlights") && highlights.length > 1 && (
+                <section className="cat-section explore-picks" aria-labelledby="explore-picks-title">
+                  <header className="cat-head">
+                    <span className="cat-head-icon"><img className="cat-art" src={CATEGORY_ART.highlights} alt="" /></span>
+                    <h2 className="cat-head-title" id="explore-picks-title">Best things to check out</h2>
+                    <span className="explore-picks-note">Across formats</span>
+                  </header>
+                  <DiscoveryFeed items={highlights} topic={topic} filters={false} />
+                </section>
               )}
 
               {shown.map(({ key, items }, i) => (
