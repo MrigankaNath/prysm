@@ -1689,6 +1689,10 @@ nav {
   font-weight: 600;
 }
 
+.explore-picks { margin-bottom: 52px; }
+.explore-picks .cat-head { margin-bottom: 20px; }
+.explore-picks-note { margin-left: auto; color: #8d939c; font: 500 0.72rem var(--font-ui); letter-spacing: .04em; }
+
 .cat-expand {
   display: inline-flex;
   align-items: center;
@@ -7955,6 +7959,5 @@ nav {
     margin-top: 0;
   }
 }
-
 
 

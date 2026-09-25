@@ -340,9 +340,8 @@ function ExploreTopic() {
   const [failed, setFailed] = useState(false);
   const [active, setActive] = useState("all");
   const [usage, setUsage] = useState(null);
-  /* The path is the default view; "Everything" is still there for anyone who
-     wants the raw lanes, but a sequence is what the page is now for. */
-  const [view, setView] = useState("path");
+  /* Open on the full shelf; the guided path stays one tap away. */
+  const [view, setView] = useState("all");
   const [done, setDone] = useState([]);
   /* Which stop has its detail open. Lifted to the page so only one can be —
      two popovers on one trail is the clutter this view is escaping. */
@@ -446,6 +445,16 @@ function ExploreTopic() {
       .filter(({ items }) => items.length > 0);
   }, [categories, order]);
 
+  const highlights = useMemo(() => {
+    const seen = new Set();
+    return sections.flatMap(({ key, items }) => {
+      const item = items.find((entry) => entry?.url && !seen.has(entry.url));
+      if (!item) return [];
+      seen.add(item.url);
+      return [{ ...item, category: key }];
+    }).slice(0, 6);
+  }, [sections]);
+
   const total = sections.reduce((sum, s) => sum + s.items.length, 0);
   const steps = pathItems(path);
   const pathTotal = steps.length;
@@ -514,9 +523,8 @@ function ExploreTopic() {
 
           <Overview overview={overview} topic={topic} />
 
-          {/* Two ways to read the same results. The path is the default and the
-              reason the page exists; Everything is the raw lanes, for when you
-              know what you're looking for and want the shelf, not the route. */}
+          {/* The full shelf opens first; the path is still available as a
+              guided route through the same results. */}
           {path.length > 0 && (
             <div
               className="view-switch"
@@ -590,6 +598,16 @@ function ExploreTopic() {
 
           {(view === "all" || path.length === 0) && (
             <>
+              {active === "all" && highlights.length > 1 && (
+                <section className="cat-section explore-picks" aria-labelledby="explore-picks-title">
+                  <header className="cat-head">
+                    <span className="cat-head-icon"><IconGrid /></span>
+                    <h2 className="cat-head-title" id="explore-picks-title">Best things to check out</h2>
+                    <span className="explore-picks-note">Across formats</span>
+                  </header>
+                  <DiscoveryFeed items={highlights} topic={topic} filters={false} />
+                </section>
+              )}
               {sections.length > 1 && (
                 <CategoryRail
                   sections={sections}

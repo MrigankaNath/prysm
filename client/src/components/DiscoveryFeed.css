@@ -220,29 +220,30 @@ body:has(.page.feed, .discovery-feed.is-code-feed)::before {
 .paper-surface { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .paper-surface path { fill: #07080a; stroke: #2b3039; stroke-width: 1; vector-effect: non-scaling-stroke; transition: fill .24s; }
 .discovery-papers:is(:hover, :has(:focus-visible)) .paper-surface path { fill: #141517; }
-.paper-light { position: absolute; inset: 0; pointer-events: none; border-radius: 24px; background: radial-gradient(ellipse 170px 135px at var(--light-x, 50%) var(--light-y, 50%), #f2cd4216, #ffffff06 45%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, transparent 55px, #000 72px); opacity: 0; transition: opacity .24s; }
+.paper-light { position: absolute; inset: 0; pointer-events: none; border-radius: 24px; background: radial-gradient(ellipse 170px 135px at var(--light-x, 50%) var(--light-y, 50%), #ffffff12, #ffffff05 45%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, transparent 55px, #000 72px); opacity: 0; transition: opacity .24s; }
 .discovery-papers:is(:hover, :has(:focus-visible)) .paper-light { opacity: 1; }
-.discovery-papers .discovery-content { position: relative; padding: 24px 28px 22px; min-height: 372px; }
-.paper-masthead { display: flex; align-items: center; max-width: 56%; min-height: 28px; margin-bottom: 44px; }
+.discovery-papers .discovery-content { position: relative; padding: 24px 28px 22px; min-height: 320px; }
+.paper-masthead { display: flex; align-items: center; max-width: 56%; min-height: 28px; margin-bottom: 30px; }
 .paper-masthead .discovery-source { gap: 9px; padding: 8px 12px; border-color: #ffffff55; border-radius: 9px; background: #090a0c; box-shadow: 0 0 12px #ffffff10, inset 0 0 9px #ffffff09; color: #f0f2f5; font-size: 12px; font-weight: 500; }
 .paper-masthead .discovery-source img { width: 19px; height: 19px; }
-.discovery-papers .discovery-summary { display: grid; grid-template-columns: minmax(0, 1fr) 112px; column-gap: 20px; align-items: start; }
+.discovery-papers .discovery-summary { display: grid; grid-template-columns: minmax(0, 1fr) 84px; column-gap: 20px; align-items: start; }
 .discovery-papers .discovery-heading { grid-column: 1; grid-row: 1; min-width: 0; }
 .discovery-papers h4 { margin: 0; font: 400 26px/1.2 Georgia, serif; }
 .discovery-papers:is(:hover, :has(:focus-visible)) h4 a { text-decoration: underline; text-decoration-color: #e9c641; text-underline-offset: 5px; }
 .paper-author { grid-column: 1; grid-row: 2; margin: 10px 0 0; color: #aeb5bb; font: 400 11px/1.4 var(--font-ui); }
-.paper-visual { grid-column: 2; grid-row: 1 / span 2; display: grid; place-items: center; width: 112px; height: 126px; border: 1px solid #666; border-radius: 17px; background: #010101; box-shadow: 5px 6px 0 #e7e7e7, 8px 14px 21px #000c, inset 0 1px 0 #ffffff1a; transform: perspective(450px) rotateY(-5deg) rotateX(3deg); }
-.paper-visual img { display: block; width: 80px; height: 80px; object-fit: contain; filter: invert(1); opacity: .8; transition: filter .24s, opacity .24s; }
-.discovery-papers:is(:hover, :has(:focus-visible)) .paper-visual img { filter: invert(1) drop-shadow(0 0 5px #ffffff99) drop-shadow(0 0 12px #e5c84f66); opacity: 1; }
-.paper-description { grid-column: 1 / -1; min-width: 0; margin: 22px 0 0; padding-top: 16px; overflow: hidden; border-top: 1px solid #ffffff19; color: #b9c0c9; font: 400 12px/1.45 var(--font-ui); text-overflow: ellipsis; white-space: nowrap; }
+.paper-visual { grid-column: 2; grid-row: 1 / span 3; display: grid; place-items: center; width: 84px; height: 96px; border: 1px solid #666; border-radius: 14px; background: #010101; box-shadow: 4px 5px 0 #e7e7e7, 7px 11px 17px #000c, inset 0 1px 0 #ffffff1a; transform: perspective(450px) rotateY(-5deg) rotateX(3deg); }
+.paper-visual img { display: block; width: 56px; height: 56px; object-fit: contain; filter: invert(1); opacity: .8; transition: filter .24s, opacity .24s; }
+.discovery-papers:is(:hover, :has(:focus-visible)) .paper-visual img { filter: invert(1) drop-shadow(0 0 5px #ffffff99); opacity: 1; }
+.paper-citations { display: inline-flex; align-items: center; gap: 6px; grid-column: 1; grid-row: 3; margin: 10px 0 0; color: #aeb5bb; font: 500 11px/1.4 var(--font-ui); }
+.paper-citations svg { flex-shrink: 0; }
 .discovery-papers .discovery-tags { gap: 8px; margin-top: auto; padding-top: 20px; }
-.discovery-papers .discovery-tag { border-color: #ffffff38; background: #ffffff09; box-shadow: inset 0 1px 0 #ffffff13, 0 0 12px #ffffff0d; color: #e0e5ea; }
+.discovery-papers .discovery-tag { border-color: #ffffff38; background: #090a0c; box-shadow: inset 0 1px 0 #ffffff0b; color: #e0e5ea; }
 .discovery-papers .discovery-tag > svg { color: #c9d0d9; }
 .discovery-papers .discovery-topic:hover { border-color: #ffffffa0; color: #fff; }
 .discovery-papers footer { margin-top: 17px; padding-top: 15px; border-top: 1px solid #ffffff16; }
 .discovery-papers .bookmark-btn.saved { border-color: #cfb64b; background: #322b0f; color: #f4d455; }
 .discovery-papers .bookmark-btn.saved svg { fill: currentColor; }
-@container (max-width: 380px) { .discovery-papers .discovery-summary { grid-template-columns: minmax(0, 1fr) 88px; column-gap: 14px; } .paper-visual { width: 88px; height: 100px; } .paper-visual img { width: 65px; height: 65px; } .discovery-papers h4 { font-size: 22px; } }
+@container (max-width: 380px) { .discovery-papers .discovery-summary { grid-template-columns: minmax(0, 1fr) 66px; column-gap: 14px; } .paper-visual { width: 66px; height: 78px; } .paper-visual img { width: 44px; height: 44px; } .discovery-papers h4 { font-size: 22px; } }
 
 @container (min-width: 480px) {
   .discovery-videos .discovery-content { display: grid; grid-template-columns: 1.1fr 1fr; grid-template-rows: 1fr auto auto; gap: 0 25px; }
@@ -345,7 +346,7 @@ body:has(.page.feed, .discovery-feed.is-code-feed)::before {
 @media (prefers-reduced-motion: reduce) { .article-surface path, .article-texture, .discovery-article-action { transition: none; } }
 
 
-/* Discussion: the same curved cover as an article, with conversation artwork instead of a grid. */
+/* Discussion: the article's open text area and torch grid leave long titles room to breathe. */
 .discovery-card:is(.discovery-discussions, .discovery-community) { overflow: visible; border: 0; border-radius: 24px; background: transparent; box-shadow: none; }
 .discovery-card:is(.discovery-discussions, .discovery-community):is(:hover, :has(:focus-visible)) { box-shadow: none; }
 .discovery-card:is(.discovery-discussions, .discovery-community)::before, .discovery-card:is(.discovery-discussions, .discovery-community)::after { display: none; }
@@ -355,32 +356,23 @@ body:has(.page.feed, .discovery-feed.is-code-feed)::before {
 .discussion-surface path { fill: #07080a; stroke: #2b3039; stroke-width: 1; vector-effect: non-scaling-stroke; transition: fill .24s; }
 .discovery-card:is(.discovery-discussions, .discovery-community):is(:hover, :has(:focus-visible)) h4 a { text-decoration: underline; text-decoration-color: #f27a27; text-underline-offset: 5px; }
 .discovery-card:is(.discovery-discussions, .discovery-community):is(:hover, :has(:focus-visible)) .discussion-surface path { fill: #141517; }
-.discussion-light { position: absolute; inset: 0; pointer-events: none; border-radius: 24px; background: radial-gradient(ellipse 180px 145px at var(--light-x, 50%) var(--light-y, 50%), #ffffff13, #ffffff07 44%, transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, transparent 55px, #000 72px); opacity: 0; transition: opacity .24s; }
-.discovery-card:is(.discovery-discussions, .discovery-community):is(:hover, :has(:focus-visible)) .discussion-light { opacity: 1; }
-.discovery-card:is(.discovery-discussions, .discovery-community) .discovery-content { position: relative; padding: 24px 28px 23px; min-height: 360px; }
-.discussion-masthead { display: flex; align-items: center; min-height: 28px; max-width: 56%; margin-bottom: 46px; }
+.discovery-card:is(.discovery-discussions, .discovery-community):is(:hover, :has(:focus-visible)) .article-texture::after { opacity: .45; }
+.discovery-card:is(.discovery-discussions, .discovery-community) .discovery-content { position: relative; padding: 24px 28px 23px; min-height: 310px; }
+.discussion-masthead { display: flex; align-items: center; min-height: 28px; max-width: 56%; margin-bottom: 30px; }
 .discussion-masthead .discovery-source { gap: 9px; padding: 8px 12px; border-color: #ffffff55; border-radius: 9px; background: #090a0c; box-shadow: 0 0 12px #ffffff14, inset 0 0 9px #ffffff09; color: #f0f2f5; font-size: 12px; font-weight: 500; }
 .discussion-masthead .discovery-source img { width: 19px; height: 19px; }
-.discovery-card:is(.discovery-discussions, .discovery-community) .discovery-summary { display: grid; grid-template-columns: minmax(0, 1fr) 112px; gap: 12px 20px; align-items: start; }
-.discovery-card:is(.discovery-discussions, .discovery-community) .discovery-heading { grid-column: 1; grid-row: 1; min-width: 0; }
+.discovery-card:is(.discovery-discussions, .discovery-community) .discovery-summary { min-width: 0; }
 .discovery-card:is(.discovery-discussions, .discovery-community) h4 { max-width: none; margin-bottom: 0; font-size: 25px; }
-.discovery-card:is(.discovery-discussions, .discovery-community) .discovery-description { grid-column: 1; grid-row: 2; max-width: none; color: #919ba9; }
-.discovery-card:is(.discovery-discussions, .discovery-community) .discovery-details { grid-column: 1 / -1; }
-.discussion-visual { position: relative; grid-column: 2; grid-row: 1 / span 2; display: grid; place-items: center; width: 112px; height: 126px; border: 1px solid #666; border-radius: 17px; background: #010101; box-shadow: 5px 6px 0 #e7e7e7, 8px 14px 21px #000c, inset 0 1px 0 #ffffff1a; transform: perspective(450px) rotateY(-5deg) rotateX(3deg); }
-.discussion-visual img { display: block; width: 80px; height: 80px; object-fit: contain; filter: invert(1); opacity: .74; transition: filter .24s, opacity .24s; }
-.discovery-card:is(.discovery-discussions, .discovery-community):is(:hover, :has(:focus-visible)) .discussion-visual img { filter: invert(1) drop-shadow(0 0 5px #ffffff99) drop-shadow(0 0 13px #f0a36b66); opacity: 1; }
-.discovery-card:is(.discovery-discussions, .discovery-community) .discovery-tags { padding-top: 18px; margin-bottom: 16px; }
-.discovery-card:is(.discovery-discussions, .discovery-community) .discussion-related-tag { border-color: #a96b493b; background: #a96b4910; color: #c8b4a6; }
-.discovery-card:is(.discovery-discussions, .discovery-community) .discussion-related-tag:hover { border-color: #c3835b88; color: #f0d9c8; }
-.discovery-card:is(.discovery-discussions, .discovery-community) footer { margin-top: auto; padding-top: 18px; border-top: 1px solid #ffffff10; }
-.discussion-action { position: relative; z-index: 2; display: inline-flex; align-items: center; justify-content: space-between; min-width: 158px; min-height: 40px; gap: 13px; padding: 9px 12px; border: 1px solid #ffffff42; border-radius: 9px; background: transparent; color: #e6e9ef; font: 500 11px var(--font-ui); text-decoration: none; transition: border-color .2s, color .2s; }
-.discovery-card:is(.discovery-discussions, .discovery-community):is(:hover, :has(:focus-visible)) .discussion-action { border-color: #ffffffa0; color: #fff; }
-.discussion-action:focus-visible { outline: 2px solid #d69b6d; outline-offset: 3px; }
+.discovery-card:is(.discovery-discussions, .discovery-community) .discussion-tags { align-items: center; gap: 8px; margin-top: auto; padding-top: 18px; border-top: 1px solid #ffffff16; }
+.discovery-card:is(.discovery-discussions, .discovery-community) .discussion-related-tag { border-color: #ffffff38; background: #090a0c; color: #d3d8de; }
+.discovery-card:is(.discovery-discussions, .discovery-community) .discussion-related-tag:hover { border-color: #ffffffa0; color: #fff; }
+.discovery-card:is(.discovery-discussions, .discovery-community) .discussion-tags .discovery-done { margin-left: auto; }
+.discovery-card:is(.discovery-discussions, .discovery-community) .discussion-tags:not(:has(.discovery-done)) .bookmark-btn { margin-left: auto; }
 .discovery-card:is(.discovery-discussions, .discovery-community) .bookmark-btn { background: #090b0f; border-color: #353943; border-radius: 10px; color: #a9acb7; }
 .discovery-card:is(.discovery-discussions, .discovery-community) .bookmark-btn.saved { background: #302014; border-color: #bd855b; color: #edb17e; }
 .discovery-card:is(.discovery-discussions, .discovery-community) .bookmark-btn.saved svg { fill: currentColor; }
-@container (max-width: 380px) { .discovery-card:is(.discovery-discussions, .discovery-community) .discovery-summary { grid-template-columns: minmax(0, 1fr) 88px; column-gap: 14px; } .discussion-visual { width: 88px; height: 100px; } .discussion-visual img { width: 65px; height: 65px; } .discovery-card:is(.discovery-discussions, .discovery-community) h4 { font-size: 22px; } }
-@media (prefers-reduced-motion: reduce) { .discussion-surface, .discussion-surface path, .discussion-light, .discussion-action, .discussion-visual img { transition: none; } }
+@container (max-width: 380px) { .discovery-card:is(.discovery-discussions, .discovery-community) h4 { font-size: 22px; } }
+@media (prefers-reduced-motion: reduce) { .discussion-surface, .discussion-surface path { transition: none; } }
 
 
 
