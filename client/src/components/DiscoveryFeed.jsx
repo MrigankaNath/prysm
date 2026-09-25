@@ -1,24 +1,50 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Play, Globe, Star, GitFork, Check, Headphones } from "lucide-react";
+import { ArrowUpRight, Play, Globe, Star, GitFork, Check, Headphones, Eye, Clapperboard, ListMusic, Radio, FileText, BadgeCheck, CalendarDays, Quote } from "lucide-react";
 import { BookmarkButton } from "./ResultCard";
 import { CATEGORY_LABELS } from "./categories";
 import { BookVisual } from "./BookCard";
 import TopicIcon from "./TopicIcon";
 import { recordVisit } from "../lib/library";
-import { hostOf, effortOf, formatSignal, publishedOn, venueChip } from "../lib/result";
+import { hostOf, effortOf, formatSignal, publishedOn } from "../lib/result";
 import { topicColor, lighten } from "../lib/topicIcon";
 import { presentContent } from "../lib/contentPresentation";
+import discussionArt from "../assets/discussion.svg";
+import researchArt from "../assets/research.svg";
+import podcastMark from "../assets/podcast.svg";
+import codeMark from "../assets/code-card.svg";
+import websiteMark from "../assets/website.svg";
 import "./DiscoveryFeed.css";
 
 const ACTIONS = { courses: "View course", articles: "Read article", essays: "Read essay", videos: "Watch video", podcasts: "Listen to show", papers: "Read paper", code: "Explore repository", books: "Explore book", discussions: "Join discussion", community: "Join discussion", websites: "Visit website", qa: "Read answer", answers: "Read answer" };
 const BRANDS = { "youtube.com": "YouTube", "youtu.be": "YouTube", "github.com": "GitHub", "arxiv.org": "arXiv", "podcasts.apple.com": "Apple Podcasts", "reddit.com": "Reddit", "en.wikipedia.org": "Wikipedia", "news.ycombinator.com": "Hacker News" };
 
-function SourceTag({ host }) {
+function SourceTag({ host, showAddress = false }) {
   const [broken, setBroken] = useState(false);
   return <span className="discovery-tag discovery-source">
     {!broken && host ? <img src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`} alt="" onError={() => setBroken(true)} /> : <Globe size={16} />}
-    <span>{BRANDS[host] || host || "Web"}</span>
+    <span>{(showAddress ? host : BRANDS[host] || host) || "Web"}</span>
+  </span>;
+}
+
+function BookDestination({ item }) {
+  const [broken, setBroken] = useState(false);
+  const host = hostOf(item.url);
+  const isPdf = new URL(item.url).pathname.toLowerCase().endsWith(".pdf");
+  const destination = isPdf
+    ? [host || "Document", "PDF file"]
+    : host === "amazon.com" || host?.endsWith(".amazon.com")
+    ? ["Amazon", "Product page"]
+    : host === "archive.org"
+      ? ["Internet Archive", item.access === "borrow" ? "Online borrowing page" : "Free scan page"]
+      : host === "openlibrary.org"
+        ? ["Open Library", item.access === "buy" ? "Book record · buying options" : "Book record"]
+        : host === "gutenberg.org" || host === "www.gutenberg.org"
+          ? ["Project Gutenberg", "Free ebook page"]
+          : [host || "Website", "Book page · format may vary"];
+  return <span className="discovery-book-destination" title={`Opens ${destination[0]}: ${destination[1]}`}>
+    {!broken && host ? <img src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`} alt="" onError={() => setBroken(true)} /> : <Globe size={17} aria-hidden="true" />}
+    <span><strong>{destination[0]}</strong><small>{destination[1]}</small></span>
   </span>;
 }
 
@@ -30,6 +56,7 @@ function CategoryIdentity({ item, category }) {
     ? item.thumbnail
     : `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host || "")}&sz=128`;
   const logo = !broken ? <img src={mark} alt="" onError={() => setBroken(true)} /> : <span className="discovery-monogram">{(host || "W").slice(0, 1).toUpperCase()}</span>;
+  if (category === "courses") return <div className="course-source"><SourceTag host={host} /></div>;
   if (category === "books") return <div className="discovery-book-stage" aria-hidden="true"><span className="book-object"><BookVisual item={item} /></span></div>;
   if (category === "podcasts") return <div className="discovery-audio">{item.thumbnail && !broken ? logo : <Headphones size={36} aria-hidden="true" />}<span><strong>Listen</strong><small>Podcast</small></span></div>;
   if (category === "videos") return <div className="discovery-screen">
@@ -51,27 +78,89 @@ function PublisherMark({ host, thumbnail }) {
 function WebsiteIdentity({ host }) {
   return <div className="discovery-site-identity">
     <PublisherMark host={host} />
-    <div className="discovery-site-address"><span>Website</span><p>{host}</p></div>
-    <svg className="discovery-site-globe" viewBox="0 0 80 80" fill="none" aria-hidden="true">
-      <circle className="discovery-globe-rim" cx="40" cy="40" r="33" /><ellipse cx="40" cy="40" rx="15" ry="33" />
-      <path d="M7 40h66M12 23h56M12 57h56M40 7v66" />
-    </svg>
+    <div className="discovery-site-address"><span>Domain</span><p>{host}</p></div>
+    <img className="discovery-site-symbol" src={websiteMark} alt="" />
   </div>;
 }
 
-function updatedLabel(value) {
-  const stamp = new Date(value).valueOf();
-  if (!value || !Number.isFinite(stamp)) return null;
-  const days = Math.max(0, Math.floor((Date.now() - stamp) / 86400000));
-  if (days === 0) return "Updated today";
-  if (days === 1) return "Updated yesterday";
-  return days < 30 ? `Updated ${days} days ago` : `Updated ${new Date(value).toLocaleDateString("en-US", { month: "short", year: "numeric" })}`;
-}
 const count = (value) => new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value);
+
+function videoKind(item) {
+  const title = item.title.toLowerCase();
+  if (/\b(tutorial|walkthrough|step[- ]by[- ]step|how to)\b/.test(title)) return "Tutorial";
+  if (/\b(lecture|talk|keynote)\b/.test(title)) return "Lecture";
+  if (/\b(interview|conversation|podcast)\b/.test(title)) return "Interview";
+  if (/\b(documentary|film)\b/.test(title)) return "Documentary";
+  if (/\b(explained|explainer|what is|why does|how does)\b/.test(title)) return "Explainer";
+  return "Video";
+}
+
+function VideoCard({ item, title, topic, preview, saved, onToggleSave, onVisit, done, onToggleDone, light, span }) {
+  const views = typeof item.signal === "number" && item.signal > 0
+    ? `${new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(item.signal)} views`
+    : null;
+  const visit = () => {
+    if (!preview) recordVisit(item, { topic, category: "videos" });
+    onVisit?.();
+  };
+  return <article className="discovery-card discovery-videos" {...light} style={{ "--card-span": span }}>
+    <div className="video-card-backing"><span><Play size={13} fill="currentColor" aria-hidden="true" /> YouTube</span></div>
+    <svg className="video-card-surface" viewBox="0 0 600 375" preserveAspectRatio="none" aria-hidden="true"><path d="M25 1H335C383 1 370 55 424 55H575Q599 55 599 80V350Q599 374 575 374H25Q1 374 1 350V25Q1 1 25 1Z" /></svg>
+    <div className="video-card-light" aria-hidden="true" />
+    <div className="video-card-content">
+      <div className="video-card-main">
+        <div className="video-card-thumbnail-frame">
+          <div className="video-card-thumbnail">
+            {item.thumbnail ? <img src={item.thumbnail} alt="" /> : <div className="video-card-fallback"><Play size={35} aria-hidden="true" /></div>}
+            <span className="video-card-play" aria-hidden="true"><Play size={20} fill="currentColor" /></span>
+          </div>
+        </div>
+        <div className="video-card-copy"><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{title}</a></h4>{item.snippet && <p>{item.snippet}</p>}</div>
+      </div>
+      <div className="video-card-meta" aria-label="Video details">
+        <span className="video-card-chip video-card-channel" title={item.author || "Channel unavailable"}><span className="video-card-avatar" aria-hidden="true">{(item.author || "?").charAt(0).toUpperCase()}</span><span className="video-card-channel-copy"><span className="video-card-chip-label">CHANNEL</span><span className="video-card-channel-name">{item.author || "Unknown channel"}</span></span></span>
+        <span className="video-card-chip" title={typeof item.signal === "number" && item.signal > 0 ? `${item.signal.toLocaleString()} views` : "View count unavailable"}><Eye size={13} aria-hidden="true" />{views || "Views unavailable"}</span>
+        <span className="video-card-chip"><Clapperboard size={13} aria-hidden="true" />{videoKind(item)}</span>
+        {onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Watched" : "Mark watched"}</button>}
+        {preview ? <button type="button" className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove bookmark" : "Save for later"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category="videos" />}
+      </div>
+    </div>
+  </article>;
+}
+
+function PodcastCard({ item, title, topic, preview, saved, onToggleSave, onVisit, done, onToggleDone, light, span }) {
+  const platform = hostOf(item.url) === "podcasts.apple.com" ? "Apple Podcasts" : "Podcast";
+  const description = item.description || (item.snippet && !item.snippet.includes(" · ") ? item.snippet : item.genre && item.author ? `A ${item.genre.toLowerCase()} show from ${item.author}.` : null);
+  const visit = () => {
+    if (!preview) recordVisit(item, { topic, category: "podcasts" });
+    onVisit?.();
+  };
+
+  return <article className="discovery-card discovery-podcasts" {...light} style={{ "--card-span": span }}>
+    <div className="podcast-card-backing"><span><Headphones size={14} aria-hidden="true" />{platform}</span></div>
+    <svg className="podcast-card-surface" viewBox="0 0 600 375" preserveAspectRatio="none" aria-hidden="true"><path d="M25 1H335C383 1 370 55 424 55H575Q599 55 599 80V350Q599 374 575 374H25Q1 374 1 350V25Q1 1 25 1Z" /></svg>
+    <div className="podcast-card-light" aria-hidden="true" />
+    <div className="podcast-card-content">
+      <div className="podcast-card-main">
+        <div className="podcast-card-cover-frame"><div className="podcast-card-cover">
+          {item.thumbnail ? <img src={item.thumbnail} alt="" /> : <div className="podcast-card-cover-fallback"><Headphones size={54} aria-hidden="true" /></div>}
+        </div></div>
+        <div className="podcast-card-copy"><span className="podcast-card-kicker"><img className="podcast-card-mark" src={podcastMark} alt="" />Audio series{topic ? ` · ${topic}` : ""}</span><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{title}</a></h4>{description && <p className="podcast-card-description">{description}</p>}</div>
+      </div>
+      <div className="podcast-card-meta" aria-label="Podcast details">
+        <span className="podcast-card-chip podcast-card-publisher" title={item.author || "Publisher unavailable"}><span className="podcast-card-avatar" aria-hidden="true">{(item.author || "?").charAt(0).toUpperCase()}</span><span className="podcast-card-publisher-copy"><span className="podcast-card-chip-label">PUBLISHER</span><span className="podcast-card-publisher-name">{item.author || "Unknown publisher"}</span></span></span>
+        <span className="podcast-card-chip" title={item.signal > 0 ? `${item.signal.toLocaleString()} episodes` : "Episode count unavailable"}><ListMusic size={14} aria-hidden="true" />{item.signal > 0 ? `${count(item.signal)} episodes` : "Episodes unavailable"}</span>
+        <span className="podcast-card-chip"><Radio size={14} aria-hidden="true" />{item.genre || "Podcast"}</span>
+        {onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Played" : "Mark played"}</button>}
+        {preview ? <button type="button" className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove bookmark" : "Save for later"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category="podcasts" />}
+      </div>
+    </div>
+  </article>;
+}
 
 const LANGUAGE_COLORS = { JavaScript: "#f1e05a", TypeScript: "#3178c6", Python: "#3572a5", Rust: "#dea584", Go: "#00add8", Ruby: "#701516", Java: "#b07219", "C++": "#f34b7d" };
 
-function CodeRepository({ item, title, topic, updated, preview, saved, onToggleSave, onVisit, done, onToggleDone }) {
+function CodeRepository({ item, title, topic, preview, saved, onToggleSave, onVisit, done, onToggleDone }) {
   const [owner = "github", repository = title] = title.split("/");
   const visit = () => {
     if (!preview) recordVisit(item, { topic, category: "code" });
@@ -88,15 +177,14 @@ function CodeRepository({ item, title, topic, updated, preview, saved, onToggleS
       <div className="repo-identity">
         <PublisherMark host="github.com" thumbnail={item.thumbnail} />
         <div className="repo-name"><span>{owner}</span><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{repository}</a></h4></div>
-        <ArrowUpRight className="discovery-open-indicator" size={20} aria-hidden="true" />
+        <img className="repo-code-mark" src={codeMark} alt="" aria-hidden="true" />
       </div>
       {item.snippet && <p className="discovery-description">{item.snippet}</p>}
       <div className="repo-output" aria-label="Repository details">
         {typeof item.signal === "number" && <span title={`${item.signal.toLocaleString()} stars`}><Star size={15} /><small>stars</small><strong>{count(item.signal)}</strong></span>}
         {typeof item.forks === "number" && <span title={`${item.forks.toLocaleString()} forks`}><GitFork size={15} /><small>forks</small><strong>{count(item.forks)}</strong></span>}
-        {item.language && <span><i className="discovery-language-dot" style={{ background: LANGUAGE_COLORS[item.language] || "#aaa" }} /><small>language</small><strong>{item.language}</strong></span>}
+        {item.language && <span title={`${item.language} is the primary language`}><i className="discovery-language-dot" style={{ background: LANGUAGE_COLORS[item.language] || "#aaa" }} /><small>primary</small><strong>{item.language}</strong></span>}
       </div>
-      <div className="repo-meta-line"><span aria-hidden="true">✓</span><span>{updated || "Repository available on GitHub"}</span></div>
       <div className="discovery-tags repo-tags">
         <span className="repo-github-tag"><GitFork size={16} /><strong>GitHub</strong><span>Repository</span></span>
         {topic && <Link className="discovery-tag discovery-topic" onClick={onVisit} to={`/explore/${encodeURIComponent(topic)}`}><TopicIcon topic={topic} /><span>{topic}</span></Link>}
@@ -130,49 +218,73 @@ function useCardLight() {
   return { onPointerMove: move, onPointerLeave: leave };
 }
 
+
 export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, span, saved, onToggleSave, compact = false, onVisit, done, onToggleDone }) {
   const light = useCardLight();
   const item = presentContent(rawItem, { topic: contextTopic });
   if (!item) return null;
-  const category = item.category;
+  const { category, title: itemTitle } = item;
   const topic = item.topic || "";
-  const band = topicColor(topic);
-  const venue = venueChip(item);
-  const effort = category === "videos" ? formatSignal(item) : effortOf(item, category) || formatSignal(item);
-  const action = ACTIONS[category] || "Read article";
-  const book = category === "books";
-  const clean = category === "code" || category === "websites";
   const host = hostOf(item.url);
-  const title = category === "code" && host === "github.com" ? new URL(item.url).pathname.replace(/^\/|\/$/g, "") : item.title;
-  const updated = updatedLabel(item.updated_at);
-  const editorial = ["articles", "essays"].includes(category);
-  const normalizeTag = (value) => value.toLowerCase().replace(/[\s_-]+/g, " ").trim();
-  const questionTag = ["qa", "answers"].includes(category) && Array.isArray(item.tags)
-    ? item.tags.find((tag) => typeof tag === "string" && tag.trim() && tag.length <= 40 && normalizeTag(tag) !== normalizeTag(topic))
-    : null;
-
-  return <article className={`discovery-card discovery-${category}${compact ? " is-compact" : ""}`} {...light} style={{ "--band": band, "--band-lit": lighten(band, 0.45), "--card-span": span }}>
+  const title = category === "code" && host === "github.com" ? new URL(item.url).pathname.replace(/^\/|\/$/g, "") : itemTitle;
+  const band = topicColor(topic);
+  const book = category === "books";
+  const paper = category === "papers";
+  const article = category === "articles";
+  const discussion = ["discussions", "community"].includes(category);
+  const clean = ["code", "websites"].includes(category);
+  const kind = article ? "article" : discussion ? "discussion" : book ? "book" : paper ? "paper" : category === "websites" ? "website" : null;
+  const editorial = ["articles", "essays", "courses"].includes(category);
+  const normalizeTag = value => value.toLowerCase().replace(/[\s_-]+/g, " ").trim();
+  const tags = Array.isArray(item.tags) ? item.tags.filter(tag => typeof tag === "string" && tag.trim() && tag.length <= 40 && normalizeTag(tag) !== normalizeTag(topic)).filter((tag, index, all) => all.findIndex(other => normalizeTag(other) === normalizeTag(tag)) === index) : [];
+  const paperDescription = (item.description || item.snippet || "").replace(/\s+/g, " ").trim().split(/(?<=[.!?])\s+(?=[A-Z])/)[0];
+  const visit = () => { if (!preview) recordVisit(item, { topic, category }); onVisit?.(); };
+  const props = { item, title, topic, preview, saved, onToggleSave, onVisit, done, onToggleDone, light, span };
+  if (category === "videos") return <VideoCard {...props} />;
+  if (category === "podcasts") return <PodcastCard {...props} />;
+  const topicTag = (tag, extra = "") => <Link key={tag} className={`discovery-tag discovery-topic ${extra}`} onClick={onVisit} to={`/explore/${encodeURIComponent(tag)}`}><TopicIcon topic={tag} /><span>{tag}</span></Link>;
+  return <article className={`discovery-card discovery-${category}${compact ? " is-compact" : ""}`} {...light} style={{ "--band": band, "--band-lit": lighten(band, .45), "--card-span": span }}>
+    {kind && <>
+      <div className={`${kind}-backing`}>{paper ? <><span>Research</span><span>Paper</span></> : <span>{kind}</span>}</div>
+      <svg className={`${kind}-surface`} viewBox="0 0 560 400" preserveAspectRatio="none" aria-hidden="true"><path d="M25 1H306C350 1 339 55 392 55H535Q559 55 559 79V375Q559 399 535 399H25Q1 399 1 375V25Q1 1 25 1Z" /></svg>
+      {(article || ["qa", "answers", "essays", "courses"].includes(category)) && <span className="article-texture" aria-hidden="true" />}
+      {(discussion || paper) && <div className={`${kind}-light`} aria-hidden="true" />}
+    </>}
     <div className="discovery-content">
-      {category === "code" ? <CodeRepository item={item} title={title} topic={topic} updated={updated} preview={preview} saved={saved} onToggleSave={onToggleSave} onVisit={onVisit} done={done} onToggleDone={onToggleDone} /> : <>
-      {!clean && <CategoryIdentity item={item} category={category} />}
-      {category === "websites" && <WebsiteIdentity host={host} />}
-      <div className="discovery-summary">
-      {!clean && <div className="discovery-eyebrow"><span>{CATEGORY_LABELS[category] || (category === "courses" ? "Courses" : "Articles")}</span></div>}
-      <div className={clean || book ? "discovery-clean-heading" : "discovery-heading"}><h4><a aria-label={book ? `Open book: ${title}` : undefined} href={item.url} target="_blank" rel="noopener noreferrer" onClick={() => { if (!preview) recordVisit(item, { topic, category }); onVisit?.(); }}>{title}</a></h4>{(category === "code" || book) && <ArrowUpRight className="discovery-open-indicator" size={20} aria-hidden="true" />}</div>
-      {item.snippet && category === "papers" && <span className="discovery-abstract-label">Abstract</span>}
-      {!book && item.snippet && <p className="discovery-description">{item.snippet}</p>}
-      {!clean && <div className="discovery-details">{item.author && !editorial && <span>{item.author}</span>}{publishedOn(item) && <span>{publishedOn(item)}</span>}{book && !publishedOn(item) && item.year && <span>{item.year}</span>}{book && item.access && <span className="discovery-book-access">{({ free: "Free to read", borrow: "Borrow free", buy: "Buy book" })[item.access]}</span>}{venue && <span className={`discovery-venue${venue.reviewed ? " is-reviewed" : ""}`}>{venue.reviewed ? "Peer reviewed" : "Preprint"}</span>}</div>}
-      </div>
-      <div className="discovery-tags">
-        {["videos", "podcasts", "qa", "answers"].includes(category) && <SourceTag host={host} />}
-        {!clean && !book && topic && <Link className="discovery-tag discovery-topic" onClick={onVisit} to={`/explore/${encodeURIComponent(topic)}`}><TopicIcon topic={topic} /><span>{topic}</span></Link>}
-        {category === "websites" && topic && <Link className="discovery-tag discovery-topic" onClick={onVisit} to={`/explore/${encodeURIComponent(topic)}`}><TopicIcon topic={topic} /><span>{topic}</span></Link>}
-        {questionTag && <Link className="discovery-tag discovery-topic discovery-detail-tag" title="Question topic" onClick={onVisit} to={`/explore/${encodeURIComponent(questionTag.replace(/-/g, " "))}`}><span aria-hidden="true">#</span><span>{questionTag.replace(/-/g, " ")}</span></Link>}
-      </div>
-      <footer><span>{category === "code" ? updated || "" : clean ? "" : effort || ""}</span><span className="discovery-footer-actions">{!book && category !== "code" && <span className={`discovery-action${category === "websites" ? " discovery-site-action" : ""}`}>{action}<ArrowUpRight size={17} /></span>}        {onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Read" : "Mark read"}</button>}{preview ? <button className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove preview bookmark" : "Save preview item"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category={category} />}</span></footer>
+      {category === "code" ? <CodeRepository {...props} /> : <>
+        {article || discussion || paper ? <div className={`${kind}-masthead`}><SourceTag host={host} showAddress={discussion} /></div> : !clean && <CategoryIdentity item={item} category={category} />}
+        {category === "websites" && <WebsiteIdentity host={host} />}
+        <div className="discovery-summary">
+          {!kind && !clean && <div className="discovery-eyebrow"><span>{category === "essays" ? "Essay" : category === "courses" ? "Course" : CATEGORY_LABELS[category]}</span></div>}
+          {(discussion || paper) && <div className={`${kind}-visual`} aria-hidden="true"><img src={discussion ? discussionArt : researchArt} alt="" /></div>}
+          <div className={clean || book ? "discovery-clean-heading" : "discovery-heading"}><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{title}</a></h4></div>
+          {paper && item.author && <p className="paper-author">{item.author}</p>}
+          {paper && paperDescription && <p className="paper-description">{paperDescription}</p>}
+          {book && <div className="discovery-book-meta">{item.author && <span>{item.author}</span>}{(publishedOn(item) || item.year) && <span>{publishedOn(item) || item.year}</span>}<BookDestination item={item} /></div>}
+          {category === "websites" && (item.description || item.snippet || item.source === "wikipedia") && <p className="website-context">{item.description || item.snippet || "Listed among Wikipedia’s external links or further reading for this topic."}</p>}
+          {!book && !paper && category !== "websites" && item.snippet && <p className="discovery-description">{item.snippet}</p>}
+          {!clean && !book && !paper && <div className="discovery-details">{item.author && !editorial && <span>{item.author}</span>}{publishedOn(item) && <span>{publishedOn(item)}</span>}</div>}
+        </div>
+        <div className="discovery-tags">
+          {["qa", "answers"].includes(category) && <SourceTag host={host} />}
+          {paper && typeof item.peer_reviewed === "boolean" && <span className="discovery-tag paper-status-tag">{item.peer_reviewed ? <BadgeCheck size={15} /> : <FileText size={15} />}<span>{item.peer_reviewed ? "Peer reviewed" : "Preprint"}</span></span>}
+          {paper && publishedOn(item) && <span className="discovery-tag paper-date-tag"><CalendarDays size={15} /><span>{publishedOn(item)}</span></span>}
+          {paper && item.source === "openalex" && item.signal > 0 && <span className="discovery-tag paper-citations-tag"><Quote size={15} /><span>{formatSignal(item)}</span></span>}
+          {!book && !article && topic && topicTag(topic)}
+          {discussion && tags.slice(0, topic ? 2 : 3).map(tag => topicTag(tag, "discussion-related-tag"))}
+          {["qa", "answers"].includes(category) && tags[0] && topicTag(tags[0], "discovery-detail-tag")}
+          {category === "websites" && item.source === "wikipedia" && <span className="discovery-tag website-curation-tag"><img src="https://www.google.com/s2/favicons?domain=en.wikipedia.org&sz=64" alt="" /><span>Listed on Wikipedia</span></span>}
+        </div>
+        <footer>
+          {article || discussion ? <a className={article ? "discovery-article-action" : "discussion-action"} href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{article ? "Read article" : "Open discussion"}<ArrowUpRight size={16} /></a> : <span>{paper || clean ? "" : effortOf(item, category) || formatSignal(item) || ""}</span>}
+          <span className="discovery-footer-actions">
+            {!book && !paper && !article && !discussion && !["essays", "courses"].includes(category) && <span className={`discovery-action${category === "websites" ? " discovery-site-action" : ""}`}>{ACTIONS[category] || "Read article"}<ArrowUpRight size={17} /></span>}
+            {onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Read" : "Mark read"}</button>}
+            {preview ? <button type="button" className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove bookmark" : "Save for later"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category={category} />}
+          </span>
+        </footer>
       </>}
     </div>
-
   </article>;
 }
 
