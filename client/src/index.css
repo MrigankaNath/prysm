@@ -6754,7 +6754,7 @@ nav {
   transition: transform 0.34s var(--ease-settle);
 }
 
-.view-switch[data-view="all"]::before {
+.view-switch[data-view="path"]::before {
   transform: translateX(calc(100% + 4px));
 }
 

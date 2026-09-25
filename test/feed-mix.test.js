@@ -36,3 +36,12 @@ test("old cached retail pages do not return as articles", () => {
   assert.deepEqual(mixDiscoveryRows(["quantum computing"], rows).map((entry) => entry.title),
     ["Actual article"]);
 });
+
+test("a YouTube link in an old article cache is presented as a video", () => {
+  const rows = [{ topic: "math", source: "articles", results: [
+    item("A video", "https://youtu.be/abcdefghijk"),
+    item("An article", "https://mit.edu/math"),
+  ] }];
+  assert.deepEqual(mixDiscoveryRows(["math"], rows).map((entry) => entry.category),
+    ["videos", "articles"]);
+});

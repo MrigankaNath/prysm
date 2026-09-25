@@ -555,6 +555,16 @@ function ExploreTopic() {
               <button
                 type="button"
                 role="tab"
+                aria-selected={view === "all"}
+                className={`view-tab${view === "all" ? " active" : ""}`}
+                onClick={() => setView("all")}
+              >
+                Everything
+                <span className="view-tab-count">{total}</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
                 aria-selected={view === "path"}
                 className={`view-tab${view === "path" ? " active" : ""}`}
                 onClick={() => setView("path")}
@@ -563,16 +573,6 @@ function ExploreTopic() {
                 <span className="view-tab-count">
                   {pathDone}/{pathTotal}
                 </span>
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={view === "all"}
-                className={`view-tab${view === "all" ? " active" : ""}`}
-                onClick={() => setView("all")}
-              >
-                Everything
-                <span className="view-tab-count">{total}</span>
               </button>
             </div>
           )}

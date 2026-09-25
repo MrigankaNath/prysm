@@ -131,8 +131,7 @@ function Feed({ session }) {
      you left off" and becomes a second Spectrum — which is what the All topics
      link is for. */
   const [lead, ...restTopics] = topicList.slice(0, 5);
-  const discoveryItems = discover.items.filter((item) => item.category !== "podcasts");
-  const visibleItems = showAll ? discoveryItems : discoveryItems.slice(0, 8);
+  const discoveryItems = discover.items;
 
   return (
     <div className="page page-wide feed">
@@ -285,7 +284,7 @@ function Feed({ session }) {
             <IconCompass className="feed-section-icon" />
             Because you searched
           </h3>
-          <DiscoveryFeed items={visibleItems} />
+          <DiscoveryFeed items={discoveryItems} limit={showAll ? undefined : 8} />
           {discoveryItems.length > 8 && (
             <button
               type="button"

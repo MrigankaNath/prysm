@@ -59,7 +59,9 @@ async function fetchHackerNews(topic) {
       source: "hackernews",
       type: "discussion",
       signal: hit.points || 0,
-      snippet: `${hit.points} points, ${hit.num_comments} comments`,
+      // Engagement is already in `signal`; only real story text belongs below
+      // the title. Linked stories often have none, so leave the line empty.
+      snippet: hit.story_text ? hit.story_text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 240) : null,
       published_at: hit.created_at,
       thumbnail: null,
     }));

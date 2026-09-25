@@ -18,7 +18,7 @@ const { fetchYoutube } = require("./sources/youtube");
 const { keepReachable, ROT_PRONE } = require("./sources/reachable");
 const { rankCategories } = require("./sources/rank");
 const { mixDiscoveryRows } = require("./sources/feedMix");
-const { hostRank, RANK } = require("./sources/quality");
+const { hostRank, RANK, isYouTubeUrl } = require("./sources/quality");
 const {
   fetchTavily,
   fetchTavilyEssays,
@@ -812,6 +812,19 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
         return true;
       }) : [];
       categories.essays = Array.isArray(essays) ? essays : [];
+    }
+
+    /* Old Tavily cache rows can contain a YouTube URL even though YouTube has
+       its own lane now. Keep the link, but never dress a video as an article. */
+    const linkedVideos = (categories.articles || []).filter((item) => isYouTubeUrl(item.url));
+    if (linkedVideos.length) {
+      categories.articles = categories.articles.filter((item) => !isYouTubeUrl(item.url));
+      const seenVideos = new Set((categories.videos || []).map((item) => item.url));
+      categories.videos = [...(categories.videos || []), ...linkedVideos.filter((item) => {
+        if (seenVideos.has(item.url)) return false;
+        seenVideos.add(item.url);
+        return true;
+      }).map((item) => ({ ...item, type: "video" }))];
     }
 
     /* Reddit leads discussions and Quora leads Q&A; Hacker News and Stack

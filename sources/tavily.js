@@ -19,7 +19,7 @@
  */
 
 const { postJson, hostOf } = require("./http");
-const { hostRank, RANK } = require("./quality");
+const { hostRank, RANK, isYouTubeUrl } = require("./quality");
 
 const ENDPOINT = "https://api.tavily.com/search";
 
@@ -114,6 +114,8 @@ const EXCLUDE = [
   // Has its own lane.
   "youtube.com",
   "m.youtube.com",
+  "youtu.be",
+  "youtube-nocookie.com",
   // A group or profile page is never the article you wanted, and discussions
   // have their own lane too.
   "facebook.com",
@@ -150,6 +152,7 @@ const KEEP_PER_TIER = 4;
    `jaredhenderson.substack.com`, `meganslo.medium.com` — so this matches the
    host or any subdomain of it, never a substring. */
 function laneOf(url) {
+  if (isYouTubeUrl(url)) return "videos";
   const host = hostOf(url);
   if (!host) return null;
 

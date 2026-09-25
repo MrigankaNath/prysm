@@ -2,20 +2,24 @@ const FORMAT_ORDER = [
   "videos", "articles", "websites", "essays", "papers", "discussions",
   "community", "qa", "answers", "podcasts", "books", "code",
 ];
-const { hostRank, RANK } = require("./quality");
+const { hostRank, RANK, isYouTubeUrl } = require("./quality");
 
 /* The first screen should represent the formats a person actually has, not
    whichever topic_cache rows Postgres happened to return first. Within each
    format, keep adapter ranking and round-robin across the user's topics. */
 function mixDiscoveryRows(topics, rows, limit = 40) {
   const bySource = new Map();
-  for (const row of rows) {
+  for (const row of [...rows].sort((a, b) => Number(b.source === "videos") - Number(a.source === "videos"))) {
     if (row.source === "overview") continue;
     const list = Array.isArray(row.results) ? row.results : [];
-    if (!bySource.has(row.source)) bySource.set(row.source, new Map());
-    bySource.get(row.source).set(row.topic, list
-      .filter((item) => item?.url && item?.title && (row.source !== "articles" || hostRank(item.url) !== RANK.drop))
-      .map((item) => ({ ...item, topic: row.topic, category: row.source })));
+    for (const item of list) {
+      if (!item?.url || !item?.title) continue;
+      const source = row.source === "articles" && isYouTubeUrl(item.url) ? "videos" : row.source;
+      if (source === "articles" && hostRank(item.url) === RANK.drop) continue;
+      if (!bySource.has(source)) bySource.set(source, new Map());
+      if (!bySource.get(source).has(row.topic)) bySource.get(source).set(row.topic, []);
+      bySource.get(source).get(row.topic).push({ ...item, topic: row.topic, category: source });
+    }
   }
 
   const sourceOrder = [

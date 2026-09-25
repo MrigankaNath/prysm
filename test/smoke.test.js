@@ -12,7 +12,7 @@ const { isServed, isPublicAddress } = require("../sources/reachable.js");
 const { urlFor: bookUrl } = require("../sources/books.js");
 const { rankCategories } = require("../sources/rank.js");
 const { laneOf } = require("../sources/tavily.js");
-const { hostRank, RANK } = require("../sources/quality.js");
+const { hostRank, RANK, isYouTubeUrl } = require("../sources/quality.js");
 const { isRelevant: bookIsRelevant } = require("../sources/books.js");
 
 test("multi-word topics must match every term", () => {
@@ -33,6 +33,9 @@ test("community platforms route out of articles, by host not substring", () => {
   assert.equal(laneOf("https://plato.stanford.edu/entries/stoicism"), "articles");
   // A lookalike domain must not inherit the lane.
   assert.equal(laneOf("https://substack.com.phish.io/x"), "articles");
+  assert.equal(laneOf("https://youtu.be/abcdefghijk"), "videos");
+  assert.equal(laneOf("https://m.youtube.com/watch?v=abcdefghijk"), "videos");
+  assert.ok(!isYouTubeUrl("https://youtube.com.phish.io/watch?v=abcdefghijk"));
 });
 
 test("articles are ordered by what the site is, and storefronts are dropped", () => {

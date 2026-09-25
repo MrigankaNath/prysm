@@ -19,6 +19,11 @@
 
 const { hostOf } = require("./http");
 
+function isYouTubeUrl(url) {
+  const host = hostOf(url);
+  return host === "youtu.be" || host === "youtube.com" || host?.endsWith(".youtube.com") || host === "youtube-nocookie.com" || host?.endsWith(".youtube-nocookie.com") || false;
+}
+
 /* Never an article. Document dumps re-host other people's work behind a
    signup, and a storefront is a storefront whatever the page is titled. */
 const DROP_HOSTS = [
@@ -114,4 +119,4 @@ function hostRank(url) {
   return RANK.ordinary;
 }
 
-module.exports = { hostRank, RANK };
+module.exports = { hostRank, RANK, isYouTubeUrl };
