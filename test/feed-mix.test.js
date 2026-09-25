@@ -25,3 +25,14 @@ test("feed preserves within-lane ranking, rotates topics, and deduplicates URLs"
   assert.deepEqual(mixDiscoveryRows(["new", "old"], rows).map((entry) => entry.title),
     ["First", "Other", "Second"]);
 });
+
+test("old cached retail pages do not return as articles", () => {
+  const rows = [{
+    topic: "quantum computing", source: "articles", results: [
+      item("Book listing", "https://www.amazon.com/dp/example"),
+      item("Actual article", "https://university.edu/articles/quantum"),
+    ],
+  }];
+  assert.deepEqual(mixDiscoveryRows(["quantum computing"], rows).map((entry) => entry.title),
+    ["Actual article"]);
+});

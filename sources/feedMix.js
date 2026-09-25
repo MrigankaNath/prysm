@@ -2,6 +2,7 @@ const FORMAT_ORDER = [
   "videos", "articles", "websites", "essays", "papers", "discussions",
   "community", "qa", "answers", "podcasts", "books", "code",
 ];
+const { hostRank, RANK } = require("./quality");
 
 /* The first screen should represent the formats a person actually has, not
    whichever topic_cache rows Postgres happened to return first. Within each
@@ -13,7 +14,7 @@ function mixDiscoveryRows(topics, rows, limit = 40) {
     const list = Array.isArray(row.results) ? row.results : [];
     if (!bySource.has(row.source)) bySource.set(row.source, new Map());
     bySource.get(row.source).set(row.topic, list
-      .filter((item) => item?.url && item?.title)
+      .filter((item) => item?.url && item?.title && (row.source !== "articles" || hostRank(item.url) !== RANK.drop))
       .map((item) => ({ ...item, topic: row.topic, category: row.source })));
   }
 

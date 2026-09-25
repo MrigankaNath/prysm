@@ -18,6 +18,7 @@ const { fetchYoutube } = require("./sources/youtube");
 const { keepReachable, ROT_PRONE } = require("./sources/reachable");
 const { rankCategories } = require("./sources/rank");
 const { mixDiscoveryRows } = require("./sources/feedMix");
+const { hostRank, RANK } = require("./sources/quality");
 const {
   fetchTavily,
   fetchTavilyEssays,
@@ -804,7 +805,12 @@ app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) =
         getRecentCached(topic, "articles"),
         getRecentCached(topic, "essays"),
       ]);
-      categories.articles = Array.isArray(articles) ? articles : [];
+      const seenArticleUrls = new Set();
+      categories.articles = Array.isArray(articles) ? articles.filter((article) => {
+        if (!article?.url || hostRank(article.url) === RANK.drop || seenArticleUrls.has(article.url)) return false;
+        seenArticleUrls.add(article.url);
+        return true;
+      }) : [];
       categories.essays = Array.isArray(essays) ? essays : [];
     }
 
