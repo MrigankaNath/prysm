@@ -248,7 +248,7 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
   if (category === "videos") return <VideoCard {...props} />;
   if (category === "podcasts") return <PodcastCard {...props} />;
   const topicTag = (tag, extra = "") => <Link key={tag} className={`discovery-tag discovery-topic ${extra}`} onClick={onVisit} to={`/explore/${encodeURIComponent(tag)}`}><TopicIcon topic={tag} /><span>{tag}</span></Link>;
-  return <article className={`discovery-card discovery-${category}${compact ? " is-compact" : ""}`} {...light} style={{ "--band": band, "--band-lit": lighten(band, .45), "--card-span": span }}>
+  return <article className={`discovery-card discovery-${category}${compact ? " is-compact" : ""}${book && title.length > 48 ? " has-long-title" : ""}`} {...light} style={{ "--band": band, "--band-lit": lighten(band, .45), "--card-span": span }}>
     {kind && <>
       <div className={`${kind}-backing`}>{paper ? <><span>Research</span><span>Paper</span></> : <span>{kind}</span>}</div>
       <svg className={`${kind}-surface`} viewBox="0 0 560 400" preserveAspectRatio="none" aria-hidden="true"><path d="M25 1H306C350 1 339 55 392 55H535Q559 55 559 79V375Q559 399 535 399H25Q1 399 1 375V25Q1 1 25 1Z" /></svg>
@@ -267,7 +267,7 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
           {articleBlurb && <p className="discovery-card-line article-context">{articleBlurb}</p>}
           {paper && item.author && <p className="paper-author">{item.author}</p>}
           {paper && <p className="paper-citations"><Quote size={14} aria-hidden="true" />{citationCount === null ? "Citations unavailable" : `${citationCount} ${citationCount === "1" ? "citation" : "citations"}`}</p>}
-          {book && <div className="discovery-book-meta">{item.author && <span>{item.author}</span>}{(publishedOn(item) || item.year) && <span>{publishedOn(item) || item.year}</span>}<BookDestination item={item} /></div>}
+          {book && <div className="discovery-book-meta">{item.author && <span>{item.author}</span>}{(publishedOn(item) || item.year) && <span>{publishedOn(item) || item.year}</span>}</div>}
           {websiteBlurb && <p className="website-context">{websiteBlurb}</p>}
           {!book && !paper && !discussion && !article && category !== "websites" && item.snippet && <p className="discovery-description">{item.snippet}</p>}
           {!clean && !book && !paper && !discussion && <div className="discovery-details">{item.author && !editorial && <span>{item.author}</span>}{publishedOn(item) && <span>{publishedOn(item)}</span>}</div>}
@@ -285,7 +285,7 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
           {discussion && (preview ? <button type="button" className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove bookmark" : "Save for later"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category={category} />)}
         </div>}
         {!discussion && <footer className={article || category === "websites" ? "discovery-meta-footer" : ""}>
-          {(article || category === "websites") ? <div className="discovery-tags discovery-inline-tags">
+          {book ? <BookDestination item={item} /> : (article || category === "websites") ? <div className="discovery-tags discovery-inline-tags">
             {topic && topicTag(topic)}
             {article && tags.slice(0, topic ? 1 : 2).map(tag => topicTag(tag, "discovery-detail-tag"))}
             {article && !tags.length && publishedOn(item) && <span className="discovery-tag discovery-detail-tag"><CalendarDays size={15} aria-hidden="true" /><span>{publishedOn(item)}</span></span>}
