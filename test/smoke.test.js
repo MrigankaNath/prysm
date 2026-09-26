@@ -15,6 +15,14 @@ const { laneOf } = require("../sources/tavily.js");
 const { hostRank, RANK, isYouTubeUrl } = require("../sources/quality.js");
 const { isRelevant: bookIsRelevant } = require("../sources/books.js");
 
+test("a reviewed path preserves learning order and rejects unknown URLs", () => {
+  const first = { title: "Foundation", url: "https://example.edu/start", category: "articles" };
+  const second = { title: "Demonstration", url: "https://youtube.com/watch?v=one", category: "videos" };
+  const path = buildPath({ articles: [first], videos: [second] }, [], [{ label: "Understand, then see", items: [first, second, { url: "https://invented.example/" }, first] }]);
+  assert.deepEqual(pathItems(path).map(i => i.url), [first.url, second.url]);
+  assert.equal(path[0].label, "Understand, then see");
+});
+
 test("multi-word topics must match every term", () => {
   assert.ok(isRelevant("String theory and quantum gravity", "string theory"));
   assert.ok(!isRelevant("Java string comparison", "string theory"));

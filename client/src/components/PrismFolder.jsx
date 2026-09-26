@@ -46,7 +46,7 @@ const FolderObject = forwardRef(function FolderObject({ bundle, items, expanded,
       </span>) : <span className="pf-sheet pf-sheet-placeholder" style={{ "--sheet": 1 }}><span>{busy ? "Loading contents…" : "Curated collection"}</span><strong>{bundle.topic}</strong></span>}</span>
       <span className="pf-front"><FolderSurface front/>
         <span className="pf-folder-label"><TopicIcon topic={bundle.topic}/><span><small>PRISM {number(order + 1)}</small><strong>{bundle.topic}</strong></span></span>
-        <span className="pf-folder-details"><span>{busy ? "Gathering contents" : `${items.length} resources`}</span><span className="pf-format-marks">{ordered.slice(0, 5).map(category => <img key={category} src={CATEGORY_ART[category] || CATEGORY_ART.articles} alt=""/>)}</span></span>
+        <span className="pf-folder-details"><span>{busy ? "Gathering contents" : `${items.length} resources${bundle.curation === "ai" ? " · AI-selected" : ""}`}</span><span className="pf-format-marks">{ordered.slice(0, 5).map(category => <img key={category} src={CATEGORY_ART[category] || CATEGORY_ART.articles} alt=""/>)}</span></span>
       </span>
     </span>
   </button>;
@@ -73,6 +73,7 @@ export default function PrismFolder({ bundles, preview = false }) {
   const detail = bundle?.items ? bundle : cache[bundle?.id];
   const busy = !!bundle && !detail && error !== bundle.id;
   const items = detail?.items || [];
+  const stages = detail?.stages?.length ? detail.stages : STAGES.map(entry => ({ ...entry, items: items.filter(item => item.depth_level === entry.id) }));
   const key = `prism:${preview ? "folder-preview:" : ""}${bundle?.id}`;
   const done = new Set(getProgress(key));
   useEffect(() => subscribe(() => setRevision(value => value + 1)), []);
@@ -148,7 +149,7 @@ export default function PrismFolder({ bundles, preview = false }) {
     return () => clearTimeout(timer);
   }, [expanded]);
   if (!bundle) return <main className="page pf-empty"><h1>Your next perspective is on its way.</h1><p>No Prisms are available yet. Check back soon.</p></main>;
-  const shown = stage === "all" ? items : items.filter(item => item.depth_level === stage);
+  const shown = stage === "all" ? items : stages.find(entry => entry.id === stage)?.items || [];
   const motionClass = transition ? ` is-${transition.phase}-${transition.direction}` : "";
   return <main className={`page page-wide pf-page${expanded ? " pf-expanded" : ""}`}>
     <section ref={showcaseRef} className="pf-showcase" aria-label="Prisms. Swipe up or down, scroll, or use the up and down arrow keys to browse." onKeyDown={event => {
@@ -188,7 +189,8 @@ export default function PrismFolder({ bundles, preview = false }) {
       {expanded && <>
       <header><h2 id="pf-contents-heading" ref={contentRef} tabIndex={-1}><em>{bundle.topic}.</em></h2><button className="pf-close" aria-label="Close collection" onClick={closeCollection}><X size={20}/></button></header>
       {busy ? <p className="pf-feedback" role="status">Loading this collection…</p> : error === bundle.id ? <div className="pf-feedback" role="alert"><p>We couldn’t load this Prism.</p><button onClick={() => {setError(null);setRetry(value => value + 1);}}>Try again</button></div> : <>
-        <div className="pf-depths" role="group" aria-label="Filter contents by depth"><button aria-pressed={stage === "all"} onClick={() => setStage("all")}>The whole path <span>{items.length}</span></button>{STAGES.map(entry => <button key={entry.id} aria-pressed={stage === entry.id} onClick={() => setStage(entry.id)}>{entry.label}<span>{items.filter(item => item.depth_level === entry.id).length}</span></button>)}</div>
+        {detail?.curation === "ai" && <p className="pf-feedback">AI-selected from source excerpts · not human-verified</p>}
+        <div className="pf-depths" role="group" aria-label="Filter contents by stage"><button aria-pressed={stage === "all"} onClick={() => setStage("all")}>The whole path <span>{items.length}</span></button>{stages.map(entry => <button key={entry.id} aria-pressed={stage === entry.id} onClick={() => setStage(entry.id)}>{entry.label}<span>{entry.items.length}</span></button>)}</div>
         {shown.length ? <div className="pf-emerging-content" key={`${bundle.id}-${stage}`}><DiscoveryFeed items={shown} topic={bundle.topic} filters={false} preview={preview} doneUrls={done} onToggleDone={item => toggleDone(key, item.url)}/></div> : <p className="pf-feedback">No resources in this stage yet.</p>}
       </>}
       </>}

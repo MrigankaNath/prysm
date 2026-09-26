@@ -371,7 +371,33 @@ async function fetchTavilyAnswers(topic) {
   return (await tavilyBundle(topic)).answers;
 }
 
+// The AI worker uses explicit, goal-specific basic searches, never the legacy
+// three depth guesses. Results are shared by query across every topic/user.
+async function searchPlanned(query) {
+  const { hash } = require("../ai/content");
+  const { cachedSearch, saveSearch, reserve } = require("../db/ai");
+  const { requestJson, providerError } = require("../ai/providers");
+  const key = hash(`basic-v1:${query.toLowerCase()}`);
+  const cached = await cachedSearch(key);
+  if (cached) return cached;
+  const apiKey = process.env.TAVILY_API_KEY;
+  if (!apiKey) throw providerError("configuration");
+  await reserve("tavily");
+  const data = await requestJson(ENDPOINT, { Authorization: `Bearer ${apiKey}` }, {
+    query, search_depth: "basic", auto_parameters: false, max_results: 12,
+    include_answer: false, include_raw_content: false, exclude_domains: EXCLUDE,
+  });
+  const items = (data.results || []).filter(i => i.url && i.title && (i.score ?? 0) >= 0.3).map(i => ({
+    title: i.title, url: i.url, snippet: String(i.content || "").slice(0, 1600), source: "tavily",
+    category: ({ community: "discussions", answers: "qa" })[laneOf(i.url)] || laneOf(i.url) || "articles",
+    published_at: i.published_date || null,
+  }));
+  await saveSearch(key, items);
+  return items;
+}
+
 module.exports = {
+  searchPlanned,
   fetchTavily,
   fetchTavilyOverview,
   fetchTavilyEssays,

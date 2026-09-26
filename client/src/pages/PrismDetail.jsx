@@ -16,6 +16,7 @@ const DEPTHS = [
    change unverifiable without an account. */
 export function PrismBody({ bundle }) {
   const items = bundle.items || [];
+  const stages = bundle.stages?.length ? bundle.stages : DEPTHS.map(stage => ({ ...stage, items: items.filter(item => item.depth_level === stage.id) }));
 
   /* Keyed on the Prism, not on its topic.
    *
@@ -45,6 +46,7 @@ export function PrismBody({ bundle }) {
           {bundle.topic}
         </span>
         <h1 className="prism-title">{bundle.title}</h1>
+        {bundle.curation === "ai" && <p className="prism-sub">AI-selected from source excerpts · not human-verified</p>}
         {bundle.description && (
           <p className="prism-sub">
             {bundle.description.replace(/^\[curated\]\s*/, "")}
@@ -55,8 +57,7 @@ export function PrismBody({ bundle }) {
 
       {/* Grouped by depth so the path reads as three stages rather than a flat
           numbered list — the ordering is the whole point of a Prism. */}
-      {DEPTHS.map(({ id: depth, label }) => {
-        const stage = items.filter((item) => item.depth_level === depth);
+      {stages.map(({ id: depth, label, items: stage }) => {
         if (stage.length === 0) return null;
 
         return (

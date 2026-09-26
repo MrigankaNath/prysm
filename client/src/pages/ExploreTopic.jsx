@@ -350,6 +350,9 @@ function ExploreTopic() {
   const [active, setActive] = useState("all");
   const [usage, setUsage] = useState(null);
   const [sourceStatus, setSourceStatus] = useState(null);
+  const [aiStatus, setAiStatus] = useState(null);
+  const [reviewedPath, setReviewedPath] = useState(null);
+  const [refresh, setRefresh] = useState(0);
   /* Open on the full shelf; the guided path stays one tap away. */
   const [view, setView] = useState("all");
   const [done, setDone] = useState([]);
@@ -366,6 +369,9 @@ function ExploreTopic() {
     setCategories(null);
     setActive("all");
     setSourceStatus(null);
+    setAiStatus(null);
+    setReviewedPath(null);
+    let cancelled = false;
     window.scrollTo(0, 0);
 
     apiFetch(`/api/explore/${encodeURIComponent(topic)}/live`)
@@ -374,10 +380,13 @@ function ExploreTopic() {
         return res.json();
       })
       .then((live) => {
+        if (cancelled) return;
         setCategories(live.categories || null);
         setOrder(live.order?.length ? live.order : CATEGORY_ORDER);
         setUsage(live.usage || null);
         setSourceStatus(live.sources || null);
+        setAiStatus(live.ai || null);
+        setReviewedPath(live.path || null);
         // Remembered twice on purpose: locally so the topic list works
         // instantly and offline, and against the account so the feed follows
         // the person to another browser rather than living in this one.
@@ -388,9 +397,10 @@ function ExploreTopic() {
           body: JSON.stringify({ topic }),
         }).catch(() => {});
       })
-      .catch(() => setFailed(true))
-      .finally(() => setLoading(false));
-  }, [topic]);
+      .catch(() => { if (!cancelled) setFailed(true); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [topic, refresh]);
 
   /* The server already falls back to Wikipedia when Tavily has no answer, so
      by the time it gets here an overview is either a real definition or
@@ -436,7 +446,7 @@ function ExploreTopic() {
     };
   }, [openStop]);
 
-  const path = useMemo(() => buildPath(categories, order), [categories, order]);
+  const path = useMemo(() => buildPath(categories, order, reviewedPath), [categories, order, reviewedPath]);
 
   /* Recorded so the feed can say "4 of 11" without rebuilding the path, which
      would mean refetching the topic. */
@@ -530,7 +540,25 @@ function ExploreTopic() {
 
       {!loading && !failed && (
         <>
-          <QuotaNotice usage={usage} />
+          {!aiStatus && <QuotaNotice usage={usage} />}
+          {aiStatus && (
+            <p className="explore-source-notice" role="status">
+              {aiStatus.status === "out_of_scope"
+                ? "The AI library currently covers STEM and technology. Try a topic in that area."
+                : usage?.withheld === "plan"
+                  ? `Your ${usage.limit} new selections for this month are used. Shared library results remain available.`
+                  : usage?.withheld === "app"
+                    ? "New selections are paused while the shared queue has no capacity. Existing results remain available."
+                    : aiStatus.status === "queued"
+                      ? "A goal-specific selection is being prepared in the background. These are existing library matches; new selections may take several hours."
+                      : aiStatus.status === "unavailable"
+                        ? "A new selection is temporarily unavailable. Existing library matches are shown below."
+                        : aiStatus.stale
+                          ? "Showing the last shared selection while it is refreshed."
+                          : `AI-assisted selection · ${aiStatus.assessed || 0} resources assessed from available excerpts. Not human-verified.`}
+              {(aiStatus.status === "queued" || aiStatus.stale) && <> {" "}<button type="button" className="inline-link" onClick={() => setRefresh(n => n + 1)}>Check again</button></>}
+            </p>
+          )}
           {sourceStatus?.videos && sourceStatus.videos !== "ok" && !categories?.videos?.length && (
             <p className="explore-source-notice" role="status">
               {sourceStatus.videos === "quota"

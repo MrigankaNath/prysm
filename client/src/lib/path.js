@@ -176,8 +176,25 @@ function pickUnique(items, limit, seen) {
  * Returns `[{ ...stage, items }]` with empty stages dropped, so a thin topic
  * shows two honest stages rather than three with a hole in the middle.
  */
-export function buildPath(categories, order = []) {
+export function buildPath(categories, order = [], reviewedPath = null) {
   if (!categories) return [];
+  // A validated shared Prism has an explicit learning order. Do not reorder
+  // it by medium or re-guess its difficulty from the search that found it.
+  if (Array.isArray(reviewedPath) && reviewedPath.length) {
+    const known = new Map(Object.entries(categories).flatMap(([category, items]) =>
+      Array.isArray(items) ? items.map(item => [item.url, { ...item, category }]) : []));
+    const seen = new Set();
+    const stages = reviewedPath.slice(0, 3).map((stage, i) => ({
+      ...STAGES[i], label: stage.label || STAGES[i].label, blurb: stage.blurb || "",
+      items: (stage.items || []).flatMap(item => {
+        const existing = known.get(item.url);
+        if (!existing || seen.has(item.url)) return [];
+        seen.add(item.url);
+        return [{ ...existing, why: item.why }];
+      }),
+    })).filter(stage => stage.items.length).map((stage, i) => ({ ...stage, n: i + 1 }));
+    if (stages.length) return stages;
+  }
 
   const byStage = { orient: [], work: [], source: [] };
 

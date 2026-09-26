@@ -14,6 +14,7 @@ const { fetchOverview } = require("./sources/overview");
 const { fetchStackExchange } = require("./sources/stackExchange");
 const { fetchPapers } = require("./sources/papers");
 const { fetchGithub } = require("./sources/github");
+const { demandsCode } = require("./sources/codeIntent");
 const { fetchYoutube } = require("./sources/youtube");
 const { keepReachable, ROT_PRONE } = require("./sources/reachable");
 const { rankCategories } = require("./sources/rank");
@@ -27,6 +28,10 @@ const {
 } = require("./sources/tavily");
 const { fetchPodcasts } = require("./sources/podcasts");
 const { fetchBooks } = require("./sources/books");
+const { config: aiConfig } = require("./ai/config");
+const aiStore = require("./db/ai");
+const { discover: discoverAI } = require("./ai/service");
+const { parseQuery: parseAIQuery } = require("./ai/content");
 
 const clientOrigin = (process.env.CLIENT_ORIGIN || "http://localhost:5173").replace(
   /\/$/,
@@ -111,6 +116,10 @@ app.get("/api/me", requireAuth, (req, res) => {
 
 app.get("/api/usage", requireAuth, async (req, res) => {
   try {
+    if (aiConfig().enabled) {
+      const quota = await aiStore.quota(req.userId);
+      return res.json({ ...quota, remaining: Math.max(0, quota.limit - quota.used), period: new Date().toISOString().slice(0, 7), mode: "shared-library" });
+    }
     const quota = await getQuota(req.userId);
     res.json({
       used: quota.used,
@@ -217,7 +226,7 @@ app.post("/api/history", writeLimiter, requireAuth, async (req, res) => {
 /* Record a topic the user explored. Account-bound, so the feed follows the
    person rather than the browser. */
 app.post("/api/topics", writeLimiter, requireAuth, async (req, res) => {
-  const topic = normaliseTopic(req.body.topic);
+  const topic = aiConfig().enabled ? parseAIQuery(req.body.topic)?.query : normaliseTopic(req.body.topic);
   if (!topic) return res.status(400).json({ error: "Invalid topic" });
 
   try {
@@ -264,6 +273,10 @@ app.get("/api/feed/discover", requireAuth, async (req, res) => {
     if (topics.rows.length === 0) return res.json({ topics: [], items: [] });
 
     const names = topics.rows.map((r) => r.topic);
+    if (aiConfig().enabled) {
+      const rows = await require("./ai/feed").feedRows(names);
+      return res.json({ topics: names, items: mixDiscoveryRows(names, rows) });
+    }
     /* Deliberately ignores expires_at, unlike live search.
      *
      * Freshness matters when you ask a question; it does not matter much for a
@@ -634,62 +647,6 @@ async function isTopicWarm(topic) {
 // A topic sitting in books with almost nothing on arXiv is a humanities topic:
 // GitHub will only return noise for it (a "stoicism" search yields 140-star
 // hobby repos), so we skip the call rather than fetch junk and rank it last.
-/* Repos are only useful when the topic is something you'd actually write or
-   read code for. "quantum computing" and "astrophysics" profile as technical,
-   but nobody exploring those wants a repo list — they want the explanation.
-   So Code is gated on the topic naming a language, tool, or software practice.
-
-   Matching is whole-word, not substring: "cli" inside "climate science" and
-   "java" inside "javascript" both false-positived when this used includes().
-   Extending either list is a one-line edit. */
-const CODE_WORDS = new Set([
-  // languages
-  "python", "javascript", "typescript", "js", "ts", "rust", "go", "golang",
-  "java", "kotlin", "swift", "ruby", "php", "scala", "haskell", "elixir",
-  "clojure", "lua", "c", "c++", "c#", "perl", "dart", "zig", "ocaml",
-  "erlang", "solidity", "sql", "bash", "shell",
-  // runtimes, frameworks, libraries
-  "react", "vue", "angular", "svelte", "nextjs", "next.js", "nuxt", "node",
-  "nodejs", "deno", "bun", "django", "flask", "rails", "laravel", "spring",
-  "express", "fastapi", "pytorch", "tensorflow", "numpy", "pandas", "jax",
-  "keras", "langchain", "tailwind", "webpack", "vite", "graphql", "prisma",
-  "postgres", "postgresql", "mysql", "sqlite", "redis", "mongodb",
-  // tools and practice
-  "git", "docker", "kubernetes", "k8s", "terraform", "ansible", "linux",
-  "regex", "api", "apis", "sdk", "cli", "compiler", "compilers",
-  "interpreter", "debugging", "devops", "microservices", "webassembly",
-  "wasm", "kernel", "database", "databases",
-  // the craft itself
-  "programming", "coding", "code", "software", "developer", "development",
-  "frontend", "backend", "fullstack", "algorithm", "algorithms", "hooks",
-  "refactoring", "scripting", "testing",
-]);
-
-/* Multi-word topics where the artifact people want really is a repo. */
-const CODE_PHRASES = [
-  "system design",
-  "data structure",
-  "design pattern",
-  "machine learning",
-  "deep learning",
-  "neural network",
-  "computer vision",
-  "web dev",
-  "open source",
-  "unit test",
-  "code review",
-  "operating system",
-  "distributed system",
-];
-
-function demandsCode(topic) {
-  const lower = topic.toLowerCase();
-  if (CODE_PHRASES.some((phrase) => lower.includes(phrase))) return true;
-
-  return lower
-    .split(/[\s,/]+/)
-    .some((token) => CODE_WORDS.has(token.replace(/^[^a-z0-9+#.]+|[^a-z0-9+#.]+$/g, "")));
-}
 
 /* Which Stack Exchange sites to query. Derived from the code signal rather
    than the papers-vs-books profile: "string theory" is paper-heavy and so
@@ -724,6 +681,15 @@ function profileTopic(probe) {
 }
 
 app.get("/api/explore/:topic/live", requireAuth, liveLimiter, async (req, res) => {
+  if (aiConfig().enabled) {
+    try {
+      const result = await discoverAI(req.params.topic, req.userId);
+      return res.status(result.status || 200).json(result);
+    } catch {
+      // A queue/DB failure must not fall through into unbudgeted live calls.
+      return res.status(503).json({ error: "The shared library is temporarily unavailable" });
+    }
+  }
   const topic = normaliseTopic(req.params.topic);
 
   if (!topic) {
@@ -943,7 +909,8 @@ app.get("/api/bundles", requireAuth, async (req, res) => {
     } else {
       result = await pool.query("SELECT * FROM bundles");
     }
-    res.json(result.rows);
+    const selected = aiConfig().enabled ? await aiStore.listPrisms(typeof topic === "string" ? topic : null) : [];
+    res.json([...result.rows, ...selected]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Something went wrong fetching bundles" });
@@ -993,6 +960,13 @@ app.get("/api/bundles/recommended", requireAuth, async (req, res) => {
 });
 
 app.get("/api/bundles/:id", requireAuth, async (req, res) => {
+  if (aiConfig().enabled && /^ai-[a-f0-9]{64}$/.test(req.params.id)) {
+    try {
+      const selected = await aiStore.selection(req.params.id.slice(3), true);
+      if (!selected?.publish_prism || !selected.payload.prism) return res.status(404).json({ error: "Bundle not found" });
+      return res.json({ ...selected.payload.prism, id: req.params.id, topic: selected.topic });
+    } catch { return res.status(503).json({ error: "Bundle temporarily unavailable" }); }
+  }
   const id = parseInt(req.params.id);
 
   if (!Number.isInteger(id)) {

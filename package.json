@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
-    "lint": "oxlint server.js sources db test"
+    "lint": "oxlint server.js sources db ai scripts test",
+    "ai": "node scripts/ai.js"
   },
   "keywords": [],
   "author": "",
