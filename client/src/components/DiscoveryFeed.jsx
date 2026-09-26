@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Play, Globe, Star, GitFork, Check, Headphones, Eye, Clapperboard, ListMusic, FileText, BadgeCheck, CalendarDays, Quote } from "lucide-react";
+import { ArrowUpRight, Play, Globe, Star, GitFork, Headphones, Eye, Clapperboard, ListMusic, FileText, BadgeCheck, CalendarDays, Quote } from "lucide-react";
 import { BookmarkButton } from "./ResultCard";
 import { CATEGORY_LABELS } from "./categories";
 import { BookVisual } from "./BookCard";
@@ -14,10 +14,15 @@ import researchArt from "../assets/research.svg";
 import podcastMark from "../assets/podcast.svg";
 import codeMark from "../assets/code-card.svg";
 import websiteMark from "../assets/website.svg";
+import readcheckMark from "../assets/readcheck.svg";
 import "./DiscoveryFeed.css";
 
 const ACTIONS = { courses: "View course", essays: "Read essay", videos: "Watch video", podcasts: "Listen to show", papers: "Read paper", code: "Explore repository", books: "Explore book", discussions: "Join discussion", community: "Join discussion", qa: "Read answer", answers: "Read answer" };
 const BRANDS = { "youtube.com": "YouTube", "youtu.be": "YouTube", "github.com": "GitHub", "arxiv.org": "arXiv", "open.spotify.com": "Spotify", "podcasts.apple.com": "Apple Podcasts", "reddit.com": "Reddit", "en.wikipedia.org": "Wikipedia", "news.ycombinator.com": "Hacker News" };
+
+function VisitedButton({ done, onToggle }) {
+  return <button type="button" className="discovery-visited" aria-label={done ? "Mark unvisited" : "Mark visited"} title={done ? "Visited" : "Mark visited"} aria-pressed={!!done} onClick={onToggle}><img src={readcheckMark} alt="" /></button>;
+}
 
 function SourceTag({ host, showAddress = false }) {
   const [broken, setBroken] = useState(false);
@@ -123,7 +128,7 @@ function VideoCard({ item, title, topic, preview, saved, onToggleSave, onVisit, 
         {item.author && <span className="video-card-chip video-card-channel" title={item.author}><span className="video-card-avatar" aria-hidden="true">{item.author.charAt(0).toUpperCase()}</span><span className="video-card-channel-copy"><span className="video-card-chip-label">CHANNEL</span><span className="video-card-channel-name">{item.author}</span></span></span>}
         {views && <span className="video-card-chip" title={`${item.signal.toLocaleString()} views`}><Eye size={13} aria-hidden="true" />{views}</span>}
         {publishedOn(item) && <span className="video-card-chip" title={`Uploaded ${publishedOn(item)}`}><CalendarDays size={13} aria-hidden="true" />{publishedOn(item)}</span>}
-        {onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Watched" : "Mark watched"}</button>}
+        {onToggleDone && <VisitedButton done={done} onToggle={() => onToggleDone(item)} />}
         {preview ? <button type="button" className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove bookmark" : "Save for later"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category="videos" />}
       </div>
     </div>
@@ -151,7 +156,7 @@ function PodcastCard({ item, title, topic, preview, saved, onToggleSave, onVisit
       <div className="podcast-card-meta" aria-label="Podcast details">
         <span className="podcast-card-chip podcast-card-publisher" title={item.author || "Publisher unavailable"}><span className="podcast-card-avatar" aria-hidden="true">{(item.author || "?").charAt(0).toUpperCase()}</span><span className="podcast-card-publisher-copy"><span className="podcast-card-chip-label">PUBLISHER</span><span className="podcast-card-publisher-name">{item.author || "Unknown publisher"}</span></span></span>
         {item.signal > 0 && <span className="podcast-card-chip" title={`${item.signal.toLocaleString()} episodes`}><ListMusic size={14} aria-hidden="true" />{count(item.signal)} episodes</span>}
-        {onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Played" : "Mark played"}</button>}
+        {onToggleDone && <VisitedButton done={done} onToggle={() => onToggleDone(item)} />}
         {preview ? <button type="button" className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove bookmark" : "Save for later"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category="podcasts" />}
       </div>
     </div>
@@ -171,7 +176,7 @@ function CodeRepository({ item, title, topic, preview, saved, onToggleSave, onVi
     <div className="repo-panel-bar">
       <span className="repo-window-dots" aria-hidden="true"><i /><i /><i /></span>
       <span className="repo-panel-context" aria-hidden="true"><GitFork size={14} /></span>
-      <span className="repo-header-actions">{onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Read" : "Mark read"}</button>}{preview ? <button className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove preview bookmark" : "Save preview item"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category="code" />}</span>
+      <span className="repo-header-actions">{onToggleDone && <VisitedButton done={done} onToggle={() => onToggleDone(item)} />}{preview ? <button className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove preview bookmark" : "Save preview item"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category="code" />}</span>
     </div>
     <div className="repo-panel-body">
       <div className="repo-identity">
@@ -281,7 +286,7 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
           {discussion && topic && topicTag(topic, "discussion-related-tag")}
           {discussion && !topic && tags.length < 2 && publishedOn(item) && <span className="discovery-tag discussion-date-tag"><CalendarDays size={15} aria-hidden="true" /><span>{publishedOn(item)}</span></span>}
           {["qa", "answers"].includes(category) && tags[0] && topicTag(tags[0], "discovery-detail-tag")}
-          {discussion && onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Read" : "Mark read"}</button>}
+          {discussion && onToggleDone && <VisitedButton done={done} onToggle={() => onToggleDone(item)} />}
           {discussion && (preview ? <button type="button" className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove bookmark" : "Save for later"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category={category} />)}
         </div>}
         {!discussion && <footer className={article || category === "websites" ? "discovery-meta-footer" : ""}>
@@ -293,7 +298,7 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
           </div> : <span>{paper || clean ? "" : effortOf(item, category) || formatSignal(item) || ""}</span>}
           <span className="discovery-footer-actions">
             {!book && !paper && !article && category !== "websites" && !["essays", "courses"].includes(category) && <span className="discovery-action">{ACTIONS[category] || "Open"}<ArrowUpRight size={17} /></span>}
-            {onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Read" : "Mark read"}</button>}
+            {onToggleDone && <VisitedButton done={done} onToggle={() => onToggleDone(item)} />}
             {preview ? <button type="button" className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove bookmark" : "Save for later"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category={category} />}
           </span>
         </footer>}
