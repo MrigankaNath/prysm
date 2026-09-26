@@ -113,7 +113,7 @@ function VideoCard({ item, title, topic, preview, saved, onToggleSave, onVisit, 
   };
   return <article className="discovery-card discovery-videos" {...light} style={{ "--card-span": span }}>
     <div className="video-card-backing"><span><Play size={13} fill="currentColor" aria-hidden="true" /> YouTube</span></div>
-    <svg className="video-card-surface" viewBox="0 0 600 375" preserveAspectRatio="none" aria-hidden="true"><path d="M25 1H335C383 1 370 55 424 55H575Q599 55 599 80V350Q599 374 575 374H25Q1 374 1 350V25Q1 1 25 1Z" /></svg>
+    <svg className="video-card-surface" viewBox="0 0 600 400" preserveAspectRatio="none" aria-hidden="true"><path d="M25 1H335C383 1 370 55 424 55H575Q599 55 599 80V375Q599 399 575 399H25Q1 399 1 375V25Q1 1 25 1Z" /></svg>
     <div className="video-card-light" aria-hidden="true" />
     <div className="video-card-content">
       <div className="video-card-main">
@@ -144,7 +144,7 @@ function PodcastCard({ item, title, topic, preview, saved, onToggleSave, onVisit
 
   return <article className="discovery-card discovery-podcasts" {...light} style={{ "--card-span": span }}>
     <div className="podcast-card-backing"><span><Headphones size={14} aria-hidden="true" />Podcast</span></div>
-    <svg className="podcast-card-surface" viewBox="0 0 600 375" preserveAspectRatio="none" aria-hidden="true"><path d="M25 1H335C383 1 370 55 424 55H575Q599 55 599 80V350Q599 374 575 374H25Q1 374 1 350V25Q1 1 25 1Z" /></svg>
+    <svg className="podcast-card-surface" viewBox="0 0 600 400" preserveAspectRatio="none" aria-hidden="true"><path d="M25 1H335C383 1 370 55 424 55H575Q599 55 599 80V375Q599 399 575 399H25Q1 399 1 375V25Q1 1 25 1Z" /></svg>
     <div className="podcast-card-light" aria-hidden="true" />
     <div className="podcast-card-content">
       <div className="podcast-card-main">
@@ -334,11 +334,12 @@ export default function DiscoveryFeed({ items, preview = false, topic, category,
   const codeFeed = visible.length > 0 && visible.every((item) => item.category === "code");
   const uniform = visible.length > 0 && visible.every((item) => item.category === visible[0].category);
   const mixed = !compact && !uniform && selected.id === "all";
+  const compactKinds = new Set(["websites", "books", "podcasts", "papers", "code"]);
   const spanFor = (item, index) => {
     if (!mixed) return 6;
     const pair = visible[index % 2 === 0 ? index + 1 : index - 1];
-    if (!pair || (item.category === "podcasts") === (pair.category === "podcasts")) return 6;
-    return item.category === "podcasts" ? 5 : 7;
+    if (!pair || compactKinds.has(item.category) === compactKinds.has(pair.category)) return 6;
+    return compactKinds.has(item.category) ? 5 : 7;
   };
   return <div className={`discovery-feed${codeFeed ? " is-code-feed" : ""}`}>
     {filters && <div className="discovery-formats" role="group" aria-label="Filter discoveries by format">{FORMATS.map((entry) => {
