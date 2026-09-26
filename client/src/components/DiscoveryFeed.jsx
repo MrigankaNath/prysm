@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Play, Globe, Star, GitFork, Check, Headphones, Eye, Clapperboard, ListMusic, Radio, FileText, BadgeCheck, CalendarDays, Quote } from "lucide-react";
+import { ArrowUpRight, Play, Globe, Star, GitFork, Check, Headphones, Eye, Clapperboard, ListMusic, FileText, BadgeCheck, CalendarDays, Quote } from "lucide-react";
 import { BookmarkButton } from "./ResultCard";
 import { CATEGORY_LABELS } from "./categories";
 import { BookVisual } from "./BookCard";
@@ -17,7 +17,7 @@ import websiteMark from "../assets/website.svg";
 import "./DiscoveryFeed.css";
 
 const ACTIONS = { courses: "View course", essays: "Read essay", videos: "Watch video", podcasts: "Listen to show", papers: "Read paper", code: "Explore repository", books: "Explore book", discussions: "Join discussion", community: "Join discussion", qa: "Read answer", answers: "Read answer" };
-const BRANDS = { "youtube.com": "YouTube", "youtu.be": "YouTube", "github.com": "GitHub", "arxiv.org": "arXiv", "podcasts.apple.com": "Apple Podcasts", "reddit.com": "Reddit", "en.wikipedia.org": "Wikipedia", "news.ycombinator.com": "Hacker News" };
+const BRANDS = { "youtube.com": "YouTube", "youtu.be": "YouTube", "github.com": "GitHub", "arxiv.org": "arXiv", "open.spotify.com": "Spotify", "podcasts.apple.com": "Apple Podcasts", "reddit.com": "Reddit", "en.wikipedia.org": "Wikipedia", "news.ycombinator.com": "Hacker News" };
 
 function SourceTag({ host, showAddress = false }) {
   const [broken, setBroken] = useState(false);
@@ -77,23 +77,13 @@ function PublisherMark({ host, thumbnail }) {
 
 function WebsiteIdentity({ host }) {
   return <div className="discovery-site-identity">
-    <PublisherMark host={host} />
+    <span className="discovery-site-favicon"><PublisherMark host={host} /></span>
     <div className="discovery-site-address"><span>Domain</span><p>{host}</p></div>
-    <img className="discovery-site-symbol" src={websiteMark} alt="" />
+    <img className="discovery-site-symbol" src={websiteMark} alt="" aria-hidden="true" />
   </div>;
 }
 
 const count = (value) => new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value);
-
-function videoKind(item) {
-  const title = item.title.toLowerCase();
-  if (/\b(tutorial|walkthrough|step[- ]by[- ]step|how to)\b/.test(title)) return "Tutorial";
-  if (/\b(lecture|talk|keynote)\b/.test(title)) return "Lecture";
-  if (/\b(interview|conversation|podcast)\b/.test(title)) return "Interview";
-  if (/\b(documentary|film)\b/.test(title)) return "Documentary";
-  if (/\b(explained|explainer|what is|why does|how does)\b/.test(title)) return "Explainer";
-  return "Video";
-}
 
 function youtubeThumbnail(url) {
   try {
@@ -105,8 +95,18 @@ function youtubeThumbnail(url) {
   } catch { return null; }
 }
 
+function videoTitleParts(title) {
+  if (title.length < 55) return [title, ""];
+  const words = title.split(/\s+/);
+  let first = "";
+  let index = 0;
+  while (index < words.length - 1 && first.length < title.length * .52) first += `${first ? " " : ""}${words[index++]}`;
+  return [first, words.slice(index).join(" ")];
+}
+
 function VideoCard({ item, title, topic, preview, saved, onToggleSave, onVisit, done, onToggleDone, light, span }) {
   const thumbnail = item.thumbnail || youtubeThumbnail(item.url);
+  const [titleLead, titleTail] = videoTitleParts(title);
   const views = typeof item.signal === "number" && item.signal > 0
     ? `${new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(item.signal)} views`
     : null;
@@ -125,12 +125,12 @@ function VideoCard({ item, title, topic, preview, saved, onToggleSave, onVisit, 
             {thumbnail ? <img src={thumbnail} alt="" /> : <div className="video-card-fallback"><Clapperboard size={35} aria-hidden="true" /></div>}
           </div>
         </div>
-        <div className="video-card-copy"><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{title}</a></h4>{item.snippet && <p>{item.snippet}</p>}</div>
+        <div className="video-card-copy"><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}><strong>{titleLead}</strong>{titleTail && <span> {titleTail}</span>}</a></h4></div>
       </div>
       <div className="video-card-meta" aria-label="Video details">
         {item.author && <span className="video-card-chip video-card-channel" title={item.author}><span className="video-card-avatar" aria-hidden="true">{item.author.charAt(0).toUpperCase()}</span><span className="video-card-channel-copy"><span className="video-card-chip-label">CHANNEL</span><span className="video-card-channel-name">{item.author}</span></span></span>}
         {views && <span className="video-card-chip" title={`${item.signal.toLocaleString()} views`}><Eye size={13} aria-hidden="true" />{views}</span>}
-        <span className="video-card-chip"><Clapperboard size={13} aria-hidden="true" />{videoKind(item)}</span>
+        {publishedOn(item) && <span className="video-card-chip" title={`Uploaded ${publishedOn(item)}`}><CalendarDays size={13} aria-hidden="true" />{publishedOn(item)}</span>}
         {onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Watched" : "Mark watched"}</button>}
         {preview ? <button type="button" className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove bookmark" : "Save for later"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category="videos" />}
       </div>
@@ -139,7 +139,6 @@ function VideoCard({ item, title, topic, preview, saved, onToggleSave, onVisit, 
 }
 
 function PodcastCard({ item, title, topic, preview, saved, onToggleSave, onVisit, done, onToggleDone, light, span }) {
-  const platform = hostOf(item.url) === "podcasts.apple.com" ? "Apple Podcasts" : "Podcast";
   const description = item.description || (item.snippet && !item.snippet.includes(" · ") ? item.snippet : item.genre && item.author ? `A ${item.genre.toLowerCase()} show from ${item.author}.` : null);
   const visit = () => {
     if (!preview) recordVisit(item, { topic, category: "podcasts" });
@@ -147,7 +146,7 @@ function PodcastCard({ item, title, topic, preview, saved, onToggleSave, onVisit
   };
 
   return <article className="discovery-card discovery-podcasts" {...light} style={{ "--card-span": span }}>
-    <div className="podcast-card-backing"><span><Headphones size={14} aria-hidden="true" />{platform}</span></div>
+    <div className="podcast-card-backing"><span><Headphones size={14} aria-hidden="true" />Podcast</span></div>
     <svg className="podcast-card-surface" viewBox="0 0 600 375" preserveAspectRatio="none" aria-hidden="true"><path d="M25 1H335C383 1 370 55 424 55H575Q599 55 599 80V350Q599 374 575 374H25Q1 374 1 350V25Q1 1 25 1Z" /></svg>
     <div className="podcast-card-light" aria-hidden="true" />
     <div className="podcast-card-content">
@@ -155,12 +154,11 @@ function PodcastCard({ item, title, topic, preview, saved, onToggleSave, onVisit
         <div className="podcast-card-cover-frame"><div className="podcast-card-cover">
           {item.thumbnail ? <img src={item.thumbnail} alt="" /> : <div className="podcast-card-cover-fallback"><Headphones size={54} aria-hidden="true" /></div>}
         </div></div>
-        <div className="podcast-card-copy"><span className="podcast-card-kicker"><img className="podcast-card-mark" src={podcastMark} alt="" />Audio series{topic ? ` · ${topic}` : ""}</span><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{title}</a></h4>{description && <p className="podcast-card-description">{description}</p>}</div>
+        <div className="podcast-card-copy"><span className="podcast-card-kicker"><img className="podcast-card-mark" src={podcastMark} alt="" />{item.source === "spotify" ? "Spotify · " : ""}Audio series{topic ? ` · ${topic}` : ""}</span><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{title}</a></h4>{description && <p className="podcast-card-description">{description}</p>}</div>
       </div>
       <div className="podcast-card-meta" aria-label="Podcast details">
         <span className="podcast-card-chip podcast-card-publisher" title={item.author || "Publisher unavailable"}><span className="podcast-card-avatar" aria-hidden="true">{(item.author || "?").charAt(0).toUpperCase()}</span><span className="podcast-card-publisher-copy"><span className="podcast-card-chip-label">PUBLISHER</span><span className="podcast-card-publisher-name">{item.author || "Unknown publisher"}</span></span></span>
-        <span className="podcast-card-chip" title={item.signal > 0 ? `${item.signal.toLocaleString()} episodes` : "Episode count unavailable"}><ListMusic size={14} aria-hidden="true" />{item.signal > 0 ? `${count(item.signal)} episodes` : "Episodes unavailable"}</span>
-        <span className="podcast-card-chip"><Radio size={14} aria-hidden="true" />{item.genre || "Podcast"}</span>
+        {item.signal > 0 && <span className="podcast-card-chip" title={`${item.signal.toLocaleString()} episodes`}><ListMusic size={14} aria-hidden="true" />{count(item.signal)} episodes</span>}
         {onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Played" : "Mark played"}</button>}
         {preview ? <button type="button" className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove bookmark" : "Save for later"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category="podcasts" />}
       </div>
@@ -252,9 +250,7 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
     : null;
   const discussionBlurb = discussion && title.length < 105 ? discussionLine(item) : null;
   const articleBlurb = article ? shortCardLine(item.description || item.snippet, title) : null;
-  const websiteBlurb = category === "websites"
-    ? shortCardLine(item.description || item.snippet, title) || (item.source === "wikipedia" && topic ? `Selected from Wikipedia’s external links on ${topic}.` : null)
-    : null;
+  const websiteBlurb = category === "websites" ? shortCardLine(item.description || item.snippet, title) : null;
   const visit = () => { if (!preview) recordVisit(item, { topic, category }); onVisit?.(); };
   const props = { item, title, topic, preview, saved, onToggleSave, onVisit, done, onToggleDone, light, span };
   if (category === "videos") return <VideoCard {...props} />;
@@ -289,9 +285,9 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
           {paper && typeof item.peer_reviewed === "boolean" && <span className="discovery-tag paper-status-tag">{item.peer_reviewed ? <BadgeCheck size={15} /> : <FileText size={15} />}<span>{item.peer_reviewed ? "Peer reviewed" : "Preprint"}</span></span>}
           {paper && publishedOn(item) && <span className="discovery-tag paper-date-tag"><CalendarDays size={15} /><span>{publishedOn(item)}</span></span>}
           {!book && !article && !discussion && topic && topicTag(topic)}
-          {discussion && tags.slice(0, topic ? 2 : 3).map(tag => topicTag(tag, "discussion-related-tag"))}
+          {discussion && tags.slice(0, topic ? 1 : 2).map(tag => topicTag(tag, "discussion-related-tag"))}
           {discussion && topic && topicTag(topic, "discussion-related-tag")}
-          {discussion && publishedOn(item) && <span className="discovery-tag discussion-date-tag"><CalendarDays size={15} aria-hidden="true" /><span>{publishedOn(item)}</span></span>}
+          {discussion && !topic && tags.length < 2 && publishedOn(item) && <span className="discovery-tag discussion-date-tag"><CalendarDays size={15} aria-hidden="true" /><span>{publishedOn(item)}</span></span>}
           {["qa", "answers"].includes(category) && tags[0] && topicTag(tags[0], "discovery-detail-tag")}
           {discussion && onToggleDone && <button type="button" className="discovery-done" aria-pressed={!!done} onClick={() => onToggleDone(item)}><Check size={15} />{done ? "Read" : "Mark read"}</button>}
           {discussion && (preview ? <button type="button" className={`bookmark-btn${saved ? " saved" : ""}`} aria-label={saved ? "Remove bookmark" : "Save for later"} aria-pressed={saved} onClick={() => onToggleSave(item.url)}><svg viewBox="0 0 24 24" fill={saved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.6"><path d="M6 4h12v17l-6-4-6 4z" /></svg></button> : <BookmarkButton item={item} topic={topic} category={category} />)}
@@ -301,7 +297,7 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
             {topic && topicTag(topic)}
             {article && tags.slice(0, topic ? 1 : 2).map(tag => topicTag(tag, "discovery-detail-tag"))}
             {article && !tags.length && publishedOn(item) && <span className="discovery-tag discovery-detail-tag"><CalendarDays size={15} aria-hidden="true" /><span>{publishedOn(item)}</span></span>}
-            {category === "websites" && item.source === "wikipedia" && <span className="discovery-tag website-curation-tag"><img src="https://www.google.com/s2/favicons?domain=en.wikipedia.org&sz=64" alt="" /><span>Listed on Wikipedia</span></span>}
+            {category === "websites" && tags[0] && topicTag(tags[0], "discovery-detail-tag")}
           </div> : <span>{paper || clean ? "" : effortOf(item, category) || formatSignal(item) || ""}</span>}
           <span className="discovery-footer-actions">
             {!book && !paper && !article && category !== "websites" && !["essays", "courses"].includes(category) && <span className="discovery-action">{ACTIONS[category] || "Open"}<ArrowUpRight size={17} /></span>}

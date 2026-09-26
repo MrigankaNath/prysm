@@ -25,6 +25,7 @@ export function formatSignal(item) {
     hackernews: "points",
     stackexchange: "votes",
     podcasts: "episodes",
+    spotify: "episodes",
     youtube: "views",
     openalex: "citations",
   };
@@ -73,4 +74,3 @@ export function publishedOn(item) {
     ? date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     : null;
 }
-
