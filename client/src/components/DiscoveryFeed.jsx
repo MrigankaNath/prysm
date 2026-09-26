@@ -13,6 +13,7 @@ import { discussionLine, shortCardLine } from "../lib/cardCopy";
 import researchArt from "../assets/research.svg";
 import podcastMark from "../assets/podcast.svg";
 import codeMark from "../assets/code-card.svg";
+import websiteMark from "../assets/website.svg";
 import "./DiscoveryFeed.css";
 
 const ACTIONS = { courses: "View course", essays: "Read essay", videos: "Watch video", podcasts: "Listen to show", papers: "Read paper", code: "Explore repository", books: "Explore book", discussions: "Join discussion", community: "Join discussion", qa: "Read answer", answers: "Read answer" };
@@ -72,12 +73,6 @@ function CategoryIdentity({ item, category }) {
 function PublisherMark({ host, thumbnail }) {
   const [broken, setBroken] = useState(false);
   return <span className="discovery-clean-mark" aria-hidden="true">{broken ? <Globe size={24} /> : <img src={thumbnail || `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host || "")}&sz=128`} alt="" onError={() => setBroken(true)} />}</span>;
-}
-
-function WebsiteIdentity({ host }) {
-  return <div className="discovery-site-identity">
-    <span>Domain</span><strong>{host}</strong>
-  </div>;
 }
 
 const count = (value) => new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(value);
@@ -262,12 +257,11 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
     </>}
     <div className="discovery-content">
       {category === "code" ? <CodeRepository {...props} /> : <>
-        {article || discussion || paper ? <div className={`${kind}-masthead`}><SourceTag host={host} showAddress={discussion} /></div> : !clean && <CategoryIdentity item={item} category={category} />}
-        {category === "websites" && <WebsiteIdentity host={host} />}
+        {article || discussion || paper || category === "websites" ? <div className={`${kind}-masthead`}><SourceTag host={host} showAddress={discussion || category === "websites"} /></div> : !clean && <CategoryIdentity item={item} category={category} />}
         <div className="discovery-summary">
           {!kind && !clean && <div className="discovery-eyebrow"><span>{category === "essays" ? "Essay" : category === "courses" ? "Course" : CATEGORY_LABELS[category]}</span></div>}
           {paper && <div className="paper-visual" aria-hidden="true"><img src={researchArt} alt="" /></div>}
-          {category === "websites" && <div className="discovery-site-core"><PublisherMark host={host} /></div>}
+          {category === "websites" && <img className="website-visual" src={websiteMark} alt="" aria-hidden="true" />}
           <div className={clean || book ? "discovery-clean-heading" : "discovery-heading"}><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{title}</a></h4></div>
           {discussionBlurb && <p className="discussion-context">{discussionBlurb}</p>}
           {articleBlurb && <p className="discovery-card-line article-context">{articleBlurb}</p>}
