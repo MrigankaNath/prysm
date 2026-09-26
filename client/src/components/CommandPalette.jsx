@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiJson } from "../lib/api";
-import { getBookmarks, getHistory, getTopics } from "../lib/library";
+import { getBookmarks, getHistory, getTopics, recordVisit } from "../lib/library";
 import { SPECTRUM_TOPICS } from "../lib/clusters";
-import DiscoveryFeed from "./DiscoveryFeed";
+import { BookVisual } from "./BookCard";
+import { presentContent } from "../lib/contentPresentation";
 import {
   IconSearch,
   IconClock,
@@ -160,7 +161,7 @@ function LocalRows({ label, rows, onPick, onVisit, emptyText }) {
         <p className="command-empty">{emptyText}</p>
       ) : (
         rows.map((row) => row.item ? (
-          <div key={row.id} className="command-content-card"><DiscoveryFeed items={[row.item]} compact filters={false} onVisit={onVisit} /></div>
+          <ContentRow key={row.id} item={row.item} onVisit={onVisit} />
         ) : (
           <button
             key={row.id}
@@ -175,6 +176,35 @@ function LocalRows({ label, rows, onPick, onVisit, emptyText }) {
       )}
     </div>
   );
+}
+
+function ContentRow({ item, onVisit }) {
+  const content = presentContent(item);
+  if (!content) return null;
+  return <a className="command-item command-result" href={content.url} target="_blank" rel="noopener noreferrer" onClick={() => {
+    recordVisit(content, { topic: content.topic, category: content.category });
+    onVisit?.();
+  }}>
+    <span className="command-item-main">{content.title}</span>
+    <span className="command-item-meta">{content.category.replace(/s$/, "")}</span>
+  </a>;
+}
+
+function BookRows({ items, topic, onVisit }) {
+  return <div className="command-book-shelf">
+    {items.map((item) => {
+      const book = presentContent(item, { topic, category: "books" });
+      if (!book) return null;
+      return <a key={book.url} className="command-book" href={book.url} target="_blank" rel="noopener noreferrer" onClick={() => {
+        recordVisit(book, { topic, category: "books" });
+        onVisit?.();
+      }} aria-label={`${book.title}${book.author ? ` by ${book.author}` : ""}`}>
+        <span className="book-object" aria-hidden="true"><BookVisual item={book} /></span>
+        <span className="command-book-title">{book.title}</span>
+        {book.author && <span className="command-book-author">{book.author}</span>}
+      </a>;
+    })}
+  </div>;
 }
 
 function CommandPalette({ open, setOpen }) {
@@ -374,6 +404,7 @@ function CommandPalette({ open, setOpen }) {
                 if (isBooks) {
                   if (books.items[0]) {
                     e.preventDefault();
+                    recordVisit(books.items[0], { topic: trimmedQuery, category: "books" });
                     openContent(books.items[0].url);
                   }
                 } else if (isLocal) {
@@ -549,7 +580,7 @@ function CommandPalette({ open, setOpen }) {
                   No books found for that topic. Try a broader subject.
                 </p>
               ) : (
-                <DiscoveryFeed items={books.items.slice(0, 6)} topic={trimmedQuery} category="books" filters={false} compact onVisit={() => setOpen(false)} />
+                <BookRows items={books.items.slice(0, 6)} topic={trimmedQuery} onVisit={() => setOpen(false)} />
               )}
             </div>
           )}
@@ -626,7 +657,7 @@ function CommandPalette({ open, setOpen }) {
               {command?.scope !== "prism" && results.content.length > 0 && (
                 <div className="command-group">
                   <div className="command-group-label">Content</div>
-                  <DiscoveryFeed items={results.content} filters={false} compact onVisit={() => setOpen(false)} />
+                  {results.content.map((item) => <ContentRow key={item.url} item={item} onVisit={() => setOpen(false)} />)}
                 </div>
               )}
 

@@ -13,7 +13,6 @@ import { discussionLine, shortCardLine } from "../lib/cardCopy";
 import researchArt from "../assets/research.svg";
 import podcastMark from "../assets/podcast.svg";
 import codeMark from "../assets/code-card.svg";
-import websiteMark from "../assets/website.svg";
 import "./DiscoveryFeed.css";
 
 const ACTIONS = { courses: "View course", essays: "Read essay", videos: "Watch video", podcasts: "Listen to show", papers: "Read paper", code: "Explore repository", books: "Explore book", discussions: "Join discussion", community: "Join discussion", qa: "Read answer", answers: "Read answer" };
@@ -77,9 +76,7 @@ function PublisherMark({ host, thumbnail }) {
 
 function WebsiteIdentity({ host }) {
   return <div className="discovery-site-identity">
-    <span className="discovery-site-favicon"><PublisherMark host={host} /></span>
-    <div className="discovery-site-address"><span>Domain</span><p>{host}</p></div>
-    <img className="discovery-site-symbol" src={websiteMark} alt="" aria-hidden="true" />
+    <span>Domain</span><strong>{host}</strong>
   </div>;
 }
 
@@ -270,6 +267,7 @@ export function DiscoveryCard({ item: rawItem, topic: contextTopic, preview, spa
         <div className="discovery-summary">
           {!kind && !clean && <div className="discovery-eyebrow"><span>{category === "essays" ? "Essay" : category === "courses" ? "Course" : CATEGORY_LABELS[category]}</span></div>}
           {paper && <div className="paper-visual" aria-hidden="true"><img src={researchArt} alt="" /></div>}
+          {category === "websites" && <div className="discovery-site-core"><PublisherMark host={host} /></div>}
           <div className={clean || book ? "discovery-clean-heading" : "discovery-heading"}><h4><a href={item.url} target="_blank" rel="noopener noreferrer" onClick={visit}>{title}</a></h4></div>
           {discussionBlurb && <p className="discussion-context">{discussionBlurb}</p>}
           {articleBlurb && <p className="discovery-card-line article-context">{articleBlurb}</p>}
@@ -335,14 +333,21 @@ export default function DiscoveryFeed({ items, preview = false, topic, category,
   const visible = selected.id === "all" && Number.isInteger(limit) ? matching.slice(0, limit) : matching;
   const codeFeed = visible.length > 0 && visible.every((item) => item.category === "code");
   const uniform = visible.length > 0 && visible.every((item) => item.category === visible[0].category);
+  const mixed = !compact && !uniform && selected.id === "all";
+  const spanFor = (item, index) => {
+    if (!mixed) return 6;
+    const pair = visible[index % 2 === 0 ? index + 1 : index - 1];
+    if (!pair || (item.category === "podcasts") === (pair.category === "podcasts")) return 6;
+    return item.category === "podcasts" ? 5 : 7;
+  };
   return <div className={`discovery-feed${codeFeed ? " is-code-feed" : ""}`}>
     {filters && <div className="discovery-formats" role="group" aria-label="Filter discoveries by format">{FORMATS.map((entry) => {
       const count = entry.categories ? available.filter((item) => entry.categories.includes(item.category)).length : available.length;
       return <button key={entry.id} type="button" aria-pressed={selected.id === entry.id} disabled={count === 0} onClick={() => setFormat(entry.id)}>{entry.label}<span>{count}</span></button>;
     })}</div>}
     {filters && <span className="discovery-result-count" role="status">{visible.length < matching.length ? `${visible.length} of ${matching.length}` : matching.length} {matching.length === 1 ? "discovery" : "discoveries"}</span>}
-    <div className={`discovery-grid${compact ? " is-compact" : ""}${uniform ? " is-uniform" : ""}`}>{visible.map((item) => {
-      return <DiscoveryCard key={item.url} item={item} compact={compact} onVisit={onVisit} done={doneUrls?.has(item.url)} onToggleDone={onToggleDone} preview={preview} saved={previewBookmarks.has(item.url)} onToggleSave={togglePreviewBookmark} span={6} />;
+    <div className={`discovery-grid${compact ? " is-compact" : ""}${uniform ? " is-uniform" : ""}${mixed ? " is-mixed" : ""}`}>{visible.map((item, index) => {
+      return <DiscoveryCard key={item.url} item={item} compact={compact} onVisit={onVisit} done={doneUrls?.has(item.url)} onToggleDone={onToggleDone} preview={preview} saved={previewBookmarks.has(item.url)} onToggleSave={togglePreviewBookmark} span={spanFor(item, index)} />;
     })}</div>
   </div>;
 }
